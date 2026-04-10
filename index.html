@@ -472,6 +472,9 @@ function doLogin(){
   const user=getUsers().find(u=>u.email===em);
   if(!user){showMsg('li-em-msg','err','❌','등록되지 않은 이메일 주소입니다');setState('li-em','ng');return;}
   if(user.pw!==pw){showMsg('li-pw-msg','err','❌','비밀번호가 올바르지 않습니다');setState('li-pw','ng');return;}
+  /* 삭제(banned) 계정 차단 */
+  const banned=JSON.parse(localStorage.getItem('tt_banned')||'[]');
+  if(banned.includes(em)){showMsg('li-em-msg','err','❌','접근이 제한된 계정입니다. 관리자에게 문의하세요');setState('li-em','ng');return;}
   localStorage.setItem(K.SESSION,JSON.stringify({name:user.name,email:user.email,role:'user'}));
   showToast('👋 반갑습니다, '+user.name+'님!','ok');
   setTimeout(()=>location.href='chat.html',1200);
