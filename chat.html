@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TARRYTALK — 채팅</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root[data-theme="light"]{
+    --bg:#f0fdf7;--bg2:#ffffff;--surface:#e8faf2;--border:#c3eada;
+    --text:#0d2b1e;--text2:#3d6b55;--accent:#00b874;--accent2:#00976b;
+    --accent-glow:rgba(0,184,116,.2);--shadow:rgba(0,100,60,.1);
+    --msg-out:#00b874;--msg-in:#ffffff;--msg-out-t:#ffffff;--msg-in-t:#0d2b1e;
+    --sidebar-bg:#f5fdf9;--hover:#e0f7ec;--input-bg:#f5fdf9;--time-c:#7fc9a0;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0d1f16;--bg2:#122019;--surface:#1a2f21;--border:#2a4a35;
+    --text:#d4f5e5;--text2:#7fc9a0;--accent:#00e08a;--accent2:#00b874;
+    --accent-glow:rgba(0,224,138,.15);--shadow:rgba(0,0,0,.4);
+    --msg-out:#00b874;--msg-in:#1a2f21;--msg-out-t:#ffffff;--msg-in-t:#d4f5e5;
+    --sidebar-bg:#0f1d15;--hover:#1f3626;--input-bg:#162a1e;--time-c:#5a9a74;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);
+    height:100vh;display:flex;overflow:hidden;transition:background .3s,color .3s;}
+
+  /* ── SIDEBAR ── */
+  .sidebar{width:310px;min-width:260px;background:var(--sidebar-bg);
+    border-right:1.5px solid var(--border);display:flex;flex-direction:column;}
+  .sb-header{padding:18px 18px 0;display:flex;align-items:center;justify-content:space-between;}
+  .sb-logo{font-size:20px;font-weight:900;color:var(--accent);letter-spacing:1px;}
+  .sb-actions{display:flex;gap:8px;}
+  .icon-btn{width:36px;height:36px;border-radius:50%;background:var(--surface);
+    border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;
+    cursor:pointer;font-size:15px;transition:all .2s;text-decoration:none;}
+  .icon-btn:hover{background:var(--accent);border-color:var(--accent);}
+
+  .search-wrap{padding:12px 14px 8px;position:relative;}
+  .search-wrap::before{content:'🔍';position:absolute;left:26px;top:22px;font-size:12px;pointer-events:none;}
+  .search-input{width:100%;padding:10px 14px 10px 36px;background:var(--surface);
+    border:1.5px solid var(--border);border-radius:50px;color:var(--text);font-size:13px;
+    font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color .2s;}
+  .search-input:focus{border-color:var(--accent);}
+
+  .tab-bar{display:flex;border-bottom:1.5px solid var(--border);padding:0 14px;}
+  .tab{flex:1;padding:11px 0;text-align:center;font-size:13px;font-weight:700;
+    cursor:pointer;color:var(--text2);border-bottom:2.5px solid transparent;
+    transition:all .2s;margin-bottom:-1.5px;}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+  .chat-list{flex:1;overflow-y:auto;padding:6px 0;}
+  .chat-list::-webkit-scrollbar{width:4px;}
+  .chat-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+  .section-label{padding:10px 16px 4px;font-size:10px;font-weight:700;
+    color:var(--text2);text-transform:uppercase;letter-spacing:1.2px;}
+
+  .chat-item{display:flex;align-items:center;gap:12px;padding:11px 14px;
+    cursor:pointer;transition:background .15s;border-radius:14px;margin:2px 8px;}
+  .chat-item:hover{background:var(--hover);}
+  .chat-item.active{background:var(--hover);border-left:3px solid var(--accent);}
+  .ci-av{width:46px;height:46px;border-radius:14px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex;align-items:center;justify-content:center;
+    font-size:18px;color:#fff;font-weight:700;flex-shrink:0;position:relative;}
+  .online-dot{position:absolute;bottom:2px;right:2px;width:11px;height:11px;
+    border-radius:50%;background:#00e08a;border:2px solid var(--sidebar-bg);}
+  .ci-info{flex:1;min-width:0;}
+  .ci-name{font-weight:700;font-size:14px;margin-bottom:2px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ci-prev{font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ci-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+  .ci-time{font-size:11px;color:var(--text2);}
+  .badge{background:var(--accent);color:#fff;font-size:10px;font-weight:700;
+    padding:2px 7px;border-radius:50px;min-width:20px;text-align:center;}
+
+  .sb-footer{padding:12px 14px;border-top:1.5px solid var(--border);display:flex;gap:6px;}
+  .foot-btn{flex:1;padding:9px;border-radius:10px;background:var(--surface);
+    border:1.5px solid var(--border);color:var(--text2);font-size:11px;font-weight:700;
+    cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .2s;
+    text-decoration:none;display:flex;align-items:center;justify-content:center;gap:4px;}
+  .foot-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+  /* ── MAIN ── */
+  .chat-main{flex:1;display:flex;flex-direction:column;background:var(--bg2);min-width:0;}
+  .topbar{padding:14px 22px;border-bottom:1.5px solid var(--border);
+    display:flex;align-items:center;gap:14px;background:var(--bg2);}
+  .tb-av{width:42px;height:42px;border-radius:13px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;flex-shrink:0;}
+  .tb-name{font-weight:800;font-size:16px;}
+  .tb-sub{font-size:12px;color:var(--accent);font-weight:600;margin-top:1px;}
+  .tb-actions{display:flex;gap:8px;margin-left:auto;}
+
+  .messages{flex:1;overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:14px;}
+  .messages::-webkit-scrollbar{width:5px;}
+  .messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:5px;}
+
+  .date-div{text-align:center;color:var(--text2);font-size:11px;font-weight:600;
+    position:relative;margin:4px 0;}
+  .date-div::before,.date-div::after{content:'';position:absolute;top:50%;
+    width:38%;height:1px;background:var(--border);}
+  .date-div::before{left:0;}.date-div::after{right:0;}
+
+  .mg{display:flex;gap:10px;align-items:flex-end;}
+  .mg.out{flex-direction:row-reverse;}
+  .mg-av{width:34px;height:34px;border-radius:10px;
+    background:linear-gradient(135deg,#68d391,#38a169);
+    display:flex;align-items:center;justify-content:center;
+    font-size:14px;flex-shrink:0;color:#fff;font-weight:700;align-self:flex-end;}
+  .mg-body{display:flex;flex-direction:column;gap:3px;max-width:56%;}
+  .mg.out .mg-body{align-items:flex-end;}
+  .mg-sender{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:1px;}
+  .mg.out .mg-sender{display:none;}
+
+  .bubble{padding:11px 15px;border-radius:18px;font-size:14px;line-height:1.55;
+    word-break:break-word;box-shadow:0 2px 8px var(--shadow);}
+  .mg.out .bubble{background:var(--msg-out);color:var(--msg-out-t);border-bottom-right-radius:4px;}
+  .mg:not(.out) .bubble{background:var(--msg-in);color:var(--msg-in-t);
+    border-bottom-left-radius:4px;border:1.5px solid var(--border);}
+
+  /* 이미지/링크 버블 */
+  .img-bubble{border-radius:16px;overflow:hidden;max-width:260px;
+    border:1.5px solid var(--border);box-shadow:0 4px 16px var(--shadow);cursor:pointer;}
+  .img-bubble img{width:100%;display:block;object-fit:cover;max-height:220px;}
+  .img-caption{padding:8px 12px;font-size:12px;background:var(--surface);
+    color:var(--text2);display:flex;align-items:center;gap:6px;}
+  .img-caption a{color:var(--accent);text-decoration:none;font-size:11px;font-weight:600;}
+
+  .mg-meta{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--time-c);}
+  .mg.out .mg-meta{flex-direction:row-reverse;}
+  .read-chk{color:var(--accent);font-size:12px;}
+
+  /* ── INPUT ── */
+  .input-area{padding:14px 22px;border-top:1.5px solid var(--border);background:var(--bg2);}
+  .emoji-row{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
+  .ep{padding:5px 10px;border-radius:50px;background:var(--surface);
+    border:1.5px solid var(--border);cursor:pointer;font-size:16px;transition:all .15s;}
+  .ep:hover{background:var(--accent);border-color:var(--accent);transform:scale(1.1);}
+
+  .tool-bar{display:flex;gap:6px;margin-bottom:10px;align-items:center;}
+  .tool-btn{width:32px;height:32px;border-radius:8px;background:var(--surface);
+    border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;
+    cursor:pointer;font-size:15px;transition:all .2s;}
+  .tool-btn:hover{background:var(--accent);border-color:var(--accent);}
+
+  /* 이미지 URL 입력 */
+  .link-row{display:none;align-items:center;gap:8px;margin-bottom:10px;
+    background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:8px 12px;}
+  .link-row.show{display:flex;}
+  .link-inp{flex:1;background:none;border:none;outline:none;font-size:13px;
+    font-family:'Noto Sans KR',sans-serif;color:var(--text);}
+  .link-inp::placeholder{color:var(--text2);opacity:.5;}
+  .link-send{padding:6px 14px;border-radius:8px;background:var(--accent);border:none;
+    color:#fff;font-size:12px;font-weight:700;cursor:pointer;
+    font-family:'Noto Sans KR',sans-serif;white-space:nowrap;}
+  .link-cancel{cursor:pointer;font-size:18px;color:var(--text2);background:none;border:none;}
+
+  .input-row{display:flex;gap:10px;align-items:flex-end;}
+  .msg-input{flex:1;padding:13px 18px;background:var(--input-bg);
+    border:1.5px solid var(--border);border-radius:24px;color:var(--text);font-size:14px;
+    font-family:'Noto Sans KR',sans-serif;outline:none;resize:none;
+    max-height:120px;min-height:48px;transition:border-color .2s;line-height:1.5;}
+  .msg-input:focus{border-color:var(--accent);}
+  .msg-input::placeholder{color:var(--text2);opacity:.5;}
+  .send-btn{width:48px;height:48px;border-radius:50%;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    font-size:20px;box-shadow:0 4px 16px var(--accent-glow);transition:all .2s;flex-shrink:0;}
+  .send-btn:hover{transform:scale(1.1);}
+
+  /* ── 게스트 잠금 오버레이 ── */
+  .guest-lock{
+    position:absolute;bottom:0;left:0;right:0;
+    background:linear-gradient(to top,var(--bg2) 60%,transparent);
+    padding:40px 22px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;
+    pointer-events:none;
+  }
+  .guest-lock-box{
+    background:var(--bg2);border:1.5px solid var(--border);border-radius:18px;
+    padding:18px 24px;text-align:center;box-shadow:0 8px 28px var(--shadow);
+    pointer-events:all;width:100%;max-width:360px;
+  }
+  .guest-lock-box h3{font-size:15px;font-weight:800;margin-bottom:6px;}
+  .guest-lock-box p{font-size:13px;color:var(--text2);margin-bottom:14px;}
+  .guest-btns{display:flex;gap:8px;}
+  .guest-btn-login{flex:1;padding:11px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+    border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:700;
+    cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
+  .guest-btn-signup{flex:1;padding:11px;background:var(--surface);
+    border:1.5px solid var(--border);border-radius:12px;color:var(--text2);
+    font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
+
+  /* ── RIGHT PANEL ── */
+  .right-panel{width:250px;border-left:1.5px solid var(--border);
+    background:var(--sidebar-bg);padding:18px;overflow-y:auto;
+    display:flex;flex-direction:column;gap:18px;}
+  .rp-title{font-size:11px;font-weight:700;color:var(--text2);
+    text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+  .member-item{display:flex;align-items:center;gap:10px;padding:8px;
+    border-radius:10px;cursor:pointer;transition:background .15s;}
+  .member-item:hover{background:var(--hover);}
+  .m-av{width:34px;height:34px;border-radius:10px;
+    background:linear-gradient(135deg,var(--accent),#68d391);
+    display:flex;align-items:center;justify-content:center;
+    font-size:14px;color:#fff;font-weight:700;position:relative;}
+  .m-name{font-size:13px;font-weight:600;}
+  .m-role{font-size:11px;color:var(--text2);}
+
+  /* 테마 토글 */
+  .theme-row{display:flex;align-items:center;justify-content:space-between;
+    padding:12px 14px;background:var(--surface);border:1.5px solid var(--border);
+    border-radius:14px;cursor:pointer;}
+  .toggle-track{width:44px;height:24px;border-radius:50px;background:var(--border);
+    position:relative;transition:background .3s;flex-shrink:0;}
+  [data-theme="dark"] .toggle-track{background:var(--accent);}
+  .toggle-thumb{position:absolute;width:18px;height:18px;border-radius:50%;
+    background:#fff;top:3px;left:3px;transition:left .3s;box-shadow:0 2px 6px rgba(0,0,0,.2);}
+  [data-theme="dark"] .toggle-thumb{left:23px;}
+
+  /* 게스트 배너 */
+  .guest-banner{background:linear-gradient(135deg,rgba(0,184,116,.15),rgba(0,150,90,.1));
+    border:1.5px solid var(--accent);border-radius:12px;padding:12px 14px;
+    font-size:12px;font-weight:600;color:var(--accent);display:none;
+    align-items:center;gap:8px;}
+  .guest-banner.show{display:flex;}
+
+  /* 토스트 */
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--accent);color:#fff;padding:12px 22px;border-radius:14px;
+    font-size:13px;font-weight:700;box-shadow:0 8px 24px var(--accent-glow);
+    opacity:0;transition:all .4s cubic-bezier(.16,1,.3,1);z-index:999;white-space:nowrap;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media(max-width:900px){.right-panel{display:none;}}
+  @media(max-width:600px){.sidebar{width:72px;}.ci-info,.ci-meta{display:none;}}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-header">
+    <div class="sb-logo">💬 TARRYTALK</div>
+    <div class="sb-actions">
+      <div class="icon-btn" onclick="toggleTheme()" title="테마">
+        <span id="theme-icon">🌙</span>
+      </div>
+      <a href="profile.html" class="icon-btn" title="프로필">👤</a>
+    </div>
+  </div>
+
+  <div class="search-wrap">
+    <input class="search-input" type="text" placeholder="채팅방, 친구 검색...">
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab active" onclick="switchTab(this,'group')">단체채팅</div>
+    <div class="tab" onclick="switchTab(this,'dm')">1대1 채팅</div>
+  </div>
+
+  <div class="chat-list">
+    <div id="group-list">
+      <div class="section-label">참여 중인 채팅방</div>
+      <div class="chat-item active" onclick="openChat('개발팀 채널','🛠','group',this)">
+        <div class="ci-av">🛠</div>
+        <div class="ci-info"><div class="ci-name">개발팀 채널</div><div class="ci-prev">민준: 배포 완료!</div></div>
+        <div class="ci-meta"><span class="ci-time">오후 2:34</span><span class="badge">3</span></div>
+      </div>
+      <div class="chat-item" onclick="openChat('디자인 팀','🎨','group',this)">
+        <div class="ci-av" style="background:linear-gradient(135deg,#68d391,#276749)">🎨</div>
+        <div class="ci-info"><div class="ci-name">디자인 팀</div><div class="ci-prev">와이어프레임 공유됨</div></div>
+        <div class="ci-meta"><span class="ci-time">오전 11:20</span><span class="badge">1</span></div>
+      </div>
+      <div class="chat-item" onclick="openChat('전체 공지','📢','group',this)">
+        <div class="ci-av" style="background:linear-gradient(135deg,#f6e05e,#d97706)">📢</div>
+        <div class="ci-info"><div class="ci-name">전체 공지</div><div class="ci-prev">금요일 팀 회식</div></div>
+        <div class="ci-meta"><span class="ci-time">어제</span></div>
+      </div>
+      <div class="chat-item" onclick="openChat('스터디 그룹','📚','group',this)">
+        <div class="ci-av" style="background:linear-gradient(135deg,#90cdf4,#2b6cb0)">📚</div>
+        <div class="ci-info"><div class="ci-name">스터디 그룹</div><div class="ci-prev">다음 주제: React 19</div></div>
+        <div class="ci-meta"><span class="ci-time">월요일</span></div>
+      </div>
+    </div>
+
+    <div id="dm-list" style="display:none">
+      <div class="section-label">최근 대화</div>
+      <div class="chat-item" onclick="openChat('김민준','김','dm',this)">
+        <div class="ci-av" style="background:linear-gradient(135deg,#68d391,#276749)">김<div class="online-dot"></div></div>
+        <div class="ci-info"><div class="ci-name">김민준</div><div class="ci-prev">ㅋㅋ 진짜 신기하더라</div></div>
+        <div class="ci-meta"><span class="ci-time">오후 3:01</span><span class="badge">2</span></div>
+      </div>
+      <div class="chat-item" onclick="openChat('이수아','이','dm',this)">
+        <div class="ci-av" style="background:linear-gradient(135deg,#f6ad55,#c05621)">이<div class="online-dot"></div></div>
+        <div class="ci-info"><div class="ci-name">이수아</div><div class="ci-prev">점심 뭐 먹을래? 😋</div></div>
+        <div class="ci-meta"><span class="ci-time">오후 12:47</span></div>
+      </div>
+      <div class="chat-item" onclick="openChat('박지호','박','dm',this)">
+        <div class="ci-av" style="background:linear-gradient(135deg,#76e4f7,#0987a0)">박</div>
+        <div class="ci-info"><div class="ci-name">박지호</div><div class="ci-prev">코드리뷰 부탁드려요</div></div>
+        <div class="ci-meta"><span class="ci-time">오전 9:15</span></div>
+      </div>
+      <div class="chat-item" onclick="openChat('최유나','최','dm',this)">
+        <div class="ci-av" style="background:linear-gradient(135deg,#d6bcfa,#6b46c1)">최</div>
+        <div class="ci-info"><div class="ci-name">최유나</div><div class="ci-prev">감사합니다 ☺️</div></div>
+        <div class="ci-meta"><span class="ci-time">화요일</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sb-footer">
+    <a href="index.html" class="foot-btn">🏠 홈</a>
+    <a href="admin.html" class="foot-btn">⚙️ 관리</a>
+    <a href="profile.html" class="foot-btn">👤 나</a>
+  </div>
+</div>
+
+<!-- MAIN CHAT -->
+<div class="chat-main" style="position:relative;">
+  <div class="topbar">
+    <div class="tb-av" id="tb-av">🛠</div>
+    <div>
+      <div class="tb-name" id="tb-name">개발팀 채널</div>
+      <div class="tb-sub" id="tb-sub">● 멤버 8명 · 온라인 5명</div>
+    </div>
+    <div class="tb-actions">
+      <div class="icon-btn" onclick="toast('🔍 검색 준비 중')">🔍</div>
+      <div class="icon-btn" onclick="toast('📞 통화 준비 중')">📞</div>
+      <div class="icon-btn" onclick="toast('📌 고정 메시지')">📌</div>
+    </div>
+  </div>
+
+  <div class="messages" id="messages">
+    <div class="date-div">2025년 4월 10일 목요일</div>
+
+    <div class="mg">
+      <div class="mg-av">민</div>
+      <div class="mg-body">
+        <div class="mg-sender">김민준</div>
+        <div class="bubble">안녕하세요! 오늘 오전 배포 일정 확인해주세요 🚀</div>
+        <div class="mg-meta"><span>오전 9:02</span></div>
+      </div>
+    </div>
+    <div class="mg">
+      <div class="mg-av" style="background:linear-gradient(135deg,#f6ad55,#c05621)">수</div>
+      <div class="mg-body">
+        <div class="mg-sender">이수아</div>
+        <div class="bubble">네! 테스트 환경에서 확인했어요. 문제없습니다 ✅</div>
+        <div class="mg-meta"><span>오전 9:15</span></div>
+      </div>
+    </div>
+    <div class="mg out">
+      <div class="mg-av" style="background:linear-gradient(135deg,var(--accent),var(--accent2))">나</div>
+      <div class="mg-body">
+        <div class="bubble">PR 리뷰 완료했습니다!</div>
+        <div class="mg-meta"><span>오전 9:22</span><span class="read-chk">✓✓</span></div>
+      </div>
+    </div>
+    <div class="mg">
+      <div class="mg-av" style="background:linear-gradient(135deg,#76e4f7,#0987a0)">지</div>
+      <div class="mg-body">
+        <div class="mg-sender">박지호</div>
+        <div class="bubble">좋아요! 오후 2시에 배포 진행하겠습니다 😄</div>
+        <div class="mg-meta"><span>오전 9:30</span></div>
+      </div>
+    </div>
+    <div class="mg out">
+      <div class="mg-av" style="background:linear-gradient(135deg,var(--accent),var(--accent2))">나</div>
+      <div class="mg-body">
+        <div class="bubble">👍 배포 후 모니터링도 필요한가요?</div>
+        <div class="mg-meta"><span>오전 9:32</span><span class="read-chk">✓✓</span></div>
+      </div>
+    </div>
+    <div class="mg">
+      <div class="mg-av">민</div>
+      <div class="mg-body">
+        <div class="mg-sender">김민준</div>
+        <div class="bubble">네, 1시간 로그 모니터링 부탁드려요 🙏</div>
+        <div class="mg-meta"><span>오전 9:45</span></div>
+      </div>
+    </div>
+    <div class="date-div">오후</div>
+    <div class="mg">
+      <div class="mg-av" style="background:linear-gradient(135deg,#f6ad55,#c05621)">수</div>
+      <div class="mg-body">
+        <div class="mg-sender">이수아</div>
+        <div class="bubble">배포 완료! 🎉 에러 없이 잘 올라갔어요!</div>
+        <div class="mg-meta"><span>오후 2:34</span></div>
+      </div>
+    </div>
+    <div class="mg out">
+      <div class="mg-av" style="background:linear-gradient(135deg,var(--accent),var(--accent2))">나</div>
+      <div class="mg-body">
+        <div class="bubble">수고하셨습니다! 🎊</div>
+        <div class="mg-meta"><span>오후 2:35</span><span class="read-chk">✓✓</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 게스트 잠금 오버레이 -->
+  <div class="guest-lock" id="guest-lock" style="display:none;">
+    <div class="guest-lock-box">
+      <h3>🔒 로그인이 필요해요</h3>
+      <p>메시지를 보내려면 로그인하거나 회원가입을 해주세요.<br>지금은 읽기만 가능합니다.</p>
+      <div class="guest-btns">
+        <button class="guest-btn-login" onclick="location.href='index.html'">로그인</button>
+        <button class="guest-btn-signup" onclick="location.href='index.html'">회원가입</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 입력 영역 -->
+  <div class="input-area" id="input-area">
+    <div class="emoji-row">
+      <div class="ep" onclick="insertEmoji('😄')">😄</div>
+      <div class="ep" onclick="insertEmoji('👍')">👍</div>
+      <div class="ep" onclick="insertEmoji('🎉')">🎉</div>
+      <div class="ep" onclick="insertEmoji('🔥')">🔥</div>
+      <div class="ep" onclick="insertEmoji('❤️')">❤️</div>
+      <div class="ep" onclick="insertEmoji('😂')">😂</div>
+      <div class="ep" onclick="insertEmoji('🙏')">🙏</div>
+      <div class="ep" onclick="insertEmoji('✅')">✅</div>
+    </div>
+
+    <!-- 이미지 URL 입력창 -->
+    <div class="link-row" id="link-row">
+      <input class="link-inp" id="link-inp" placeholder="이미지 URL을 붙여넣으세요... (https://...)"
+             onkeydown="if(event.key==='Enter')sendImage()">
+      <button class="link-send" onclick="sendImage()">전송</button>
+      <button class="link-cancel" onclick="toggleLinkRow()">✕</button>
+    </div>
+
+    <div class="tool-bar">
+      <div class="tool-btn" onclick="toast('📎 파일 첨부')">📎</div>
+      <div class="tool-btn" onclick="toggleLinkRow()" title="이미지 URL 전송">🖼️</div>
+      <div class="tool-btn" onclick="toast('😊 이모지')">😊</div>
+      <div class="tool-btn" onclick="toast('📊 투표 만들기')">📊</div>
+      <div class="tool-btn" onclick="toast('🎵 음성 메시지')">🎵</div>
+    </div>
+    <div class="input-row">
+      <textarea class="msg-input" id="msg-input" placeholder="메시지를 입력하세요..." rows="1"
+        onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="send-btn" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="right-panel">
+  <!-- 게스트 배너 -->
+  <div class="guest-banner" id="guest-banner">
+    👀 둘러보기 모드 · 읽기 전용
+  </div>
+
+  <!-- 테마 토글 -->
+  <div class="theme-row" onclick="toggleTheme()">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span id="theme-icon2">🌙</span>
+      <span style="font-size:13px;font-weight:600;" id="theme-label">밤 모드</span>
+    </div>
+    <div class="toggle-track"><div class="toggle-thumb"></div></div>
+  </div>
+
+  <!-- 멤버 목록 -->
+  <div>
+    <div class="rp-title">채팅방 멤버</div>
+    <div class="member-item">
+      <div class="m-av" style="background:linear-gradient(135deg,#00b874,#276749)">나</div>
+      <div><div class="m-name">나</div><div class="m-role">🟢 온라인</div></div>
+    </div>
+    <div class="member-item">
+      <div class="m-av" style="position:relative">민<div class="online-dot"></div></div>
+      <div><div class="m-name">김민준</div><div class="m-role">🟢 온라인</div></div>
+    </div>
+    <div class="member-item">
+      <div class="m-av" style="background:linear-gradient(135deg,#f6ad55,#c05621)">수</div>
+      <div><div class="m-name">이수아</div><div class="m-role">🟢 온라인</div></div>
+    </div>
+    <div class="member-item">
+      <div class="m-av" style="background:linear-gradient(135deg,#76e4f7,#0987a0)">지</div>
+      <div><div class="m-name">박지호</div><div class="m-role">🟡 자리비움</div></div>
+    </div>
+    <div class="member-item">
+      <div class="m-av" style="background:linear-gradient(135deg,#d6bcfa,#6b46c1)">유</div>
+      <div><div class="m-name">최유나</div><div class="m-role">⚫ 오프라인</div></div>
+    </div>
+  </div>
+
+  <!-- 공유 파일 -->
+  <div>
+    <div class="rp-title">공유된 파일</div>
+    <div class="member-item">
+      <div style="font-size:22px">📄</div>
+      <div><div class="m-name" style="font-size:12px">배포계획서_v2.pdf</div><div class="m-role">3.2MB</div></div>
+    </div>
+    <div class="member-item">
+      <div style="font-size:22px">🖼️</div>
+      <div><div class="m-name" style="font-size:12px">와이어프레임.png</div><div class="m-role">1.8MB</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast-el"></div>
+
+<script>
+const K_SESSION = 'tt_session';
+const K_THEME   = 'tt_theme';
+
+/* ── 세션 & 게스트 판별 ── */
+const urlParams = new URLSearchParams(window.location.search);
+const isGuest   = urlParams.get('guest') === '1';
+let session     = null;
+try { session = JSON.parse(localStorage.getItem(K_SESSION)); } catch(e){}
+
+if (isGuest || (session && session.role === 'guest')) {
+  // 게스트: 입력 영역 숨기고 잠금 오버레이 표시
+  document.getElementById('input-area').style.display = 'none';
+  document.getElementById('guest-lock').style.display = 'flex';
+  document.getElementById('guest-banner').classList.add('show');
+}
+
+/* ── 테마 ── */
+function toggleTheme() {
+  const html = document.documentElement;
+  const dark = html.dataset.theme === 'dark';
+  html.dataset.theme = dark ? 'light' : 'dark';
+  document.getElementById('theme-icon').textContent  = dark ? '🌙' : '☀️';
+  document.getElementById('theme-icon2').textContent = dark ? '🌙' : '☀️';
+  document.getElementById('theme-label').textContent = dark ? '밤 모드' : '낮 모드';
+  localStorage.setItem(K_THEME, html.dataset.theme);
+}
+(function(){
+  const t = localStorage.getItem(K_THEME);
+  if (t) document.documentElement.dataset.theme = t;
+  if (document.documentElement.dataset.theme === 'dark') {
+    document.getElementById('theme-icon').textContent  = '☀️';
+    document.getElementById('theme-icon2').textContent = '☀️';
+    document.getElementById('theme-label').textContent = '낮 모드';
+  }
+})();
+
+/* ── 탭 전환 ── */
+function switchTab(el, type) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('group-list').style.display = type === 'group' ? 'block' : 'none';
+  document.getElementById('dm-list').style.display    = type === 'dm'    ? 'block' : 'none';
+}
+
+/* ── 채팅방 선택 ── */
+function openChat(name, av, type, el) {
+  document.querySelectorAll('.chat-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  const badge = el.querySelector('.badge');
+  if (badge) badge.remove();
+  document.getElementById('tb-name').textContent = name;
+  document.getElementById('tb-av').textContent   = av;
+  document.getElementById('tb-sub').textContent  =
+    type === 'group' ? '● 멤버 8명 · 온라인 5명' : '● 온라인';
+}
+
+/* ── 메시지 전송 ── */
+function sendMessage() {
+  const input = document.getElementById('msg-input');
+  const text  = input.value.trim();
+  if (!text) return;
+  appendMyMsg(text.replace(/\n/g,'<br>'));
+  input.value = '';
+  input.style.height = 'auto';
+  // 자동 답장
+  setTimeout(() => {
+    const replies = ['알겠습니다! 👍','감사합니다 😄','확인했어요!','좋아요!','네 🙏','오케이!','👍👍','잠깐만요...'];
+    appendMsg('민', replies[Math.floor(Math.random()*replies.length)],
+      'linear-gradient(135deg,#68d391,#276749)', '김민준');
+  }, 900 + Math.random()*800);
+}
+
+function appendMyMsg(html) {
+  const msgs = document.getElementById('messages');
+  const now  = timeNow();
+  const el   = document.createElement('div');
+  el.className = 'mg out';
+  el.style.animation = 'none';
+  el.innerHTML = `
+    <div class="mg-av" style="background:linear-gradient(135deg,var(--accent),var(--accent2))">나</div>
+    <div class="mg-body">
+      <div class="bubble">${html}</div>
+      <div class="mg-meta"><span>${now}</span><span class="read-chk">✓</span></div>
+    </div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function appendMsg(av, text, bg, sender) {
+  const msgs = document.getElementById('messages');
+  const el   = document.createElement('div');
+  el.className = 'mg';
+  el.innerHTML = `
+    <div class="mg-av" style="background:${bg}">${av}</div>
+    <div class="mg-body">
+      <div class="mg-sender">${sender}</div>
+      <div class="bubble">${text}</div>
+      <div class="mg-meta"><span>${timeNow()}</span></div>
+    </div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+/* ── 이미지 URL 전송 ── */
+function toggleLinkRow() {
+  const row = document.getElementById('link-row');
+  row.classList.toggle('show');
+  if (row.classList.contains('show')) document.getElementById('link-inp').focus();
+}
+
+function sendImage() {
+  const inp = document.getElementById('link-inp');
+  const url = inp.value.trim();
+  if (!url) return;
+
+  const msgs = document.getElementById('messages');
+  const el   = document.createElement('div');
+  el.className = 'mg out';
+
+  // 이미지 URL인지 확인
+  const isImg = /\.(jpg|jpeg|png|gif|webp|svg|bmp)(\?.*)?$/i.test(url);
+  const now   = timeNow();
+
+  if (isImg) {
+    el.innerHTML = `
+      <div class="mg-av" style="background:linear-gradient(135deg,var(--accent),var(--accent2))">나</div>
+      <div class="mg-body">
+        <div class="img-bubble">
+          <img src="${url}" alt="이미지" onerror="this.parentElement.querySelector('.img-caption').textContent='이미지를 불러올 수 없습니다'">
+          <div class="img-caption"><span>🖼️ 이미지</span><a href="${url}" target="_blank">원본 보기</a></div>
+        </div>
+        <div class="mg-meta"><span>${now}</span><span class="read-chk">✓</span></div>
+      </div>`;
+  } else {
+    // 일반 링크
+    const domain = (() => { try { return new URL(url).hostname; } catch(e){ return url; } })();
+    el.innerHTML = `
+      <div class="mg-av" style="background:linear-gradient(135deg,var(--accent),var(--accent2))">나</div>
+      <div class="mg-body">
+        <div class="img-bubble" onclick="window.open('${url}','_blank')" style="padding:14px;">
+          <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:4px;">🔗 ${domain}</div>
+          <div style="font-size:13px;font-weight:600;word-break:break-all;">${url}</div>
+        </div>
+        <div class="mg-meta"><span>${now}</span><span class="read-chk">✓</span></div>
+      </div>`;
+  }
+
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+  inp.value = '';
+  document.getElementById('link-row').classList.remove('show');
+}
+
+/* ── 이모지 삽입 ── */
+function insertEmoji(e) {
+  const input = document.getElementById('msg-input');
+  input.value += e;
+  input.focus();
+}
+
+/* ── 키보드 ── */
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+/* ── 토스트 ── */
+let _t;
+function toast(msg) {
+  const el = document.getElementById('toast-el');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_t);
+  _t = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+function timeNow() {
+  const d = new Date();
+  const h = d.getHours(), m = String(d.getMinutes()).padStart(2,'0');
+  return `${h >= 12 ? '오후' : '오전'} ${h > 12 ? h-12 : h}:${m}`;
+}
+
+// 스크롤 맨 아래로
+document.getElementById('messages').scrollTop = 99999;
+</script>
+</body>
+</html>

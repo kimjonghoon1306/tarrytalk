@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TARRYTALK — 내 프로필</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root[data-theme="light"] {
+    --bg: #f0fdf7; --bg2: #ffffff; --surface: #e8faf2;
+    --border: #c3eada; --text: #0d2b1e; --text2: #3d6b55;
+    --accent: #00b874; --accent2: #00976b;
+    --accent-glow: rgba(0,184,116,0.25); --shadow: rgba(0,100,60,0.1);
+    --input-bg: #f5fdf9;
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d1f16; --bg2: #122019; --surface: #1a2f21;
+    --border: #2a4a35; --text: #d4f5e5; --text2: #7fc9a0;
+    --accent: #00e08a; --accent2: #00b874;
+    --accent-glow: rgba(0,224,138,0.15); --shadow: rgba(0,0,0,0.4);
+    --input-bg: #162a1e;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Noto Sans KR',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; transition:background 0.3s,color 0.3s; }
+
+  /* NAV */
+  .top-nav {
+    padding:16px 32px; display:flex; align-items:center; justify-content:space-between;
+    background:var(--bg2); border-bottom:1.5px solid var(--border);
+    position:sticky; top:0; z-index:100;
+  }
+  .nav-logo { font-size:20px; font-weight:900; color:var(--accent); text-decoration:none; }
+  .nav-links { display:flex; gap:8px; align-items:center; }
+  .nav-link {
+    padding:8px 16px; border-radius:10px; font-size:13px; font-weight:600;
+    color:var(--text2); text-decoration:none; transition:all 0.2s; border:1.5px solid transparent;
+  }
+  .nav-link:hover { background:var(--surface); color:var(--text); border-color:var(--border); }
+  .theme-pill {
+    padding:8px 16px; border:1.5px solid var(--border); border-radius:50px;
+    background:var(--surface); cursor:pointer; font-size:13px; font-weight:600;
+    color:var(--text); display:flex; align-items:center; gap:6px;
+    font-family:'Noto Sans KR',sans-serif; transition:all 0.2s;
+  }
+  .theme-pill:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+  /* HERO */
+  .profile-hero {
+    background:linear-gradient(135deg, var(--accent2), var(--accent));
+    padding:60px 32px 80px; position:relative; overflow:hidden;
+  }
+  .profile-hero::before {
+    content:''; position:absolute; width:400px; height:400px;
+    background:rgba(255,255,255,0.08); border-radius:50%;
+    right:-100px; top:-100px;
+  }
+  .profile-hero::after {
+    content:''; position:absolute; width:300px; height:300px;
+    background:rgba(255,255,255,0.06); border-radius:50%;
+    left:-50px; bottom:-80px;
+  }
+  .hero-inner { max-width:800px; margin:0 auto; display:flex; align-items:center; gap:28px; position:relative; z-index:1; }
+  .avatar-wrap { position:relative; }
+  .big-avatar {
+    width:100px; height:100px; border-radius:28px;
+    background:rgba(255,255,255,0.25); border:3px solid rgba(255,255,255,0.5);
+    display:flex; align-items:center; justify-content:center;
+    font-size:40px; color:white; font-weight:900;
+    box-shadow:0 12px 32px rgba(0,0,0,0.2); cursor:pointer;
+    transition:transform 0.2s;
+  }
+  .big-avatar:hover { transform:scale(1.05); }
+  .avatar-edit {
+    position:absolute; bottom:-6px; right:-6px;
+    width:28px; height:28px; border-radius:50%; background:white;
+    display:flex; align-items:center; justify-content:center; font-size:14px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.2); cursor:pointer;
+  }
+  .hero-info { color:white; }
+  .hero-name { font-size:28px; font-weight:900; margin-bottom:4px; letter-spacing:-0.5px; }
+  .hero-handle { font-size:14px; opacity:0.8; margin-bottom:12px; }
+  .hero-bio { font-size:14px; opacity:0.9; margin-bottom:16px; max-width:360px; line-height:1.6; }
+  .hero-stats { display:flex; gap:24px; }
+  .hero-stat { text-align:center; }
+  .hero-stat-val { font-size:20px; font-weight:900; display:block; }
+  .hero-stat-label { font-size:11px; opacity:0.75; margin-top:1px; }
+  .hero-actions { margin-left:auto; display:flex; gap:10px; flex-direction:column; }
+  .hero-btn {
+    padding:10px 22px; border-radius:12px; font-size:13px; font-weight:700;
+    cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:all 0.2s;
+    white-space:nowrap; border:2px solid transparent;
+  }
+  .btn-white { background:white; color:var(--accent2); border-color:white; }
+  .btn-outline { background:transparent; color:white; border-color:rgba(255,255,255,0.6); }
+  .btn-white:hover, .btn-outline:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(0,0,0,0.15); }
+
+  /* CONTENT */
+  .profile-content { max-width:800px; margin:0 auto; padding:32px; }
+
+  /* Tabs */
+  .profile-tabs { display:flex; border-bottom:1.5px solid var(--border); margin-bottom:28px; }
+  .ptab { padding:12px 20px; font-size:14px; font-weight:700; cursor:pointer;
+    color:var(--text2); border-bottom:2.5px solid transparent; margin-bottom:-1.5px; transition:all 0.2s; }
+  .ptab.active { color:var(--accent); border-bottom-color:var(--accent); }
+
+  /* Info grid */
+  .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px; }
+  .info-card { background:var(--bg2); border:1.5px solid var(--border); border-radius:18px; padding:20px; box-shadow:0 2px 10px var(--shadow); }
+  .info-card-title { font-size:12px; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px; }
+
+  .field-group { margin-bottom:16px; }
+  .field-label { font-size:12px; font-weight:600; color:var(--text2); margin-bottom:6px; display:block; }
+  .field-input {
+    width:100%; padding:11px 14px; background:var(--input-bg);
+    border:1.5px solid var(--border); border-radius:12px;
+    color:var(--text); font-size:14px; font-family:'Noto Sans KR',sans-serif;
+    outline:none; transition:border-color 0.2s;
+  }
+  .field-input:focus { border-color:var(--accent); }
+  .field-input[readonly] { opacity:0.7; cursor:default; }
+  textarea.field-input { resize:none; min-height:80px; line-height:1.5; }
+
+  /* Status selector */
+  .status-grid { display:flex; gap:8px; flex-wrap:wrap; }
+  .status-opt {
+    padding:8px 14px; border-radius:50px; font-size:12px; font-weight:700;
+    border:1.5px solid var(--border); cursor:pointer; transition:all 0.2s;
+    color:var(--text2); background:var(--surface);
+  }
+  .status-opt.selected { border-color:var(--accent); background:rgba(0,184,116,0.12); color:var(--accent); }
+  .status-opt:hover { border-color:var(--accent); }
+
+  /* Notification toggles */
+  .toggle-item { display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--border); }
+  .toggle-item:last-child { border-bottom:none; }
+  .toggle-info .t-title { font-size:14px; font-weight:600; }
+  .toggle-info .t-desc { font-size:12px; color:var(--text2); margin-top:2px; }
+  .toggle-switch { position:relative; }
+  .toggle-switch input { opacity:0; width:0; height:0; position:absolute; }
+  .toggle-switch label {
+    display:block; width:48px; height:26px; border-radius:50px;
+    background:var(--border); cursor:pointer; transition:background 0.3s; position:relative;
+  }
+  .toggle-switch label::after {
+    content:''; position:absolute; width:20px; height:20px; border-radius:50%;
+    background:white; top:3px; left:3px; transition:left 0.3s;
+    box-shadow:0 2px 6px rgba(0,0,0,0.2);
+  }
+  .toggle-switch input:checked + label { background:var(--accent); }
+  .toggle-switch input:checked + label::after { left:25px; }
+
+  /* Friends list */
+  .friend-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(180px,1fr)); gap:12px; }
+  .friend-card {
+    background:var(--bg2); border:1.5px solid var(--border); border-radius:16px;
+    padding:18px; text-align:center; cursor:pointer; transition:all 0.2s;
+    box-shadow:0 2px 8px var(--shadow);
+  }
+  .friend-card:hover { transform:translateY(-3px); border-color:var(--accent); box-shadow:0 8px 24px var(--accent-glow); }
+  .friend-av { width:52px; height:52px; border-radius:16px; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:700; color:white; }
+  .friend-name { font-size:14px; font-weight:700; margin-bottom:2px; }
+  .friend-status { font-size:11px; color:var(--text2); }
+  .friend-msg-btn {
+    margin-top:10px; width:100%; padding:7px; border-radius:8px;
+    background:var(--surface); border:1.5px solid var(--border);
+    color:var(--accent); font-size:12px; font-weight:700; cursor:pointer;
+    font-family:'Noto Sans KR',sans-serif; transition:all 0.2s;
+  }
+  .friend-msg-btn:hover { background:var(--accent); color:white; border-color:var(--accent); }
+
+  /* Save btn */
+  .save-btn {
+    width:100%; padding:14px; background:linear-gradient(135deg,var(--accent),var(--accent2));
+    border:none; border-radius:14px; color:white; font-size:15px; font-weight:700;
+    cursor:pointer; font-family:'Noto Sans KR',sans-serif;
+    box-shadow:0 8px 24px var(--accent-glow); transition:all 0.25s; margin-top:8px;
+  }
+  .save-btn:hover { transform:translateY(-2px); box-shadow:0 14px 32px var(--accent-glow); }
+
+  .tab-content { display:none; }
+  .tab-content.active { display:block; }
+
+  @media(max-width:600px) { .info-grid { grid-template-columns:1fr; } .hero-inner { flex-direction:column; } .hero-actions { flex-direction:row; margin-left:0; } }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="index.html" class="nav-logo">💬 TARRYTALK</a>
+  <div class="nav-links">
+    <a href="chat.html" class="nav-link">💬 채팅</a>
+    <a href="admin.html" class="nav-link">⚙️ 관리자</a>
+    <button class="theme-pill" onclick="toggleTheme()">
+      <span id="theme-icon">🌙</span> <span id="theme-label">밤 모드</span>
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="profile-hero">
+  <div class="hero-inner">
+    <div class="avatar-wrap">
+      <div class="big-avatar" onclick="showToast('📷 프로필 사진 변경')">나</div>
+      <div class="avatar-edit" onclick="showToast('✏️ 수정')">✏️</div>
+    </div>
+    <div class="hero-info">
+      <div class="hero-name">홍길동</div>
+      <div class="hero-handle">@hong_gildong · 개발자 🛠</div>
+      <div class="hero-bio">코드로 세상을 바꾸는 중 🚀<br>풀스택 개발자 | TARRYTALK 팀</div>
+      <div class="hero-stats">
+        <div class="hero-stat"><span class="hero-stat-val">284</span><span class="hero-stat-label">친구</span></div>
+        <div class="hero-stat"><span class="hero-stat-val">12</span><span class="hero-stat-label">채팅방</span></div>
+        <div class="hero-stat"><span class="hero-stat-val">4.8k</span><span class="hero-stat-label">메시지</span></div>
+      </div>
+    </div>
+    <div class="hero-actions">
+      <button class="hero-btn btn-white" onclick="showToast('📤 프로필 공유')">공유하기</button>
+      <button class="hero-btn btn-outline" onclick="showToast('🚪 로그아웃')">로그아웃</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="profile-content">
+  <div class="profile-tabs">
+    <div class="ptab active" onclick="switchTab(this,'info')">내 정보</div>
+    <div class="ptab" onclick="switchTab(this,'friends')">친구 목록</div>
+    <div class="ptab" onclick="switchTab(this,'settings')">설정</div>
+  </div>
+
+  <!-- INFO TAB -->
+  <div class="tab-content active" id="tab-info">
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-card-title">기본 정보</div>
+        <div class="field-group">
+          <label class="field-label">이름</label>
+          <input class="field-input" value="홍길동">
+        </div>
+        <div class="field-group">
+          <label class="field-label">아이디</label>
+          <input class="field-input" value="@hong_gildong">
+        </div>
+        <div class="field-group">
+          <label class="field-label">이메일</label>
+          <input class="field-input" type="email" value="hong@tarrytalk.com">
+        </div>
+        <div class="field-group">
+          <label class="field-label">전화번호</label>
+          <input class="field-input" type="tel" value="010-1234-5678">
+        </div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-card-title">프로필 정보</div>
+        <div class="field-group">
+          <label class="field-label">상태 메시지</label>
+          <textarea class="field-input">코드로 세상을 바꾸는 중 🚀</textarea>
+        </div>
+        <div class="field-group">
+          <label class="field-label">현재 상태</label>
+          <div class="status-grid">
+            <div class="status-opt selected" onclick="selectStatus(this)">🟢 온라인</div>
+            <div class="status-opt" onclick="selectStatus(this)">🟡 자리비움</div>
+            <div class="status-opt" onclick="selectStatus(this)">🔴 방해 금지</div>
+            <div class="status-opt" onclick="selectStatus(this)">⚫ 숨김</div>
+          </div>
+        </div>
+        <div class="field-group" style="margin-top:12px">
+          <label class="field-label">직업 / 소속</label>
+          <input class="field-input" value="TARRYTALK 풀스택 개발자">
+        </div>
+      </div>
+    </div>
+
+    <div class="info-card" style="margin-bottom:20px">
+      <div class="info-card-title">계정 보안</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="field-group">
+          <label class="field-label">현재 비밀번호</label>
+          <input class="field-input" type="password" placeholder="현재 비밀번호">
+        </div>
+        <div class="field-group">
+          <label class="field-label">새 비밀번호</label>
+          <input class="field-input" type="password" placeholder="새 비밀번호">
+        </div>
+      </div>
+    </div>
+
+    <button class="save-btn" onclick="showToast('✅ 프로필이 저장되었습니다!')">변경사항 저장</button>
+  </div>
+
+  <!-- FRIENDS TAB -->
+  <div class="tab-content" id="tab-friends">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="font-size:15px;font-weight:700">친구 <span style="color:var(--accent)">284</span>명</div>
+      <button style="padding:8px 16px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif" onclick="showToast('👥 친구 추가')">+ 친구 추가</button>
+    </div>
+    <div class="friend-grid">
+      <div class="friend-card">
+        <div class="friend-av" style="background:linear-gradient(135deg,#68d391,#276749)">민</div>
+        <div class="friend-name">김민준</div>
+        <div class="friend-status">🟢 온라인</div>
+        <button class="friend-msg-btn" onclick="window.location.href='chat.html'">메시지 보내기</button>
+      </div>
+      <div class="friend-card">
+        <div class="friend-av" style="background:linear-gradient(135deg,#f6ad55,#c05621)">수</div>
+        <div class="friend-name">이수아</div>
+        <div class="friend-status">🟢 온라인</div>
+        <button class="friend-msg-btn" onclick="window.location.href='chat.html'">메시지 보내기</button>
+      </div>
+      <div class="friend-card">
+        <div class="friend-av" style="background:linear-gradient(135deg,#76e4f7,#0987a0)">지</div>
+        <div class="friend-name">박지호</div>
+        <div class="friend-status">🟡 자리비움</div>
+        <button class="friend-msg-btn" onclick="window.location.href='chat.html'">메시지 보내기</button>
+      </div>
+      <div class="friend-card">
+        <div class="friend-av" style="background:linear-gradient(135deg,#d6bcfa,#6b46c1)">유</div>
+        <div class="friend-name">최유나</div>
+        <div class="friend-status">⚫ 오프라인</div>
+        <button class="friend-msg-btn" onclick="window.location.href='chat.html'">메시지 보내기</button>
+      </div>
+      <div class="friend-card">
+        <div class="friend-av" style="background:linear-gradient(135deg,#fbb6ce,#b83280)">다</div>
+        <div class="friend-name">정다은</div>
+        <div class="friend-status">🟢 온라인</div>
+        <button class="friend-msg-btn" onclick="window.location.href='chat.html'">메시지 보내기</button>
+      </div>
+      <div class="friend-card" style="border-style:dashed;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--text2)" onclick="showToast('👥 친구 추가')">
+        <div style="font-size:32px">➕</div>
+        <div style="font-size:13px;font-weight:600">친구 추가</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS TAB -->
+  <div class="tab-content" id="tab-settings">
+    <div class="info-card" style="margin-bottom:16px">
+      <div class="info-card-title">알림 설정</div>
+      <div class="toggle-item">
+        <div class="toggle-info">
+          <div class="t-title">메시지 알림</div>
+          <div class="t-desc">새 메시지가 올 때 알림을 받아요</div>
+        </div>
+        <div class="toggle-switch"><input type="checkbox" id="t1" checked><label for="t1"></label></div>
+      </div>
+      <div class="toggle-item">
+        <div class="toggle-info">
+          <div class="t-title">단체채팅 알림</div>
+          <div class="t-desc">단체채팅의 메시지도 알림</div>
+        </div>
+        <div class="toggle-switch"><input type="checkbox" id="t2" checked><label for="t2"></label></div>
+      </div>
+      <div class="toggle-item">
+        <div class="toggle-info">
+          <div class="t-title">친구 요청 알림</div>
+          <div class="t-desc">친구 요청이 올 때 알림</div>
+        </div>
+        <div class="toggle-switch"><input type="checkbox" id="t3"><label for="t3"></label></div>
+      </div>
+      <div class="toggle-item">
+        <div class="toggle-info">
+          <div class="t-title">소리 알림</div>
+          <div class="t-desc">메시지 도착음 재생</div>
+        </div>
+        <div class="toggle-switch"><input type="checkbox" id="t4" checked><label for="t4"></label></div>
+      </div>
+    </div>
+
+    <div class="info-card" style="margin-bottom:16px">
+      <div class="info-card-title">화면 설정</div>
+      <div class="toggle-item">
+        <div class="toggle-info">
+          <div class="t-title">다크 모드</div>
+          <div class="t-desc">밤 테마로 눈 편하게</div>
+        </div>
+        <div class="toggle-switch">
+          <input type="checkbox" id="t-dark" onchange="toggleTheme()">
+          <label for="t-dark"></label>
+        </div>
+      </div>
+      <div class="toggle-item">
+        <div class="toggle-info">
+          <div class="t-title">읽음 표시 공개</div>
+          <div class="t-desc">상대방에게 읽음 표시 보여주기</div>
+        </div>
+        <div class="toggle-switch"><input type="checkbox" id="t5" checked><label for="t5"></label></div>
+      </div>
+      <div class="toggle-item">
+        <div class="toggle-info">
+          <div class="t-title">온라인 상태 공개</div>
+          <div class="t-desc">친구들에게 내 온라인 상태 보이기</div>
+        </div>
+        <div class="toggle-switch"><input type="checkbox" id="t6" checked><label for="t6"></label></div>
+      </div>
+    </div>
+
+    <div class="info-card" style="margin-bottom:20px">
+      <div class="info-card-title">개인정보 설정</div>
+      <div class="toggle-item">
+        <div class="toggle-info">
+          <div class="t-title">프로필 검색 허용</div>
+          <div class="t-desc">다른 사람이 아이디로 검색</div>
+        </div>
+        <div class="toggle-switch"><input type="checkbox" id="t7" checked><label for="t7"></label></div>
+      </div>
+      <div class="toggle-item">
+        <div class="toggle-info">
+          <div class="t-title">메시지 미리보기</div>
+          <div class="t-desc">잠금화면에서 내용 표시</div>
+        </div>
+        <div class="toggle-switch"><input type="checkbox" id="t8"><label for="t8"></label></div>
+      </div>
+    </div>
+
+    <button class="save-btn" onclick="showToast('✅ 설정이 저장되었습니다!')">설정 저장</button>
+  </div>
+</div>
+
+<div style="position:fixed;bottom:20px;right:20px;background:var(--accent);color:white;padding:12px 20px;border-radius:14px;font-size:13px;font-weight:600;opacity:0;transition:all 0.3s;box-shadow:0 6px 18px var(--accent-glow);transform:translateY(10px)" id="toast"></div>
+
+<script>
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.dataset.theme === 'dark';
+    html.dataset.theme = isDark ? 'light' : 'dark';
+    document.getElementById('theme-icon').textContent = isDark ? '🌙' : '☀️';
+    document.getElementById('theme-label').textContent = isDark ? '밤 모드' : '낮 모드';
+    const darkToggle = document.getElementById('t-dark');
+    if (darkToggle) darkToggle.checked = !isDark;
+    localStorage.setItem('theme', html.dataset.theme);
+  }
+  const saved = localStorage.getItem('theme');
+  if (saved) {
+    document.documentElement.dataset.theme = saved;
+    if (saved === 'dark') {
+      document.getElementById('theme-icon').textContent = '☀️';
+      document.getElementById('theme-label').textContent = '낮 모드';
+      const dt = document.getElementById('t-dark');
+      if (dt) dt.checked = true;
+    }
+  }
+
+  function switchTab(el, id) {
+    document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tab-' + id).classList.add('active');
+  }
+
+  function selectStatus(el) {
+    document.querySelectorAll('.status-opt').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.style.opacity = '1'; t.style.transform = 'translateY(0)';
+    setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(10px)'; }, 2000);
+  }
+</script>
+</body>
+</html>
