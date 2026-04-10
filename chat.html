@@ -319,6 +319,20 @@ let sess=null,isGuest=false,curRoom=null,curTab='group',selType='dm',selUsers=[]
 try{sess=JSON.parse(localStorage.getItem(K.SESSION));}catch(e){}
 const urlP=new URLSearchParams(location.search);
 isGuest=urlP.get('guest')==='1'||(sess&&sess.role==='guest');
+
+/* ── 세션 유효성 검사: 삭제된 계정 강제 로그아웃 ── */
+(function validateSession(){
+  if(!sess||isGuest||sess.role==='admin')return;
+  const users=JSON.parse(localStorage.getItem(K.USERS)||'[]');
+  const banned=JSON.parse(localStorage.getItem('tt_banned')||'[]');
+  const stillExists=users.find(u=>u.email===sess.email);
+  const isBanned=banned.includes(sess.email);
+  if(!stillExists||isBanned){
+    localStorage.removeItem(K.SESSION);
+    alert('계정이 삭제되었거나 접근이 제한되었습니다.\n다시 로그인해주세요.');
+    location.href='index.html';
+  }
+})();
 if(!localStorage.getItem(K.ROOMS))localStorage.setItem(K.ROOMS,'[]');
 if(!localStorage.getItem(K.MSGS))localStorage.setItem(K.MSGS,'{}');
 const getRooms=()=>JSON.parse(localStorage.getItem(K.ROOMS)||'[]');
@@ -419,7 +433,7 @@ function setType(t){
 function renderMembers(filter){
   const users=getUsers().filter(u=>u.email!==sess?.email),list=document.getElementById('m-list');
   let f=users;if(filter){const q=filter.toLowerCase();f=users.filter(u=>u.name.toLowerCase().includes(q)||u.email.toLowerCase().includes(q));}
-  if(f.length===0){list.innerHTML=users.length===0?`<div class="no-m">아직 가입된 다른 회원이 없습니다 😅<br><br><a href="index.html" target="_blank" style="display:inline-block;margin-top:4px;padding:10px 20px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:12px;text-decoration:none;font-size:13px;font-weight:700;">✨ 회원가입 하러 가기</a><br><span style="font-size:11px;color:var(--text2);margin-top:8px;display:block;">새 탭에서 회원가입 후 새로고침하면 목록에 나타납니다</span></div>`:`<div class="no-m">검색 결과가 없습니다</div>`;return;}
+  if(f.length===0){list.innerHTML=users.length===0?`<div class="no-m">아직 가입된 다른 회원이 없습니다 😅<br><br><a href="index.html" target="_blank" style="display:inline-block;margin-top:4px;padding:10px 20px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:12px;text-decoration:none;font-size:13px;font-weight:700;">✨ 회원가입 하러 가기</a><br><button onclick="renderMembers('')" style="margin-top:10px;padding:8px 16px;border:1.5px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🔄 새로고침</button></div>`:`<div class="no-m">검색 결과가 없습니다</div>`;return;}
   list.innerHTML=f.map((u,i)=>{const on=selUsers.includes(u.email);return`<div class="m-item${on?' on':''}" onclick="toggleMember('${u.email}','${u.name.replace(/'/g,"\\'")}')"><div class="m-av" style="background:${COLS[i%COLS.length]}">${u.name.charAt(0)}</div><div style="flex:1;min-width:0"><div class="m-nm">${esc(u.name)}</div><div class="m-em">${esc(u.email)}</div></div><div class="m-check">${on?'✓':''}</div></div>`;}).join('');
 }
 function toggleMember(email,name){
