@@ -501,6 +501,12 @@ function doAdmin(){
   const correct=localStorage.getItem(K.ADMIN);
   if(!pw){showMsg('adm-pw-msg','err','❌','비밀번호를 입력해주세요');setState('adm-pw','ng');return;}
   if(pw!==correct){showMsg('adm-pw-msg','err','❌','비밀번호가 올바르지 않습니다');setState('adm-pw','ng');return;}
+  /* 관리자 계정을 회원 목록에 없으면 자동 추가 */
+  const users=getUsers();
+  if(!users.find(u=>u.email==='admin')){
+    users.push({name:'관리자',email:'admin',pw:correct,joinedAt:new Date().toISOString(),isAdmin:true});
+    saveUsers(users);
+  }
   localStorage.setItem(K.SESSION,JSON.stringify({name:'관리자',email:'admin',role:'admin'}));
   showToast('⚙️ 관리자로 접속합니다','ok');
   setTimeout(()=>location.href='admin.html',1100);
