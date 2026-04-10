@@ -291,6 +291,27 @@ tr:hover td{background:var(--hover);}
   </div>
 </div>
 
+<!-- 삭제 확인 모달 (모바일 confirm 대체) -->
+<div class="overlay" id="del-overlay">
+  <div class="modal" style="max-width:320px;">
+    <div class="modal-head">
+      <div class="modal-title">🗑️ 회원 삭제</div>
+      <div class="modal-x" onclick="closeDelModal()">✕</div>
+    </div>
+    <div class="modal-body" style="padding-bottom:8px;">
+      <p style="font-size:14px;line-height:1.7;color:var(--text2);">
+        <strong id="del-name" style="color:var(--text)"></strong> 님의 계정을<br>
+        정말 삭제하시겠습니까?<br>
+        <span style="font-size:12px;color:var(--red);font-weight:600;">삭제 후 복구가 불가능합니다.</span>
+      </p>
+    </div>
+    <div class="modal-foot" style="display:flex;gap:8px;">
+      <button onclick="closeDelModal()" style="flex:1;padding:12px;border:1.5px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text2);font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">취소</button>
+      <button onclick="confirmDelete()" style="flex:1;padding:12px;background:var(--red);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">삭제</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast-el"></div>
 
 <script>
@@ -354,7 +375,7 @@ function render(){
         <td style="font-size:12px;color:var(--text2)">${date}</td>
         <td><span class="pill ${isAdm?'p-admin':'p-on'}">${isAdm?'관리자':'회원'}</span></td>
         <td><div class="act-btns">
-          ${!isAdm?`<button class="act-btn ab-del" onclick="deleteUser('${u.email}')">삭제</button>`:'<span style="font-size:11px;color:var(--text2)">보호됨</span>'}
+          ${!isAdm?`<button class="act-btn ab-del" onclick="deleteUser('${u.email}','${u.name.replace(/'/g,"\\'")}')">삭제</button>`:'<span style="font-size:11px;color:var(--text2)">보호됨</span>'}
         </div></td>
       </tr>`;
     }).join('');
@@ -443,10 +464,25 @@ function relTime(ts){
 }
 
 /* ── 회원 삭제 ── */
-function deleteUser(email){
-  if(!confirm(`${email} 계정을 삭제하시겠습니까?`))return;
-  const users=getUsers().filter(u=>u.email!==email);
+let delTargetEmail='';
+function deleteUser(email,name){
+  delTargetEmail=email;
+  document.getElementById('del-name').textContent=name||email;
+  document.getElementById('del-overlay').classList.add('show');
+}
+function closeDelModal(){
+  document.getElementById('del-overlay').classList.remove('show');
+  delTargetEmail='';
+}
+function confirmDelete(){
+  if(!delTargetEmail)return;
+  const users=getUsers().filter(u=>u.email!==delTargetEmail);
   saveUsers(users);
+  // 해당 유저의 세션도 무효화 표시 (banned 목록에 추가)
+  const banned=JSON.parse(localStorage.getItem('tt_banned')||'[]');
+  if(!banned.includes(delTargetEmail))banned.push(delTargetEmail);
+  localStorage.setItem('tt_banned',JSON.stringify(banned));
+  closeDelModal();
   render();
   showToast('🗑️ 회원이 삭제되었습니다','ok');
 }
