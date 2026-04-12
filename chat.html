@@ -38,6 +38,8 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;}input,textar
 .sp-tab:hover:not(.on){color:var(--text2);}
 .new-btn{margin:4px 10px 6px;padding:11px;border-radius:var(--R);background:linear-gradient(135deg,var(--green),var(--green2));color:#040d09;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 16px var(--glow);transition:all .2s;}
 .new-btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px var(--glow2);}
+.how-to-banner{margin:0 10px 6px;padding:8px 14px;border-radius:var(--r);background:var(--surface);border:1px solid var(--border);font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;text-align:center;transition:all .2s;}
+.how-to-banner:hover{border-color:var(--green);color:var(--green);}
 .sb-search{padding:0 10px 6px;position:relative;}
 .sb-search input{width:100%;padding:9px 12px 9px 32px;background:var(--surface);border:1px solid var(--border);border-radius:50px;color:var(--text);font-size:13px;transition:border-color .2s;}
 .sb-search input:focus{border-color:var(--green);}
@@ -328,6 +330,7 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;}input,textar
   </div>
   <div id="sp-chat" style="display:flex;flex-direction:column;flex:1;min-height:0;">
     <button class="new-btn" id="new-btn" onclick="openModal()">✏️ 새로운 채팅 시작</button>
+    <div class="how-to-banner" onclick="openModal();setTimeout(()=>setType('guide'),50)">❓ 채팅 사용방법 안내</div>
     <div class="sb-search"><input type="text" placeholder="채팅방 검색..." oninput="filterRooms(this.value)" id="search-inp"></div>
     <div class="sb-tabs"><div class="sbt on" id="tab-g" onclick="setTab('group')">단체채팅</div><div class="sbt" id="tab-d" onclick="setTab('dm')">1대1 채팅</div></div>
     <div class="room-list" id="room-list"></div>
@@ -693,7 +696,7 @@ window.closeLightbox=function(){document.getElementById('lightbox').classList.re
 window.toggleSearchBar=function(){const bar=document.getElementById('search-bar');bar.classList.toggle('show');if(bar.classList.contains('show'))document.getElementById('msg-search-inp').focus();else{document.getElementById('msg-search-inp').value='';searchMessages('');}};
 window.closeSearchBar=function(){document.getElementById('search-bar').classList.remove('show');document.getElementById('msg-search-inp').value='';searchMessages('');};
 window.searchMessages=function(q){if(!q.trim()){document.querySelectorAll('.mg').forEach(el=>el.style.display='');return;}const lower=q.toLowerCase();document.querySelectorAll('.mg').forEach(el=>{const bubble=el.querySelector('.bubble');const txt=bubble?bubble.textContent.toLowerCase():'';el.style.display=txt.includes(lower)?'':'none';});};
-window.openModal=function(){if(isGuest){showToast('로그인 후 이용 가능합니다','warn');return;}selUsers=[];selType='dm';document.getElementById('overlay').classList.add('show');document.getElementById('room-name-row').classList.remove('show');document.getElementById('chips-row').classList.remove('show');document.getElementById('chips-row').innerHTML='';document.getElementById('ms-inp').value='';document.getElementById('rn-inp').value='';document.getElementById('bt-dm').classList.add('on');document.getElementById('bt-group').classList.remove('on');document.getElementById('create-btn').disabled=true;document.getElementById('create-btn').textContent='멤버를 선택하세요';renderMembers('');};
+window.openModal=function(){if(isGuest){showToast('로그인 후 이용 가능합니다','warn');return;}selUsers=[];selType='dm';document.getElementById('overlay').classList.add('show');document.getElementById('room-name-row').classList.remove('show');document.getElementById('chips-row').classList.remove('show');document.getElementById('chips-row').innerHTML='';document.getElementById('ms-inp').value='';document.getElementById('rn-inp').value='';document.getElementById('bt-dm').classList.add('on');document.getElementById('bt-group').classList.remove('on');document.getElementById('bt-guide').classList.remove('on');document.getElementById('guide-panel').style.display='none';document.getElementById('m-search-row').style.display='';document.getElementById('m-list').style.display='';document.getElementById('create-btn').style.display='';document.getElementById('create-btn').disabled=true;document.getElementById('create-btn').textContent='멤버를 선택하세요';renderMembers('');};
 window.closeModal=()=>document.getElementById('overlay').classList.remove('show');
 window.outsideClose=e=>{if(e.target.id==='overlay')closeModal();};
 window.setType=function(t){
