@@ -418,11 +418,13 @@ window.doSignup = async function() {
   try {
     const cred = await createUserWithEmailAndPassword(auth, em, pw);
     await updateProfile(cred.user, { displayName: nm });
+    const urlRef = new URLSearchParams(location.search).get('ref');
     await set(ref(db, `users/${cred.user.uid}`), {
       displayName: nm, email: em,
       isAdmin: em === ADMIN_EMAIL,
       joinedAt: serverTimestamp(),
-      online: true, disabled: false
+      online: true, disabled: false,
+      ...(urlRef ? { invitedBy: urlRef } : {})
     });
     showToast('🎉 가입 완료! 환영합니다', 'ok');
     setTimeout(() => location.href='chat.html', 900);
