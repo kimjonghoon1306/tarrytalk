@@ -661,7 +661,7 @@ window.confirmAction = async function() {
 };
 
 /* ── 테마 ── */
-function toggleTheme() {
+window.toggleTheme = function() {
   const h = document.documentElement, d = h.dataset.theme === 'dark';
   h.dataset.theme = d ? 'light' : 'dark';
   const icon = d ? '🌙' : '☀️', label = d ? '밤 모드' : '낮 모드';
@@ -672,7 +672,7 @@ function toggleTheme() {
   if(tiM) tiM.textContent = icon;
   if(tlM) tlM.textContent = label;
   localStorage.setItem('tt_theme', h.dataset.theme);
-}
+};
 // 테마 초기화 (type=module은 DOM 로드 후 실행되므로 직접 실행)
 {
   const t = localStorage.getItem('tt_theme') || 'light';
