@@ -273,7 +273,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 onAuthStateChanged(auth, user => {
   if (user) {
     const snap = sessionStorage.getItem('tt_guest');
-    if (!snap) { location.href = 'chat.html'; }
+    if (!snap && sessionStorage.getItem('tt_admin') !== '1') { location.href = 'chat.html'; }
   }
 });
 
