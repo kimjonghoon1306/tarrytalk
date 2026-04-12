@@ -673,8 +673,8 @@ function toggleTheme() {
   if(tlM) tlM.textContent = label;
   localStorage.setItem('tt_theme', h.dataset.theme);
 }
-// 테마 초기화: data-theme은 html 태그에 이미 적용, DOM 로드 후 버튼 텍스트 동기화
-document.addEventListener('DOMContentLoaded', function(){
+// 테마 초기화 (type=module은 DOM 로드 후 실행되므로 직접 실행)
+{
   const t = localStorage.getItem('tt_theme') || 'light';
   document.documentElement.dataset.theme = t;
   const ti = document.getElementById('ti'), tl = document.getElementById('tl');
@@ -685,7 +685,7 @@ document.addEventListener('DOMContentLoaded', function(){
     if(tiM) tiM.textContent = '☀️';
     if(tlM) tlM.textContent = '낮 모드';
   }
-});
+}
 
 /* ── 로그아웃 ── */
 window.doLogout = function() {
