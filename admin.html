@@ -383,18 +383,14 @@ let allUsers = {}, allRooms = {}, allMsgs = {};
 let pendingAction = null;
 
 /* ── 관리자 인증 ── */
-onAuthStateChanged(auth, async user => {
-  if (!user) { location.href='index.html'; return; }
-  const snap = await get(ref(db,`users/${user.uid}`));
-  const profile = snap.val()||{};
-  if (user.email !== ADMIN_EMAIL && !profile.isAdmin) {
-    await signOut(auth); location.href='index.html'; return;
-  }
-  adminSess = { uid:user.uid, name:profile.displayName||user.displayName, email:user.email };
+if (sessionStorage.getItem('tt_admin') !== '1') {
+  location.href = 'index.html';
+} else {
+  adminSess = { uid: 'admin', name: '관리자', email: '' };
   document.getElementById('loading-overlay').classList.add('hide');
   document.getElementById('pg-date').textContent = new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
   loadData();
-});
+}
 
 /* ── 실시간 데이터 로드 ── */
 function loadData() {
@@ -643,8 +639,8 @@ window.confirmAction = async function() {
 };
 
 /* ── 로그아웃 ── */
-window.doLogout = async function() {
-  await signOut(auth); location.href='index.html';
+window.doLogout = function() {
+  sessionStorage.removeItem('tt_admin'); location.href='index.html';
 };
 
 /* ── 유틸 ── */

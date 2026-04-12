@@ -230,13 +230,6 @@ body::after{content:'';position:fixed;width:500px;height:500px;
       <div style="font-size:12px;color:var(--text2);margin-top:4px;">권한이 없으면 접근이 제한됩니다</div>
     </div>
     <div class="field">
-      <label>관리자 이메일</label>
-      <div class="iw">
-        <input type="email" id="adm-em" placeholder="관리자 이메일" autocomplete="email">
-        <span class="ico">✉️</span>
-      </div>
-    </div>
-    <div class="field">
       <label>비밀번호</label>
       <div class="iw">
         <input type="password" id="adm-pw" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doAdmin()" autocomplete="off">
@@ -442,25 +435,15 @@ window.doSignup = async function() {
 };
 
 /* ── 관리자 ── */
-window.doAdmin = async function() {
-  const em = document.getElementById('adm-em').value.trim();
+window.doAdmin = function() {
   const pw = document.getElementById('adm-pw').value;
-  if (!em) { showMsg('adm-pw-msg','err','❌','이메일을 입력하세요'); return; }
   if (!pw) { showMsg('adm-pw-msg','err','❌','비밀번호를 입력하세요'); return; }
-  showLoading(true);
-  try {
-    const cred = await signInWithEmailAndPassword(auth, em, pw);
-    const snap = await get(ref(db, `users/${cred.user.uid}/isAdmin`));
-    if (snap.val() !== true && em !== ADMIN_EMAIL) {
-      await auth.signOut();
-      showMsg('adm-pw-msg','err','❌','관리자 권한이 없습니다');
-      showLoading(false); return;
-    }
+  if (pw === '456789') {
+    sessionStorage.setItem('tt_admin','1');
     showToast('⚙️ 관리자로 접속합니다', 'ok');
     setTimeout(() => location.href='admin.html', 800);
-  } catch(e) {
-    showLoading(false);
-    showMsg('adm-pw-msg','err','❌','인증 실패: 이메일 또는 비밀번호를 확인하세요');
+  } else {
+    showMsg('adm-pw-msg','err','❌','비밀번호가 올바르지 않습니다');
   }
 };
 
