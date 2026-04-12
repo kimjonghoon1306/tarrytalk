@@ -32,8 +32,8 @@
 html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;}
 ::-webkit-scrollbar{width:3px;height:3px;}
 ::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px;}
-.theme-btn{position:fixed;top:14px;right:16px;background:var(--surface);border:1.5px solid var(--border2);border-radius:50px;padding:7px 14px;cursor:pointer;font-size:12px;font-weight:700;color:var(--text2);display:flex;align-items:center;gap:6px;z-index:300;font-family:'Noto Sans KR',sans-serif;transition:all .3s;}
-.theme-btn:hover{border-color:var(--green);color:var(--green);}
+.theme-btn{display:flex;align-items:center;gap:10px;padding:10px 14px;margin:1px 8px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text3);transition:all .2s;border:1px solid transparent;background:none;width:calc(100% - 16px);}
+.theme-btn:hover{background:var(--surface);color:var(--green);}
 button{font-family:inherit;cursor:pointer;border:none;outline:none;}
 input{font-family:inherit;outline:none;}
 a{text-decoration:none;color:inherit;}
@@ -60,6 +60,14 @@ a{text-decoration:none;color:inherit;}
 /* ── 메인 ── */
 .adm-main{flex:1;padding:28px 28px 40px;overflow-y:auto;min-width:0;}
 @media(max-width:720px){.adm-sb{display:none;}.adm-main{padding:18px 16px;}}
+.theme-fab{display:none;}
+@media(max-width:720px){
+  .theme-fab{display:flex;align-items:center;gap:6px;position:fixed;bottom:20px;right:20px;
+    background:var(--bg2);border:1.5px solid var(--border2);border-radius:50px;
+    padding:9px 16px;font-size:13px;font-weight:700;color:var(--text2);
+    cursor:pointer;z-index:400;box-shadow:0 4px 16px rgba(0,0,0,.2);transition:all .2s;}
+  .theme-fab:hover{border-color:var(--green);color:var(--green);}
+}
 
 /* 페이지 헤더 */
 .pg-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:26px;gap:12px;flex-wrap:wrap;}
@@ -216,9 +224,6 @@ tr:hover td{background:rgba(0,220,110,.02);}
   <div class="spinner"></div>
 </div>
 
-<button class="theme-btn" onclick="toggleTheme()">
-  <span id="ti">🌙</span><span id="tl">밤 모드</span>
-</button>
 <div class="admin-wrap">
 <!-- ── 사이드바 ── -->
 <div class="adm-sb">
@@ -233,6 +238,7 @@ tr:hover td{background:rgba(0,220,110,.02);}
   <div class="nav-item" onclick="switchSection('notice')"><span class="ni">📢</span>공지 발송</div>
   <div class="adm-sb-foot">
     <div class="nav-item" onclick="location.href='chat.html'"><span class="ni">💬</span>채팅으로</div>
+    <button class="theme-btn" onclick="toggleTheme()"><span class="ni" id="ti">🌙</span><span id="tl">밤 모드</span></button>
     <div class="nav-item" onclick="doLogout()"><span class="ni">🚪</span>로그아웃</div>
   </div>
 </div>
@@ -369,6 +375,7 @@ tr:hover td{background:rgba(0,220,110,.02);}
 </div>
 
 <div class="toast" id="toast-el"></div>
+<button class="theme-fab" onclick="toggleTheme()"><span id="ti-m">🌙</span><span id="tl-m">밤 모드</span></button>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -657,19 +664,28 @@ window.confirmAction = async function() {
 function toggleTheme() {
   const h = document.documentElement, d = h.dataset.theme === 'dark';
   h.dataset.theme = d ? 'light' : 'dark';
-  document.getElementById('ti').textContent = d ? '🌙' : '☀️';
-  document.getElementById('tl').textContent = d ? '밤 모드' : '낮 모드';
+  const icon = d ? '🌙' : '☀️', label = d ? '밤 모드' : '낮 모드';
+  const ti = document.getElementById('ti'), tl = document.getElementById('tl');
+  const tiM = document.getElementById('ti-m'), tlM = document.getElementById('tl-m');
+  if(ti) ti.textContent = icon;
+  if(tl) tl.textContent = label;
+  if(tiM) tiM.textContent = icon;
+  if(tlM) tlM.textContent = label;
   localStorage.setItem('tt_theme', h.dataset.theme);
 }
-(function(){
+// 테마 초기화: data-theme은 html 태그에 이미 적용, DOM 로드 후 버튼 텍스트 동기화
+document.addEventListener('DOMContentLoaded', function(){
   const t = localStorage.getItem('tt_theme') || 'light';
   document.documentElement.dataset.theme = t;
+  const ti = document.getElementById('ti'), tl = document.getElementById('tl');
+  const tiM = document.getElementById('ti-m'), tlM = document.getElementById('tl-m');
   if (t === 'dark') {
-    const ti = document.getElementById('ti'), tl = document.getElementById('tl');
     if(ti) ti.textContent = '☀️';
     if(tl) tl.textContent = '낮 모드';
+    if(tiM) tiM.textContent = '☀️';
+    if(tlM) tlM.textContent = '낮 모드';
   }
-})();
+});
 
 /* ── 로그아웃 ── */
 window.doLogout = function() {
