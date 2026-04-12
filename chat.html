@@ -466,7 +466,7 @@ onAuthStateChanged(auth,async user=>{
     onDisconnect(ref(db,`users/${user.uid}/online`)).set(false);
     onDisconnect(ref(db,`users/${user.uid}/lastSeen`)).set(serverTimestamp());
     initUI();
-  }else if(isGuest){initUI();}else{location.href='index.html';}
+  }else if(isGuest){initUI();}else if(sessionStorage.getItem('tt_admin')==='1'){sess={uid:'admin',name:'관리자',email:'',isAdmin:true,color:'#00dc6e'};initUI();}else{location.href='index.html';}
 });
 function initUI(){
   document.getElementById('loading-overlay').classList.add('hide');
@@ -727,7 +727,7 @@ window.openInvite=function(){invLink=location.origin+(location.pathname.replace(
 window.closeInvite=()=>document.getElementById('inv-overlay').classList.remove('show');
 window.copyInvLink=function(){navigator.clipboard.writeText(invLink).catch(()=>{const t=document.createElement('textarea');t.value=invLink;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);});showToast('🔗 링크 복사됨!','ok');};
 window.nativeShare=function(){if(navigator.share)navigator.share({title:'TARRYTALK 초대',text:'TARRYTALK에서 함께 채팅해요!',url:invLink}).then(()=>closeInvite()).catch(()=>{});else copyInvLink();};
-window.doLogout=async function(e){if(e)e.preventDefault();if(isGuest){sessionStorage.removeItem('tt_guest');location.href='index.html';return;}if(sess){await set(ref(db,`users/${sess.uid}/online`),false);if(typingTimer)sendTypingSignal(false);}await signOut(auth);location.href='index.html';};
+window.doLogout=async function(e){if(e)e.preventDefault();if(isGuest){sessionStorage.removeItem('tt_guest');location.href='index.html';return;}if(sessionStorage.getItem('tt_admin')==='1'){sessionStorage.removeItem('tt_admin');location.href='index.html';return;}if(sess){await set(ref(db,`users/${sess.uid}/online`),false);if(typingTimer)sendTypingSignal(false);}await signOut(auth);location.href='index.html';};
 window.openSb=()=>{document.getElementById('sidebar').classList.add('open');document.getElementById('drawer-bg').classList.add('show');};
 window.closeSb=()=>{document.getElementById('sidebar').classList.remove('open');document.getElementById('drawer-bg').classList.remove('show');};
 window.addEmoji=emoji=>{const inp=document.getElementById('m-inp');inp.value+=emoji;inp.focus();};
