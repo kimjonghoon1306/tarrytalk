@@ -2,6 +2,8 @@
 <html lang="ko" data-theme="light">
 <head>
 <meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>TARRYTALK</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -33,193 +35,106 @@ body::after{content:'';position:fixed;width:500px;height:500px;
   background:radial-gradient(circle,rgba(255,255,255,.09) 0%,transparent 65%);
   bottom:-120px;right:-120px;pointer-events:none;animation:blob 11s ease-in-out infinite reverse;}
 @keyframes blob{0%,100%{transform:scale(1)}50%{transform:scale(1.1) translate(15px,15px)}}
-
-/* 테마 버튼 */
-.theme-btn{
-  position:fixed;top:16px;right:16px;
-  background:rgba(255,255,255,.2);backdrop-filter:blur(8px);
-  border:1.5px solid rgba(255,255,255,.35);border-radius:50px;
-  padding:8px 16px;cursor:pointer;font-size:13px;font-weight:700;color:#fff;
-  display:flex;align-items:center;gap:6px;z-index:100;
-  font-family:'Noto Sans KR',sans-serif;transition:all .3s;
-}
+.theme-btn{position:fixed;top:16px;right:16px;background:rgba(255,255,255,.2);backdrop-filter:blur(8px);border:1.5px solid rgba(255,255,255,.35);border-radius:50px;padding:8px 16px;cursor:pointer;font-size:13px;font-weight:700;color:#fff;display:flex;align-items:center;gap:6px;z-index:100;font-family:'Noto Sans KR',sans-serif;transition:all .3s;}
 .theme-btn:hover{background:rgba(255,255,255,.32);}
-
-/* 카드 */
-.card{
-  background:var(--bg2);border:1.5px solid var(--border);border-radius:28px;
-  padding:40px 36px;width:100%;max-width:440px;
-  box-shadow:0 28px 70px rgba(0,0,0,.22);
-  position:relative;z-index:10;animation:up .6s cubic-bezier(.16,1,.3,1);
-}
+.card{background:var(--bg2);border:1.5px solid var(--border);border-radius:28px;padding:40px 36px;width:100%;max-width:440px;box-shadow:0 28px 70px rgba(0,0,0,.22);position:relative;z-index:10;animation:up .6s cubic-bezier(.16,1,.3,1);}
 @keyframes up{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:480px){.card{padding:32px 22px;border-radius:22px;}}
-
-/* 로고 */
 .logo{text-align:center;margin-bottom:26px;}
-.logo-icon{
-  width:76px;height:76px;margin:0 auto 13px;border-radius:22px;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  display:flex;align-items:center;justify-content:center;font-size:34px;
-  box-shadow:0 12px 32px var(--glow);
-}
-.logo h1{font-size:26px;font-weight:900;letter-spacing:3px;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.logo-icon{width:76px;height:76px;margin:0 auto 13px;border-radius:22px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:34px;box-shadow:0 12px 32px var(--glow);}
+.logo h1{font-size:26px;font-weight:900;letter-spacing:3px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 .logo p{color:var(--text2);font-size:13px;margin-top:5px;}
-
-/* 탭 */
 .tabs{display:flex;background:var(--surface);border-radius:14px;padding:4px;margin-bottom:22px;gap:4px;}
-.tab{flex:1;padding:12px 6px;text-align:center;border-radius:10px;
-  font-size:15px;font-weight:700;cursor:pointer;color:var(--text2);transition:all .25s;user-select:none;}
+.tab{flex:1;padding:12px 6px;text-align:center;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;color:var(--text2);transition:all .25s;user-select:none;}
 .tab.on{background:var(--bg2);color:var(--accent);box-shadow:0 2px 10px var(--shadow);}
-
-/* 패널 */
 .panel{display:none;} .panel.on{display:block;}
-
-/* 필드 */
 .field{margin-bottom:14px;}
 .field label{display:block;font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;}
 .iw{position:relative;}
-.iw input{
-  width:100%;padding:13px 42px 13px 15px;border:1.5px solid var(--border);border-radius:13px;
-  background:var(--inp);color:var(--text);font-size:14px;
-  font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color .2s,box-shadow .2s;
-}
+.iw input{width:100%;padding:13px 42px 13px 15px;border:1.5px solid var(--border);border-radius:13px;background:var(--inp);color:var(--text);font-size:14px;font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color .2s,box-shadow .2s;}
 .iw input:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--glow);}
 .iw input.ok{border-color:var(--accent);}
 .iw input.ng{border-color:var(--red)!important;box-shadow:0 0 0 4px var(--rbg)!important;}
 .iw input::placeholder{color:var(--text2);opacity:.45;}
 .ico{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none;opacity:.5;}
-.pw-eye{position:absolute;right:11px;top:50%;transform:translateY(-50%);
-  font-size:16px;cursor:pointer;background:none;border:none;color:var(--text2);padding:4px;}
-
-/* 메시지 */
-.msg{
-  display:flex;align-items:flex-start;gap:5px;font-size:12px;font-weight:600;
-  margin-top:5px;border-radius:8px;padding:7px 10px;
-  opacity:0;max-height:0;overflow:hidden;transition:all .25s;pointer-events:none;
-}
+.pw-eye{position:absolute;right:11px;top:50%;transform:translateY(-50%);font-size:16px;cursor:pointer;background:none;border:none;color:var(--text2);padding:4px;}
+.msg{display:flex;align-items:flex-start;gap:5px;font-size:12px;font-weight:600;margin-top:5px;border-radius:8px;padding:7px 10px;opacity:0;max-height:0;overflow:hidden;transition:all .25s;pointer-events:none;}
 .msg.on{opacity:1;max-height:60px;}
 .msg.err{background:var(--rbg);border:1px solid var(--rbr);color:var(--red);}
 .msg.ok2{background:rgba(0,184,116,.08);border:1px solid rgba(0,184,116,.3);color:var(--accent);}
-
-/* 비번 강도 */
 .pw-bar{height:5px;border-radius:50px;background:var(--border);overflow:hidden;margin-top:6px;}
 .pw-fill{height:100%;border-radius:50px;width:0%;transition:width .4s,background .4s;}
 .pw-lbl{font-size:11px;font-weight:600;margin-top:3px;min-height:15px;color:var(--text2);}
-.pw-rules{display:none;flex-direction:column;gap:5px;
-  background:var(--surface);border:1.5px solid var(--border);border-radius:11px;padding:11px 13px;margin-top:5px;}
+.pw-rules{display:none;flex-direction:column;gap:5px;background:var(--surface);border:1.5px solid var(--border);border-radius:11px;padding:11px 13px;margin-top:5px;}
 .pw-rules.on{display:flex;}
 .rule{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--text2);transition:color .2s;}
 .rule.ok{color:var(--accent);}
-.rdot{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);
-  display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;transition:all .2s;}
+.rdot{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;transition:all .2s;}
 .rule.ok .rdot{background:var(--accent);border-color:var(--accent);color:#fff;}
-
-/* 버튼 */
-.btn{
-  width:100%;padding:14px;margin-top:5px;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  border:none;border-radius:13px;color:#fff;font-size:15px;font-weight:700;
-  cursor:pointer;font-family:'Noto Sans KR',sans-serif;
-  box-shadow:0 8px 22px var(--glow);transition:all .25s;
-}
+.btn{width:100%;padding:14px;margin-top:5px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:13px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;box-shadow:0 8px 22px var(--glow);transition:all .25s;}
 .btn:hover{transform:translateY(-2px);box-shadow:0 14px 32px var(--glow);}
 .btn:active{transform:translateY(0);}
-.divider{text-align:center;font-size:12px;font-weight:600;color:var(--text2);
-  margin:16px 0;position:relative;}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.divider{text-align:center;font-size:12px;font-weight:600;color:var(--text2);margin:16px 0;position:relative;}
 .divider::before,.divider::after{content:'';position:absolute;top:50%;width:40%;height:1px;background:var(--border);}
 .divider::before{left:0;}.divider::after{right:0;}
-
-/* 둘러보기 버튼 */
-.browse-btn{
-  width:100%;padding:13px;border:2px dashed var(--border);border-radius:13px;
-  background:var(--surface);color:var(--text2);font-size:14px;font-weight:700;
-  cursor:pointer;font-family:'Noto Sans KR',sans-serif;
-  display:flex;align-items:center;justify-content:center;gap:8px;transition:all .3s;
-}
+.browse-btn{width:100%;padding:13px;border:2px dashed var(--border);border-radius:13px;background:var(--surface);color:var(--text2);font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .3s;}
 .browse-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,184,116,.06);}
-.btag{background:var(--surface);border:1.5px solid var(--border);
-  border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;}
+.btag{background:var(--surface);border:1.5px solid var(--border);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;}
 .browse-btn:hover .btag{border-color:var(--accent);color:var(--accent);}
-
-/* 둘러보기 안내 */
-.browse-info{
-  background:var(--surface);border:1.5px solid var(--border);
-  border-radius:14px;padding:14px;margin-top:12px;display:none;
-}
+.browse-info{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:14px;margin-top:12px;display:none;}
 .browse-info.on{display:block;}
 .bi-title{font-size:13px;font-weight:700;margin-bottom:10px;}
-.bf{display:flex;align-items:center;gap:10px;padding:8px 0;
-  border-bottom:1px solid var(--border);font-size:12px;font-weight:600;}
+.bf{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;font-weight:600;}
 .bf:last-of-type{border-bottom:none;}
 .bf-icon{font-size:15px;width:20px;text-align:center;}
 .bf-text{flex:1;color:var(--text2);}
 .bfok{background:rgba(0,184,116,.15);color:var(--accent);font-size:10px;font-weight:700;padding:3px 9px;border-radius:50px;}
 .bfno{background:var(--rbg);color:var(--red);font-size:10px;font-weight:700;padding:3px 9px;border-radius:50px;}
-
-/* 하단 링크 */
 .bot-link{text-align:center;margin-top:16px;font-size:13px;color:var(--text2);}
 .bot-link a{color:var(--accent);text-decoration:none;font-weight:700;}
-
-/* 관리자 아이콘 */
-.admin-gear{
-  position:fixed;bottom:28px;right:28px;
-  width:54px;height:54px;border-radius:50%;
-  background:var(--bg2);border:2px solid var(--border);
-  display:flex;align-items:center;justify-content:center;
-  font-size:26px;cursor:pointer;z-index:200;
-  box-shadow:0 6px 22px rgba(0,0,0,.18);
-  transition:transform .3s,border-color .3s,box-shadow .3s;
-}
-.admin-gear:hover{
-  transform:rotate(60deg) scale(1.1);
-  border-color:var(--accent);
-  box-shadow:0 8px 28px rgba(0,184,116,.35);
-}
-
-/* 토스트 */
-.toast{
-  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
-  border-radius:13px;padding:11px 22px;font-size:13px;font-weight:700;
-  box-shadow:0 8px 24px rgba(0,0,0,.2);opacity:0;
-  transition:all .35s cubic-bezier(.16,1,.3,1);z-index:999;white-space:nowrap;
-}
+.admin-gear{position:fixed;bottom:28px;right:28px;width:54px;height:54px;border-radius:50%;background:var(--bg2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;z-index:200;box-shadow:0 6px 22px rgba(0,0,0,.18);transition:transform .3s,border-color .3s,box-shadow .3s;}
+.admin-gear:hover{transform:rotate(60deg) scale(1.1);border-color:var(--accent);box-shadow:0 8px 28px rgba(0,184,116,.35);}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);border-radius:13px;padding:11px 22px;font-size:13px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.2);opacity:0;transition:all .35s cubic-bezier(.16,1,.3,1);z-index:999;white-space:nowrap;}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
 .t-ok{background:var(--accent);color:#fff;}
 .t-err{background:var(--red);color:#fff;}
 .t-info{background:var(--bg2);color:var(--text);border:1.5px solid var(--border);}
+.loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9999;display:none;align-items:center;justify-content:center;}
+.loading-overlay.on{display:flex;}
+.spinner{width:44px;height:44px;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
+
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+</div>
 
 <button class="theme-btn" onclick="toggleTheme()">
   <span id="ti">🌙</span><span id="tl">밤 모드</span>
 </button>
 
 <div class="card">
-  <!-- 로고 -->
   <div class="logo">
     <div class="logo-icon">💬</div>
     <h1>TARRYTALK</h1>
     <p>친구들과 언제 어디서나 연결되세요</p>
   </div>
 
-  <!-- 탭 -->
   <div class="tabs">
     <div class="tab on"  id="tb-login"  onclick="setTab('login')">🔑 로그인</div>
     <div class="tab"     id="tb-signup" onclick="setTab('signup')">✨ 회원가입</div>
     <div class="tab"     id="tb-browse" onclick="setTab('browse')">👀 둘러보기</div>
   </div>
 
-  <!-- ══ 로그인 ══ -->
+  <!-- 로그인 -->
   <div class="panel on" id="panel-login">
     <div class="field">
       <label>이메일 주소</label>
       <div class="iw">
-        <input type="email" id="li-em" placeholder="example@email.com"
-               oninput="vlLoginEmail()" autocomplete="email">
+        <input type="email" id="li-em" placeholder="example@email.com" oninput="vlLoginEmail()" autocomplete="email">
         <span class="ico">✉️</span>
       </div>
       <div class="msg" id="li-em-msg"><span></span><span></span></div>
@@ -227,26 +142,23 @@ body::after{content:'';position:fixed;width:500px;height:500px;
     <div class="field">
       <label>비밀번호</label>
       <div class="iw">
-        <input type="password" id="li-pw" placeholder="비밀번호 입력"
-               oninput="clrMsg('li-pw-msg','li-pw')"
-               onkeydown="if(event.key==='Enter')doLogin()" autocomplete="current-password">
+        <input type="password" id="li-pw" placeholder="비밀번호 입력" oninput="clrMsg('li-pw-msg','li-pw')" onkeydown="if(event.key==='Enter')doLogin()" autocomplete="current-password">
         <button class="pw-eye" onclick="togglePw('li-pw',this)">👁️</button>
       </div>
       <div class="msg" id="li-pw-msg"><span></span><span></span></div>
     </div>
-    <button class="btn" onclick="doLogin()">로그인</button>
+    <button class="btn" id="btn-login" onclick="doLogin()">로그인</button>
     <div class="bot-link" style="margin-top:16px">
       계정이 없으신가요? <a href="#" onclick="setTab('signup')">회원가입</a>
     </div>
   </div>
 
-  <!-- ══ 회원가입 ══ -->
+  <!-- 회원가입 -->
   <div class="panel" id="panel-signup">
     <div class="field">
       <label>이름</label>
       <div class="iw">
-        <input type="text" id="su-nm" placeholder="홍길동 (2자 이상)"
-               oninput="vlName()" autocomplete="name">
+        <input type="text" id="su-nm" placeholder="홍길동 (2자 이상)" oninput="vlName()" autocomplete="name">
         <span class="ico">👤</span>
       </div>
       <div class="msg" id="su-nm-msg"><span></span><span></span></div>
@@ -254,8 +166,7 @@ body::after{content:'';position:fixed;width:500px;height:500px;
     <div class="field">
       <label>이메일 주소</label>
       <div class="iw">
-        <input type="email" id="su-em" placeholder="example@email.com"
-               oninput="vlSignupEmail()" autocomplete="email">
+        <input type="email" id="su-em" placeholder="example@email.com" oninput="vlSignupEmail()" autocomplete="email">
         <span class="ico">✉️</span>
       </div>
       <div class="msg" id="su-em-msg"><span></span><span></span></div>
@@ -263,8 +174,7 @@ body::after{content:'';position:fixed;width:500px;height:500px;
     <div class="field">
       <label>비밀번호</label>
       <div class="iw">
-        <input type="password" id="su-pw" placeholder="대·소문자·숫자 포함 6자 이상"
-               oninput="vlPw()" autocomplete="new-password">
+        <input type="password" id="su-pw" placeholder="대·소문자·숫자 포함 6자 이상" oninput="vlPw()" autocomplete="new-password">
         <button class="pw-eye" onclick="togglePw('su-pw',this)">👁️</button>
       </div>
       <div class="pw-bar"><div class="pw-fill" id="pw-fill"></div></div>
@@ -280,19 +190,18 @@ body::after{content:'';position:fixed;width:500px;height:500px;
     <div class="field">
       <label>비밀번호 확인</label>
       <div class="iw">
-        <input type="password" id="su-pw2" placeholder="비밀번호 재입력"
-               oninput="vlPw2()" autocomplete="new-password">
+        <input type="password" id="su-pw2" placeholder="비밀번호 재입력" oninput="vlPw2()" autocomplete="new-password">
         <button class="pw-eye" onclick="togglePw('su-pw2',this)">👁️</button>
       </div>
       <div class="msg" id="su-pw2-msg"><span></span><span></span></div>
     </div>
-    <button class="btn" onclick="doSignup()">회원가입 완료</button>
+    <button class="btn" id="btn-signup" onclick="doSignup()">회원가입 완료</button>
     <div class="bot-link" style="margin-top:16px">
       이미 계정이 있으신가요? <a href="#" onclick="setTab('login')">로그인</a>
     </div>
   </div>
 
-  <!-- ══ 둘러보기 ══ -->
+  <!-- 둘러보기 -->
   <div class="panel" id="panel-browse">
     <div style="text-align:center;margin-bottom:20px;">
       <div style="font-size:48px;margin-bottom:10px;">👀</div>
@@ -313,21 +222,24 @@ body::after{content:'';position:fixed;width:500px;height:500px;
     </div>
   </div>
 
-  <!-- ══ 관리자 (숨김 패널) ══ -->
+  <!-- 관리자 패널 (숨김) -->
   <div class="panel" id="panel-admin">
     <div style="text-align:center;margin-bottom:22px;">
-      <div style="width:68px;height:68px;background:#fff;border:3px solid var(--accent);
-        border-radius:20px;display:inline-flex;align-items:center;justify-content:center;
-        font-size:32px;box-shadow:0 8px 24px var(--glow);">⚙️</div>
+      <div style="width:68px;height:68px;background:#fff;border:3px solid var(--accent);border-radius:20px;display:inline-flex;align-items:center;justify-content:center;font-size:32px;box-shadow:0 8px 24px var(--glow);">⚙️</div>
       <div style="font-size:16px;font-weight:800;margin-top:12px;">관리자 전용 접속</div>
       <div style="font-size:12px;color:var(--text2);margin-top:4px;">권한이 없으면 접근이 제한됩니다</div>
     </div>
     <div class="field">
-      <label>관리자 비밀번호</label>
+      <label>관리자 이메일</label>
       <div class="iw">
-        <input type="password" id="adm-pw" placeholder="비밀번호 입력"
-               oninput="clrMsg('adm-pw-msg','adm-pw')"
-               onkeydown="if(event.key==='Enter')doAdmin()" autocomplete="off">
+        <input type="email" id="adm-em" placeholder="관리자 이메일" autocomplete="email">
+        <span class="ico">✉️</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>비밀번호</label>
+      <div class="iw">
+        <input type="password" id="adm-pw" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doAdmin()" autocomplete="off">
         <button class="pw-eye" onclick="togglePw('adm-pw',this)">👁️</button>
       </div>
       <div class="msg" id="adm-pw-msg"><span></span><span></span></div>
@@ -336,198 +248,256 @@ body::after{content:'';position:fixed;width:500px;height:500px;
     <div class="bot-link" style="margin-top:14px;">
       <a href="#" onclick="setTab('login')">← 로그인으로 돌아가기</a>
     </div>
-    <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--text2);opacity:.6;">
-      비밀번호 분실 시 시스템 관리자에게 문의하세요
-    </div>
   </div>
 </div>
 
-<!-- 관리자 톱니바퀴 (우측 하단 고정) -->
 <button class="admin-gear" onclick="setTab('admin')" title="관리자 로그인">⚙️</button>
-
 <div class="toast" id="toast-el"></div>
 
-<script>
-const K={USERS:'tt_users',ADMIN:'tt_admin_pw',SESSION:'tt_session',THEME:'tt_theme'};
-const EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+         updateProfile, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getDatabase, ref, set, get, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-/* 초기화 */
-if(!localStorage.getItem(K.ADMIN)) localStorage.setItem(K.ADMIN,'123456');
-if(!localStorage.getItem(K.USERS)) localStorage.setItem(K.USERS,'[]');
+const firebaseConfig = {
+  apiKey: "AIzaSyDC9qSmH-1z778oiI7QbDY_JrKis95z_C4",
+  authDomain: "tarrytalk.firebaseapp.com",
+  databaseURL: "https://tarrytalk-default-rtdb.firebaseio.com",
+  projectId: "tarrytalk",
+  storageBucket: "tarrytalk.firebasestorage.app",
+  messagingSenderId: "322779846377",
+  appId: "1:322779846377:web:12253ee2f2330dd1a04278"
+};
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getDatabase(app);
+const ADMIN_EMAIL = 'tarry9653@daum.net';
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-const getUsers =()=>JSON.parse(localStorage.getItem(K.USERS)||'[]');
-const saveUsers=u=>localStorage.setItem(K.USERS,JSON.stringify(u));
+/* 이미 로그인 시 바로 이동 */
+onAuthStateChanged(auth, user => {
+  if (user) {
+    const snap = sessionStorage.getItem('tt_guest');
+    if (!snap) { location.href = 'chat.html'; }
+  }
+});
 
-/* 테마 */
-function toggleTheme(){
-  const h=document.documentElement,d=h.dataset.theme==='dark';
-  h.dataset.theme=d?'light':'dark';
-  document.getElementById('ti').textContent=d?'🌙':'☀️';
-  document.getElementById('tl').textContent=d?'밤 모드':'낮 모드';
-  localStorage.setItem(K.THEME,h.dataset.theme);
-}
+/* ── 테마 ── */
+window.toggleTheme = function() {
+  const h = document.documentElement, d = h.dataset.theme === 'dark';
+  h.dataset.theme = d ? 'light' : 'dark';
+  document.getElementById('ti').textContent = d ? '🌙' : '☀️';
+  document.getElementById('tl').textContent = d ? '밤 모드' : '낮 모드';
+  localStorage.setItem('tt_theme', h.dataset.theme);
+};
 (()=>{
-  const t=localStorage.getItem(K.THEME);
-  if(t)document.documentElement.dataset.theme=t;
-  if(document.documentElement.dataset.theme==='dark'){
-    document.getElementById('ti').textContent='☀️';
-    document.getElementById('tl').textContent='낮 모드';
+  const t = localStorage.getItem('tt_theme');
+  if (t) document.documentElement.dataset.theme = t;
+  if (document.documentElement.dataset.theme === 'dark') {
+    document.getElementById('ti').textContent = '☀️';
+    document.getElementById('tl').textContent = '낮 모드';
   }
 })();
 
-/* 탭 전환 */
-function setTab(n){
-  ['login','signup','browse','admin'].forEach(t=>{
-    const tb=document.getElementById('tb-'+t);
-    const pa=document.getElementById('panel-'+t);
-    if(tb) tb.classList.toggle('on',t===n);
-    if(pa) pa.classList.toggle('on',t===n);
+/* ── 탭 ── */
+window.setTab = function(n) {
+  ['login','signup','browse','admin'].forEach(t => {
+    const tb = document.getElementById('tb-'+t);
+    const pa = document.getElementById('panel-'+t);
+    if (tb) tb.classList.toggle('on', t===n);
+    if (pa) pa.classList.toggle('on', t===n);
   });
-}
+};
 
-/* 메시지 헬퍼 */
-function showMsg(id,type,icon,txt){
-  const el=document.getElementById(id);
-  el.className='msg '+type+' on';
-  el.children[0].textContent=icon;
-  el.children[1].textContent=txt;
+/* ── 유효성 ── */
+window.clrMsg = function(mid, iid) {
+  document.getElementById(mid).className = 'msg';
+  const el = document.getElementById(iid); if(el) el.classList.remove('ok','ng');
+};
+function showMsg(id, type, icon, txt) {
+  const el = document.getElementById(id);
+  el.className = 'msg '+type+' on';
+  el.children[0].textContent = icon;
+  el.children[1].textContent = txt;
 }
-function hideMsg(id){document.getElementById(id).className='msg';}
-function clrMsg(mid,iid){
-  hideMsg(mid);
-  const el=document.getElementById(iid);
-  if(el)el.classList.remove('ok','ng');
+function setState(id, s) {
+  const el = document.getElementById(id);
+  el.classList.remove('ok','ng'); if(s) el.classList.add(s);
 }
-function setState(id,s){
-  const el=document.getElementById(id);
-  el.classList.remove('ok','ng');
-  if(s)el.classList.add(s);
-}
-
-/* 유효성 */
-function vlLoginEmail(){
-  const v=document.getElementById('li-em').value.trim();
-  if(!v){hideMsg('li-em-msg');setState('li-em','');return null;}
-  if(!EMAIL_RE.test(v)){showMsg('li-em-msg','err','❌','올바른 이메일 형식이 아닙니다 (예: name@email.com)');setState('li-em','ng');return false;}
-  hideMsg('li-em-msg');setState('li-em','ok');return true;
-}
-function vlName(){
-  const v=document.getElementById('su-nm').value.trim();
-  if(!v){hideMsg('su-nm-msg');setState('su-nm','');return false;}
-  if(v.length<2){showMsg('su-nm-msg','err','❌','이름은 2자 이상 입력해주세요');setState('su-nm','ng');return false;}
-  hideMsg('su-nm-msg');setState('su-nm','ok');return true;
-}
-function vlSignupEmail(){
-  const v=document.getElementById('su-em').value.trim();
-  if(!v){hideMsg('su-em-msg');setState('su-em','');return false;}
-  if(!EMAIL_RE.test(v)){showMsg('su-em-msg','err','❌','올바른 이메일 형식이 아닙니다 (예: name@email.com)');setState('su-em','ng');return false;}
-  if(getUsers().find(u=>u.email===v)){showMsg('su-em-msg','err','❌','이미 가입된 이메일 주소입니다');setState('su-em','ng');return false;}
-  showMsg('su-em-msg','ok2','✅','사용 가능한 이메일입니다');setState('su-em','ok');return true;
-}
-function vlPw(){
-  const v=document.getElementById('su-pw').value;
-  const rules=document.getElementById('pw-rules');
-  const fill=document.getElementById('pw-fill'),lbl=document.getElementById('pw-lbl');
-  if(!v){rules.classList.remove('on');fill.style.width='0%';lbl.textContent='';hideMsg('su-pw-msg');setState('su-pw','');return false;}
+window.vlLoginEmail = function() {
+  const v = document.getElementById('li-em').value.trim();
+  if (!v) { window.clrMsg('li-em-msg','li-em'); return null; }
+  if (!EMAIL_RE.test(v)) { showMsg('li-em-msg','err','❌','올바른 이메일 형식이 아닙니다'); setState('li-em','ng'); return false; }
+  window.clrMsg('li-em-msg','li-em'); setState('li-em','ok'); return true;
+};
+window.vlName = function() {
+  const v = document.getElementById('su-nm').value.trim();
+  if (!v) { window.clrMsg('su-nm-msg','su-nm'); return false; }
+  if (v.length < 2) { showMsg('su-nm-msg','err','❌','이름은 2자 이상 입력해주세요'); setState('su-nm','ng'); return false; }
+  window.clrMsg('su-nm-msg','su-nm'); setState('su-nm','ok'); return true;
+};
+window.vlSignupEmail = function() {
+  const v = document.getElementById('su-em').value.trim();
+  if (!v) { window.clrMsg('su-em-msg','su-em'); return false; }
+  if (!EMAIL_RE.test(v)) { showMsg('su-em-msg','err','❌','올바른 이메일 형식이 아닙니다'); setState('su-em','ng'); return false; }
+  showMsg('su-em-msg','ok2','✅','사용 가능한 이메일입니다'); setState('su-em','ok'); return true;
+};
+window.vlPw = function() {
+  const v = document.getElementById('su-pw').value;
+  const rules = document.getElementById('pw-rules');
+  const fill = document.getElementById('pw-fill'), lbl = document.getElementById('pw-lbl');
+  if (!v) { rules.classList.remove('on'); fill.style.width='0%'; lbl.textContent=''; window.clrMsg('su-pw-msg','su-pw'); return false; }
   rules.classList.add('on');
-  const ok={l:v.length>=6,u:/[A-Z]/.test(v),lo:/[a-z]/.test(v),n:/[0-9]/.test(v)};
-  const p=Object.values(ok).filter(Boolean).length;
+  const ok = { l:v.length>=6, u:/[A-Z]/.test(v), lo:/[a-z]/.test(v), n:/[0-9]/.test(v) };
+  const p = Object.values(ok).filter(Boolean).length;
   document.getElementById('rl').classList.toggle('ok',ok.l);
   document.getElementById('ru').classList.toggle('ok',ok.u);
   document.getElementById('rlo').classList.toggle('ok',ok.lo);
   document.getElementById('rn').classList.toggle('ok',ok.n);
-  const pct=[0,25,50,75,100][p];
-  const col=['','#e53e3e','#ed8936','#ecc94b','#00b874'][p];
-  const lab=['','매우 약함 😟','약함 😐','보통 🙂','강함 💪'][p];
-  fill.style.width=pct+'%';fill.style.background=col;lbl.textContent=p?lab:'';lbl.style.color=col;
-  if(p<4){
-    const m=[];if(!ok.l)m.push('6자 이상');if(!ok.u)m.push('대문자');if(!ok.lo)m.push('소문자');if(!ok.n)m.push('숫자');
-    showMsg('su-pw-msg','err','❌',m.join(' · ')+' 조건 미충족');setState('su-pw','ng');
-    if(document.getElementById('su-pw2').value)vlPw2();return false;
+  const pct = [0,25,50,75,100][p];
+  const col = ['','#e53e3e','#ed8936','#ecc94b','#00b874'][p];
+  const lab = ['','매우 약함 😟','약함 😐','보통 🙂','강함 💪'][p];
+  fill.style.width = pct+'%'; fill.style.background = col; lbl.textContent = p?lab:''; lbl.style.color = col;
+  if (p < 4) { setState('su-pw','ng'); if(document.getElementById('su-pw2').value) window.vlPw2(); return false; }
+  window.clrMsg('su-pw-msg','su-pw'); setState('su-pw','ok');
+  if(document.getElementById('su-pw2').value) window.vlPw2(); return true;
+};
+window.vlPw2 = function() {
+  const p = document.getElementById('su-pw').value, p2 = document.getElementById('su-pw2').value;
+  if (!p2) { window.clrMsg('su-pw2-msg','su-pw2'); return false; }
+  if (p !== p2) { showMsg('su-pw2-msg','err','❌','비밀번호가 일치하지 않습니다'); setState('su-pw2','ng'); return false; }
+  showMsg('su-pw2-msg','ok2','✅','비밀번호가 일치합니다'); setState('su-pw2','ok'); return true;
+};
+window.togglePw = function(id, btn) {
+  const el = document.getElementById(id), show = el.type === 'password';
+  el.type = show ? 'text' : 'password'; btn.textContent = show ? '🙈' : '👁️';
+};
+
+/* ── 로그인 ── */
+window.doLogin = async function() {
+  const em = document.getElementById('li-em').value.trim();
+  const pw = document.getElementById('li-pw').value;
+  if (!em || !EMAIL_RE.test(em)) { showMsg('li-em-msg','err','❌','올바른 이메일 주소를 입력해주세요'); setState('li-em','ng'); return; }
+  if (!pw) { showMsg('li-pw-msg','err','❌','비밀번호를 입력해주세요'); setState('li-pw','ng'); return; }
+  const btn = document.getElementById('btn-login');
+  btn.disabled = true; btn.textContent = '로그인 중...';
+  showLoading(true);
+  try {
+    const cred = await signInWithEmailAndPassword(auth, em, pw);
+    // 계정 비활성화 여부 확인
+    const snap = await get(ref(db, `users/${cred.user.uid}/disabled`));
+    if (snap.val() === true) {
+      await auth.signOut();
+      showMsg('li-em-msg','err','❌','접근이 제한된 계정입니다. 관리자에게 문의하세요'); setState('li-em','ng');
+      showLoading(false); btn.disabled = false; btn.textContent = '로그인'; return;
+    }
+    // 온라인 상태 업데이트
+    await set(ref(db, `users/${cred.user.uid}/online`), true);
+    await set(ref(db, `users/${cred.user.uid}/lastSeen`), serverTimestamp());
+    showToast('👋 반갑습니다!', 'ok');
+    setTimeout(() => location.href='chat.html', 800);
+  } catch(e) {
+    showLoading(false); btn.disabled = false; btn.textContent = '로그인';
+    const c = e.code||'';
+    if (c.includes('invalid-credential')||c.includes('user-not-found')||c.includes('wrong-password'))
+      showMsg('li-pw-msg','err','❌','이메일 또는 비밀번호가 올바르지 않습니다');
+    else if (c.includes('too-many-requests'))
+      showMsg('li-em-msg','err','❌','잠시 후 다시 시도해주세요');
+    else
+      showMsg('li-pw-msg','err','❌','로그인 실패: '+e.message);
+    setState('li-pw','ng');
   }
-  hideMsg('su-pw-msg');setState('su-pw','ok');
-  if(document.getElementById('su-pw2').value)vlPw2();return true;
-}
-function vlPw2(){
-  const p=document.getElementById('su-pw').value;
-  const p2=document.getElementById('su-pw2').value;
-  if(!p2){hideMsg('su-pw2-msg');setState('su-pw2','');return false;}
-  if(p!==p2){showMsg('su-pw2-msg','err','❌','비밀번호가 일치하지 않습니다');setState('su-pw2','ng');return false;}
-  showMsg('su-pw2-msg','ok2','✅','비밀번호가 일치합니다');setState('su-pw2','ok');return true;
-}
+};
 
-/* 비번 보기 */
-function togglePw(id,btn){
-  const el=document.getElementById(id),show=el.type==='password';
-  el.type=show?'text':'password';btn.textContent=show?'🙈':'👁️';
-}
-
-/* 로그인 */
-function doLogin(){
-  const em=document.getElementById('li-em').value.trim();
-  const pw=document.getElementById('li-pw').value;
-  if(!em){showMsg('li-em-msg','err','❌','이메일을 입력해주세요');setState('li-em','ng');return;}
-  if(!EMAIL_RE.test(em)){showMsg('li-em-msg','err','❌','올바른 이메일 형식이 아닙니다');setState('li-em','ng');return;}
-  if(!pw){showMsg('li-pw-msg','err','❌','비밀번호를 입력해주세요');setState('li-pw','ng');return;}
-  const user=getUsers().find(u=>u.email===em);
-  if(!user){showMsg('li-em-msg','err','❌','등록되지 않은 이메일 주소입니다');setState('li-em','ng');return;}
-  if(user.pw!==pw){showMsg('li-pw-msg','err','❌','비밀번호가 올바르지 않습니다');setState('li-pw','ng');return;}
-  /* 삭제(banned) 계정 차단 */
-  const banned=JSON.parse(localStorage.getItem('tt_banned')||'[]');
-  if(banned.includes(em)){showMsg('li-em-msg','err','❌','접근이 제한된 계정입니다. 관리자에게 문의하세요');setState('li-em','ng');return;}
-  localStorage.setItem(K.SESSION,JSON.stringify({name:user.name,email:user.email,role:'user'}));
-  showToast('👋 반갑습니다, '+user.name+'님!','ok');
-  setTimeout(()=>location.href='chat.html',1200);
-}
-
-/* 회원가입 */
-function doSignup(){
-  const nm=document.getElementById('su-nm').value.trim();
-  const em=document.getElementById('su-em').value.trim();
-  const pw=document.getElementById('su-pw').value;
-  const pw2=document.getElementById('su-pw2').value;
-  if(!nm){showMsg('su-nm-msg','err','❌','이름을 입력해주세요');setState('su-nm','ng');return;}
-  if(!em){showMsg('su-em-msg','err','❌','이메일을 입력해주세요');setState('su-em','ng');return;}
-  if(!pw){showMsg('su-pw-msg','err','❌','비밀번호를 입력해주세요');setState('su-pw','ng');return;}
-  if(!pw2){showMsg('su-pw2-msg','err','❌','비밀번호 확인을 입력해주세요');setState('su-pw2','ng');return;}
-  if(!vlName()||!vlSignupEmail()||!vlPw()||!vlPw2())return;
-  const users=getUsers();
-  users.push({name:nm,email:em,pw,joinedAt:new Date().toISOString()});
-  saveUsers(users);
-  showToast('🎉 회원가입 완료! 로그인해주세요','ok');
-  setTimeout(()=>{setTab('login');document.getElementById('li-em').value=em;setState('li-em','ok');},1400);
-}
-
-/* 관리자 */
-function doAdmin(){
-  const pw=document.getElementById('adm-pw').value;
-  const correct=localStorage.getItem(K.ADMIN);
-  if(!pw){showMsg('adm-pw-msg','err','❌','비밀번호를 입력해주세요');setState('adm-pw','ng');return;}
-  if(pw!==correct){showMsg('adm-pw-msg','err','❌','비밀번호가 올바르지 않습니다');setState('adm-pw','ng');return;}
-  /* 관리자 계정을 회원 목록에 없으면 자동 추가 */
-  const users=getUsers();
-  if(!users.find(u=>u.email==='admin')){
-    users.push({name:'관리자',email:'admin',pw:correct,joinedAt:new Date().toISOString(),isAdmin:true});
-    saveUsers(users);
+/* ── 회원가입 ── */
+window.doSignup = async function() {
+  const nm = document.getElementById('su-nm').value.trim();
+  const em = document.getElementById('su-em').value.trim();
+  const pw = document.getElementById('su-pw').value;
+  const pw2 = document.getElementById('su-pw2').value;
+  if (!window.vlName()||!window.vlSignupEmail()||!window.vlPw()||!window.vlPw2()) return;
+  if (nm.length<2||!EMAIL_RE.test(em)||pw!==pw2) return;
+  const btn = document.getElementById('btn-signup');
+  btn.disabled = true; btn.textContent = '가입 처리 중...';
+  showLoading(true);
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, em, pw);
+    await updateProfile(cred.user, { displayName: nm });
+    await set(ref(db, `users/${cred.user.uid}`), {
+      displayName: nm, email: em,
+      isAdmin: em === ADMIN_EMAIL,
+      joinedAt: serverTimestamp(),
+      online: true, disabled: false
+    });
+    showToast('🎉 가입 완료! 환영합니다', 'ok');
+    setTimeout(() => location.href='chat.html', 900);
+  } catch(e) {
+    showLoading(false); btn.disabled = false; btn.textContent = '회원가입 완료';
+    const c = e.code||'';
+    if (c.includes('email-already-in-use')) showMsg('su-em-msg','err','❌','이미 가입된 이메일 주소입니다');
+    else showToast('회원가입 실패: '+e.message, 'err');
   }
-  localStorage.setItem(K.SESSION,JSON.stringify({name:'관리자',email:'admin',role:'admin'}));
-  showToast('⚙️ 관리자로 접속합니다','ok');
-  setTimeout(()=>location.href='admin.html',1100);
-}
+};
 
-/* 둘러보기 */
-function doGuest(){
-  localStorage.setItem(K.SESSION,JSON.stringify({name:'게스트',email:'',role:'guest'}));
+/* ── 관리자 ── */
+window.doAdmin = async function() {
+  const em = document.getElementById('adm-em').value.trim();
+  const pw = document.getElementById('adm-pw').value;
+  if (!em) { showMsg('adm-pw-msg','err','❌','이메일을 입력하세요'); return; }
+  if (!pw) { showMsg('adm-pw-msg','err','❌','비밀번호를 입력하세요'); return; }
+  showLoading(true);
+  try {
+    const cred = await signInWithEmailAndPassword(auth, em, pw);
+    const snap = await get(ref(db, `users/${cred.user.uid}/isAdmin`));
+    if (snap.val() !== true && em !== ADMIN_EMAIL) {
+      await auth.signOut();
+      showMsg('adm-pw-msg','err','❌','관리자 권한이 없습니다');
+      showLoading(false); return;
+    }
+    showToast('⚙️ 관리자로 접속합니다', 'ok');
+    setTimeout(() => location.href='admin.html', 800);
+  } catch(e) {
+    showLoading(false);
+    showMsg('adm-pw-msg','err','❌','인증 실패: 이메일 또는 비밀번호를 확인하세요');
+  }
+};
+
+/* ── 둘러보기 ── */
+window.doGuest = function() {
+  sessionStorage.setItem('tt_guest','1');
   location.href='chat.html?guest=1';
-}
+};
 
-/* 토스트 */
+/* ── 로딩 / 토스트 ── */
+function showLoading(v) { document.getElementById('loading-overlay').classList.toggle('on',v); }
 let _t;
-function showToast(msg,type){
-  const el=document.getElementById('toast-el');
-  el.textContent=msg;el.className=`toast on t-${type}`;
-  clearTimeout(_t);_t=setTimeout(()=>el.className='toast',2800);
+window.showToast = function(msg, type='ok') {
+  const el = document.getElementById('toast-el');
+  el.textContent = msg; el.className = `toast on t-${type}`;
+  clearTimeout(_t); _t = setTimeout(()=>el.className='toast', 2800);
+};
+</script>
+
+<script>
+// Service Worker 등록 (PWA)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').then(reg => {
+      console.log('SW registered:', reg.scope);
+    }).catch(err => console.log('SW registration failed:', err));
+  });
+}
+// SW 메시지 수신 (알림 클릭 → 해당 방 이동)
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', e => {
+    if (e.data?.type === 'NOTIFICATION_CLICK' && e.data.url) {
+      location.href = e.data.url;
+    }
+  });
 }
 </script>
+
 </body>
 </html>

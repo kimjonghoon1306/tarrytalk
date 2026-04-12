@@ -1,464 +1,396 @@
 <!DOCTYPE html>
-<html lang="ko" data-theme="light">
+<html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TARRYTALK — 내 프로필</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="apple-touch-icon" href="icon-192.png">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>TARRYTALK — 프로필</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
-  :root[data-theme="light"] {
-    --bg: #f0fdf7; --bg2: #ffffff; --surface: #e8faf2;
-    --border: #c3eada; --text: #0d2b1e; --text2: #3d6b55;
-    --accent: #00b874; --accent2: #00976b;
-    --accent-glow: rgba(0,184,116,0.25); --shadow: rgba(0,100,60,0.1);
-    --input-bg: #f5fdf9;
-  }
-  :root[data-theme="dark"] {
-    --bg: #0d1f16; --bg2: #122019; --surface: #1a2f21;
-    --border: #2a4a35; --text: #d4f5e5; --text2: #7fc9a0;
-    --accent: #00e08a; --accent2: #00b874;
-    --accent-glow: rgba(0,224,138,0.15); --shadow: rgba(0,0,0,0.4);
-    --input-bg: #162a1e;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'Noto Sans KR',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; transition:background 0.3s,color 0.3s; }
+:root{
+  --bg:#07100d;--bg2:#0d1a14;--bg3:#101f18;
+  --surface:#13261c;--surface2:#172e22;
+  --border:rgba(0,220,100,.1);--border2:rgba(0,220,100,.2);
+  --text:#e2f5eb;--text2:#6ea882;--text3:#3a5e49;
+  --green:#00dc6e;--green2:#00aa55;--glow:rgba(0,220,110,.18);--glow2:rgba(0,220,110,.32);
+  --red:#ff4f6a;--red-bg:rgba(255,79,106,.08);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;}
+::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px;}
+button{font-family:inherit;cursor:pointer;border:none;outline:none;}
+input{font-family:inherit;outline:none;}
+a{text-decoration:none;color:inherit;}
 
-  /* NAV */
-  .top-nav {
-    padding:16px 32px; display:flex; align-items:center; justify-content:space-between;
-    background:var(--bg2); border-bottom:1.5px solid var(--border);
-    position:sticky; top:0; z-index:100;
-  }
-  .nav-logo { font-size:20px; font-weight:900; color:var(--accent); text-decoration:none; }
-  .nav-links { display:flex; gap:8px; align-items:center; }
-  .nav-link {
-    padding:8px 16px; border-radius:10px; font-size:13px; font-weight:600;
-    color:var(--text2); text-decoration:none; transition:all 0.2s; border:1.5px solid transparent;
-  }
-  .nav-link:hover { background:var(--surface); color:var(--text); border-color:var(--border); }
-  .theme-pill {
-    padding:8px 16px; border:1.5px solid var(--border); border-radius:50px;
-    background:var(--surface); cursor:pointer; font-size:13px; font-weight:600;
-    color:var(--text); display:flex; align-items:center; gap:6px;
-    font-family:'Noto Sans KR',sans-serif; transition:all 0.2s;
-  }
-  .theme-pill:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
+/* ── 레이아웃 ── */
+.page{max-width:600px;margin:0 auto;padding:24px 16px 60px;}
 
-  /* HERO */
-  .profile-hero {
-    background:linear-gradient(135deg, var(--accent2), var(--accent));
-    padding:60px 32px 80px; position:relative; overflow:hidden;
-  }
-  .profile-hero::before {
-    content:''; position:absolute; width:400px; height:400px;
-    background:rgba(255,255,255,0.08); border-radius:50%;
-    right:-100px; top:-100px;
-  }
-  .profile-hero::after {
-    content:''; position:absolute; width:300px; height:300px;
-    background:rgba(255,255,255,0.06); border-radius:50%;
-    left:-50px; bottom:-80px;
-  }
-  .hero-inner { max-width:800px; margin:0 auto; display:flex; align-items:center; gap:28px; position:relative; z-index:1; }
-  .avatar-wrap { position:relative; }
-  .big-avatar {
-    width:100px; height:100px; border-radius:28px;
-    background:rgba(255,255,255,0.25); border:3px solid rgba(255,255,255,0.5);
-    display:flex; align-items:center; justify-content:center;
-    font-size:40px; color:white; font-weight:900;
-    box-shadow:0 12px 32px rgba(0,0,0,0.2); cursor:pointer;
-    transition:transform 0.2s;
-  }
-  .big-avatar:hover { transform:scale(1.05); }
-  .avatar-edit {
-    position:absolute; bottom:-6px; right:-6px;
-    width:28px; height:28px; border-radius:50%; background:white;
-    display:flex; align-items:center; justify-content:center; font-size:14px;
-    box-shadow:0 2px 8px rgba(0,0,0,0.2); cursor:pointer;
-  }
-  .hero-info { color:white; }
-  .hero-name { font-size:28px; font-weight:900; margin-bottom:4px; letter-spacing:-0.5px; }
-  .hero-handle { font-size:14px; opacity:0.8; margin-bottom:12px; }
-  .hero-bio { font-size:14px; opacity:0.9; margin-bottom:16px; max-width:360px; line-height:1.6; }
-  .hero-stats { display:flex; gap:24px; }
-  .hero-stat { text-align:center; }
-  .hero-stat-val { font-size:20px; font-weight:900; display:block; }
-  .hero-stat-label { font-size:11px; opacity:0.75; margin-top:1px; }
-  .hero-actions { margin-left:auto; display:flex; gap:10px; flex-direction:column; }
-  .hero-btn {
-    padding:10px 22px; border-radius:12px; font-size:13px; font-weight:700;
-    cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:all 0.2s;
-    white-space:nowrap; border:2px solid transparent;
-  }
-  .btn-white { background:white; color:var(--accent2); border-color:white; }
-  .btn-outline { background:transparent; color:white; border-color:rgba(255,255,255,0.6); }
-  .btn-white:hover, .btn-outline:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(0,0,0,0.15); }
+/* ── 탑바 ── */
+.topbar{display:flex;align-items:center;gap:12px;padding:14px 0 20px;}
+.back-btn{width:38px;height:38px;border-radius:11px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;color:var(--text2);transition:all .2s;}
+.back-btn:hover{background:var(--green);color:#040d09;border-color:var(--green);}
+.topbar-title{font-size:17px;font-weight:800;}
 
-  /* CONTENT */
-  .profile-content { max-width:800px; margin:0 auto; padding:32px; }
+/* ── 프로필 히어로 ── */
+.profile-hero{
+  background:var(--bg3);border:1px solid var(--border);border-radius:24px;
+  padding:32px 24px;text-align:center;margin-bottom:16px;
+  position:relative;overflow:hidden;
+}
+.profile-hero::before{
+  content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;
+  border-radius:50%;background:radial-gradient(circle,rgba(0,220,110,.1),transparent 70%);
+  pointer-events:none;
+}
+.av-wrap{position:relative;display:inline-block;margin-bottom:16px;}
+.av-big{
+  width:88px;height:88px;border-radius:26px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:36px;font-weight:900;color:#fff;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);
+}
+.av-online{
+  position:absolute;bottom:4px;right:4px;width:14px;height:14px;
+  border-radius:50%;background:var(--green);border:2px solid var(--bg3);
+  box-shadow:0 0 6px var(--green);
+}
+.profile-name{font-size:22px;font-weight:900;margin-bottom:4px;}
+.profile-email{font-size:13px;color:var(--text3);margin-bottom:12px;}
+.profile-badge{display:inline-block;padding:4px 14px;border-radius:50px;font-size:11px;font-weight:800;background:rgba(0,220,110,.1);border:1px solid var(--border2);color:var(--green);}
 
-  /* Tabs */
-  .profile-tabs { display:flex; border-bottom:1.5px solid var(--border); margin-bottom:28px; }
-  .ptab { padding:12px 20px; font-size:14px; font-weight:700; cursor:pointer;
-    color:var(--text2); border-bottom:2.5px solid transparent; margin-bottom:-1.5px; transition:all 0.2s; }
-  .ptab.active { color:var(--accent); border-bottom-color:var(--accent); }
+/* ── 섹션 ── */
+.section{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:20px;margin-bottom:14px;}
+.sec-title{font-size:11px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:16px;}
 
-  /* Info grid */
-  .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px; }
-  .info-card { background:var(--bg2); border:1.5px solid var(--border); border-radius:18px; padding:20px; box-shadow:0 2px 10px var(--shadow); }
-  .info-card-title { font-size:12px; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px; }
+/* ── 폼 필드 ── */
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:11px;font-weight:800;color:var(--text3);margin-bottom:7px;text-transform:uppercase;letter-spacing:.5px;}
+.field input{
+  width:100%;padding:13px 14px;background:var(--surface);border:1px solid var(--border);
+  border-radius:13px;color:var(--text);font-size:14px;transition:border-color .2s;
+}
+.field input:focus{border-color:var(--green);}
+.field input::placeholder{color:var(--text3);}
+.field input:disabled{opacity:.5;cursor:not-allowed;}
+.field-hint{font-size:11px;color:var(--text3);margin-top:5px;}
 
-  .field-group { margin-bottom:16px; }
-  .field-label { font-size:12px; font-weight:600; color:var(--text2); margin-bottom:6px; display:block; }
-  .field-input {
-    width:100%; padding:11px 14px; background:var(--input-bg);
-    border:1.5px solid var(--border); border-radius:12px;
-    color:var(--text); font-size:14px; font-family:'Noto Sans KR',sans-serif;
-    outline:none; transition:border-color 0.2s;
-  }
-  .field-input:focus { border-color:var(--accent); }
-  .field-input[readonly] { opacity:0.7; cursor:default; }
-  textarea.field-input { resize:none; min-height:80px; line-height:1.5; }
+/* ── 버튼 ── */
+.primary-btn{
+  width:100%;padding:14px;background:linear-gradient(135deg,var(--green),var(--green2));
+  border:none;border-radius:13px;color:#040d09;font-size:15px;font-weight:800;
+  cursor:pointer;box-shadow:0 4px 16px var(--glow);transition:all .2s;
+}
+.primary-btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px var(--glow2);}
+.primary-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.secondary-btn{
+  width:100%;padding:13px;background:var(--surface);border:1px solid var(--border);
+  border-radius:13px;color:var(--text2);font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;
+}
+.secondary-btn:hover{border-color:var(--border2);color:var(--text);}
+.danger-btn{
+  width:100%;padding:13px;background:var(--red-bg);border:1px solid rgba(255,79,106,.2);
+  border-radius:13px;color:var(--red);font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:8px;
+}
+.danger-btn:hover{background:var(--red);color:#fff;}
 
-  /* Status selector */
-  .status-grid { display:flex; gap:8px; flex-wrap:wrap; }
-  .status-opt {
-    padding:8px 14px; border-radius:50px; font-size:12px; font-weight:700;
-    border:1.5px solid var(--border); cursor:pointer; transition:all 0.2s;
-    color:var(--text2); background:var(--surface);
-  }
-  .status-opt.selected { border-color:var(--accent); background:rgba(0,184,116,0.12); color:var(--accent); }
-  .status-opt:hover { border-color:var(--accent); }
+/* ── 비번 강도 ── */
+.pw-bar-wrap{margin-top:8px;}
+.pw-bar{height:4px;border-radius:4px;background:var(--surface2);overflow:hidden;}
+.pw-fill{height:100%;border-radius:4px;transition:width .4s,background .4s;}
+.pw-hint{display:flex;justify-content:space-between;margin-top:6px;}
+.pw-label{font-size:11px;font-weight:700;}
+.pw-checks{display:flex;gap:8px;}
+.pw-check{font-size:10px;font-weight:700;color:var(--text3);}
+.pw-check.ok{color:var(--green);}
 
-  /* Notification toggles */
-  .toggle-item { display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--border); }
-  .toggle-item:last-child { border-bottom:none; }
-  .toggle-info .t-title { font-size:14px; font-weight:600; }
-  .toggle-info .t-desc { font-size:12px; color:var(--text2); margin-top:2px; }
-  .toggle-switch { position:relative; }
-  .toggle-switch input { opacity:0; width:0; height:0; position:absolute; }
-  .toggle-switch label {
-    display:block; width:48px; height:26px; border-radius:50px;
-    background:var(--border); cursor:pointer; transition:background 0.3s; position:relative;
-  }
-  .toggle-switch label::after {
-    content:''; position:absolute; width:20px; height:20px; border-radius:50%;
-    background:white; top:3px; left:3px; transition:left 0.3s;
-    box-shadow:0 2px 6px rgba(0,0,0,0.2);
-  }
-  .toggle-switch input:checked + label { background:var(--accent); }
-  .toggle-switch input:checked + label::after { left:25px; }
+/* ── 정보 행 ── */
+.info-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);}
+.info-row:last-child{border-bottom:none;}
+.info-icon{font-size:18px;width:28px;text-align:center;flex-shrink:0;}
+.info-label{font-size:11px;color:var(--text3);font-weight:600;}
+.info-value{font-size:14px;font-weight:600;margin-top:1px;}
 
-  /* Friends list */
-  .friend-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(180px,1fr)); gap:12px; }
-  .friend-card {
-    background:var(--bg2); border:1.5px solid var(--border); border-radius:16px;
-    padding:18px; text-align:center; cursor:pointer; transition:all 0.2s;
-    box-shadow:0 2px 8px var(--shadow);
-  }
-  .friend-card:hover { transform:translateY(-3px); border-color:var(--accent); box-shadow:0 8px 24px var(--accent-glow); }
-  .friend-av { width:52px; height:52px; border-radius:16px; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:700; color:white; }
-  .friend-name { font-size:14px; font-weight:700; margin-bottom:2px; }
-  .friend-status { font-size:11px; color:var(--text2); }
-  .friend-msg-btn {
-    margin-top:10px; width:100%; padding:7px; border-radius:8px;
-    background:var(--surface); border:1.5px solid var(--border);
-    color:var(--accent); font-size:12px; font-weight:700; cursor:pointer;
-    font-family:'Noto Sans KR',sans-serif; transition:all 0.2s;
-  }
-  .friend-msg-btn:hover { background:var(--accent); color:white; border-color:var(--accent); }
+/* ── 토스트 ── */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);border-radius:50px;padding:11px 22px;font-size:13px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.4);opacity:0;transition:all .35s cubic-bezier(.16,1,.3,1);z-index:999;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.t-ok{background:var(--green);color:#040d09;}
+.t-err{background:var(--red);color:#fff;}
+.t-info{background:var(--bg2);color:var(--text);border:1px solid var(--border);}
 
-  /* Save btn */
-  .save-btn {
-    width:100%; padding:14px; background:linear-gradient(135deg,var(--accent),var(--accent2));
-    border:none; border-radius:14px; color:white; font-size:15px; font-weight:700;
-    cursor:pointer; font-family:'Noto Sans KR',sans-serif;
-    box-shadow:0 8px 24px var(--accent-glow); transition:all 0.25s; margin-top:8px;
-  }
-  .save-btn:hover { transform:translateY(-2px); box-shadow:0 14px 32px var(--accent-glow); }
-
-  .tab-content { display:none; }
-  .tab-content.active { display:block; }
-
-  @media(max-width:600px) { .info-grid { grid-template-columns:1fr; } .hero-inner { flex-direction:column; } .hero-actions { flex-direction:row; margin-left:0; } }
+/* ── 로딩 ── */
+.loading-overlay{position:fixed;inset:0;background:rgba(7,16,13,.95);z-index:9999;display:flex;align-items:center;justify-content:center;}
+.loading-overlay.hide{display:none;}
+.spinner{width:32px;height:32px;border:3px solid rgba(0,220,110,.15);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 
-<nav class="top-nav">
-  <a href="index.html" class="nav-logo">💬 TARRYTALK</a>
-  <div class="nav-links">
-    <a href="chat.html" class="nav-link">💬 채팅</a>
-    <a href="admin.html" class="nav-link">⚙️ 관리자</a>
-    <button class="theme-pill" onclick="toggleTheme()">
-      <span id="theme-icon">🌙</span> <span id="theme-label">밤 모드</span>
-    </button>
-  </div>
-</nav>
+<div class="loading-overlay" id="loading-overlay"><div class="spinner"></div></div>
 
-<!-- HERO -->
-<div class="profile-hero">
-  <div class="hero-inner">
-    <div class="avatar-wrap">
-      <div class="big-avatar" onclick="showToast('📷 프로필 사진 변경')">나</div>
-      <div class="avatar-edit" onclick="showToast('✏️ 수정')">✏️</div>
-    </div>
-    <div class="hero-info">
-      <div class="hero-name">홍길동</div>
-      <div class="hero-handle">@hong_gildong · 개발자 🛠</div>
-      <div class="hero-bio">코드로 세상을 바꾸는 중 🚀<br>풀스택 개발자 | TARRYTALK 팀</div>
-      <div class="hero-stats">
-        <div class="hero-stat"><span class="hero-stat-val">284</span><span class="hero-stat-label">친구</span></div>
-        <div class="hero-stat"><span class="hero-stat-val">12</span><span class="hero-stat-label">채팅방</span></div>
-        <div class="hero-stat"><span class="hero-stat-val">4.8k</span><span class="hero-stat-label">메시지</span></div>
-      </div>
-    </div>
-    <div class="hero-actions">
-      <button class="hero-btn btn-white" onclick="showToast('📤 프로필 공유')">공유하기</button>
-      <button class="hero-btn btn-outline" onclick="showToast('🚪 로그아웃')">로그아웃</button>
-    </div>
-  </div>
-</div>
-
-<!-- CONTENT -->
-<div class="profile-content">
-  <div class="profile-tabs">
-    <div class="ptab active" onclick="switchTab(this,'info')">내 정보</div>
-    <div class="ptab" onclick="switchTab(this,'friends')">친구 목록</div>
-    <div class="ptab" onclick="switchTab(this,'settings')">설정</div>
+<div class="page">
+  <!-- 탑바 -->
+  <div class="topbar">
+    <button class="back-btn" onclick="history.back()">←</button>
+    <div class="topbar-title">내 프로필</div>
   </div>
 
-  <!-- INFO TAB -->
-  <div class="tab-content active" id="tab-info">
-    <div class="info-grid">
-      <div class="info-card">
-        <div class="info-card-title">기본 정보</div>
-        <div class="field-group">
-          <label class="field-label">이름</label>
-          <input class="field-input" value="홍길동">
-        </div>
-        <div class="field-group">
-          <label class="field-label">아이디</label>
-          <input class="field-input" value="@hong_gildong">
-        </div>
-        <div class="field-group">
-          <label class="field-label">이메일</label>
-          <input class="field-input" type="email" value="hong@tarrytalk.com">
-        </div>
-        <div class="field-group">
-          <label class="field-label">전화번호</label>
-          <input class="field-input" type="tel" value="010-1234-5678">
-        </div>
-      </div>
+  <!-- 프로필 히어로 -->
+  <div class="profile-hero">
+    <div class="av-wrap">
+      <div class="av-big" id="av-big">T</div>
+      <div class="av-online"></div>
+    </div>
+    <div class="profile-name" id="prof-name">로딩 중...</div>
+    <div class="profile-email" id="prof-email">로딩 중...</div>
+    <span class="profile-badge" id="prof-badge">회원</span>
+  </div>
 
-      <div class="info-card">
-        <div class="info-card-title">프로필 정보</div>
-        <div class="field-group">
-          <label class="field-label">상태 메시지</label>
-          <textarea class="field-input">코드로 세상을 바꾸는 중 🚀</textarea>
-        </div>
-        <div class="field-group">
-          <label class="field-label">현재 상태</label>
-          <div class="status-grid">
-            <div class="status-opt selected" onclick="selectStatus(this)">🟢 온라인</div>
-            <div class="status-opt" onclick="selectStatus(this)">🟡 자리비움</div>
-            <div class="status-opt" onclick="selectStatus(this)">🔴 방해 금지</div>
-            <div class="status-opt" onclick="selectStatus(this)">⚫ 숨김</div>
+  <!-- 계정 정보 -->
+  <div class="section">
+    <div class="sec-title">계정 정보</div>
+    <div class="info-row">
+      <div class="info-icon">📅</div>
+      <div><div class="info-label">가입일</div><div class="info-value" id="info-joined">–</div></div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">💬</div>
+      <div><div class="info-label">보낸 메시지</div><div class="info-value" id="info-msgs">계산 중...</div></div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">🏠</div>
+      <div><div class="info-label">참여 채팅방</div><div class="info-value" id="info-rooms">계산 중...</div></div>
+    </div>
+  </div>
+
+  <!-- 이름 변경 -->
+  <div class="section">
+    <div class="sec-title">이름 변경</div>
+    <div class="field">
+      <label>표시 이름</label>
+      <input type="text" id="name-inp" placeholder="새 이름 입력 (2자 이상)">
+    </div>
+    <button class="primary-btn" onclick="updateName()">이름 저장</button>
+  </div>
+
+  <!-- 비밀번호 변경 -->
+  <div class="section">
+    <div class="sec-title">비밀번호 변경</div>
+    <div class="field">
+      <label>현재 비밀번호</label>
+      <input type="password" id="cur-pw" placeholder="현재 비밀번호">
+    </div>
+    <div class="field">
+      <label>새 비밀번호</label>
+      <input type="password" id="new-pw" placeholder="대·소문자·숫자 포함 6자 이상" oninput="checkPwStrength(this.value)">
+      <div class="pw-bar-wrap">
+        <div class="pw-bar"><div class="pw-fill" id="pw-fill" style="width:0%"></div></div>
+        <div class="pw-hint">
+          <span class="pw-label" id="pw-label" style="color:var(--text3)"></span>
+          <div class="pw-checks">
+            <span class="pw-check" id="pc-len">6자+</span>
+            <span class="pw-check" id="pc-up">대문자</span>
+            <span class="pw-check" id="pc-lo">소문자</span>
+            <span class="pw-check" id="pc-num">숫자</span>
           </div>
         </div>
-        <div class="field-group" style="margin-top:12px">
-          <label class="field-label">직업 / 소속</label>
-          <input class="field-input" value="TARRYTALK 풀스택 개발자">
-        </div>
       </div>
     </div>
-
-    <div class="info-card" style="margin-bottom:20px">
-      <div class="info-card-title">계정 보안</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-        <div class="field-group">
-          <label class="field-label">현재 비밀번호</label>
-          <input class="field-input" type="password" placeholder="현재 비밀번호">
-        </div>
-        <div class="field-group">
-          <label class="field-label">새 비밀번호</label>
-          <input class="field-input" type="password" placeholder="새 비밀번호">
-        </div>
-      </div>
+    <div class="field">
+      <label>새 비밀번호 확인</label>
+      <input type="password" id="new-pw2" placeholder="새 비밀번호 재입력">
     </div>
-
-    <button class="save-btn" onclick="showToast('✅ 프로필이 저장되었습니다!')">변경사항 저장</button>
+    <button class="primary-btn" onclick="updatePassword()">비밀번호 변경</button>
   </div>
 
-  <!-- FRIENDS TAB -->
-  <div class="tab-content" id="tab-friends">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-      <div style="font-size:15px;font-weight:700">친구 <span style="color:var(--accent)">284</span>명</div>
-      <button style="padding:8px 16px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif" onclick="showToast('👥 친구 추가')">+ 친구 추가</button>
-    </div>
-    <div class="friend-grid">
-      <div class="friend-card">
-        <div class="friend-av" style="background:linear-gradient(135deg,#68d391,#276749)">민</div>
-        <div class="friend-name">김민준</div>
-        <div class="friend-status">🟢 온라인</div>
-        <button class="friend-msg-btn" onclick="window.location.href='chat.html'">메시지 보내기</button>
-      </div>
-      <div class="friend-card">
-        <div class="friend-av" style="background:linear-gradient(135deg,#f6ad55,#c05621)">수</div>
-        <div class="friend-name">이수아</div>
-        <div class="friend-status">🟢 온라인</div>
-        <button class="friend-msg-btn" onclick="window.location.href='chat.html'">메시지 보내기</button>
-      </div>
-      <div class="friend-card">
-        <div class="friend-av" style="background:linear-gradient(135deg,#76e4f7,#0987a0)">지</div>
-        <div class="friend-name">박지호</div>
-        <div class="friend-status">🟡 자리비움</div>
-        <button class="friend-msg-btn" onclick="window.location.href='chat.html'">메시지 보내기</button>
-      </div>
-      <div class="friend-card">
-        <div class="friend-av" style="background:linear-gradient(135deg,#d6bcfa,#6b46c1)">유</div>
-        <div class="friend-name">최유나</div>
-        <div class="friend-status">⚫ 오프라인</div>
-        <button class="friend-msg-btn" onclick="window.location.href='chat.html'">메시지 보내기</button>
-      </div>
-      <div class="friend-card">
-        <div class="friend-av" style="background:linear-gradient(135deg,#fbb6ce,#b83280)">다</div>
-        <div class="friend-name">정다은</div>
-        <div class="friend-status">🟢 온라인</div>
-        <button class="friend-msg-btn" onclick="window.location.href='chat.html'">메시지 보내기</button>
-      </div>
-      <div class="friend-card" style="border-style:dashed;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--text2)" onclick="showToast('👥 친구 추가')">
-        <div style="font-size:32px">➕</div>
-        <div style="font-size:13px;font-weight:600">친구 추가</div>
-      </div>
-    </div>
+  <!-- 아바타 색상 -->
+  <div class="section">
+    <div class="sec-title">아바타 색상</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;" id="color-picker"></div>
+    <button class="secondary-btn" onclick="saveAvatarColor()">색상 저장</button>
   </div>
 
-  <!-- SETTINGS TAB -->
-  <div class="tab-content" id="tab-settings">
-    <div class="info-card" style="margin-bottom:16px">
-      <div class="info-card-title">알림 설정</div>
-      <div class="toggle-item">
-        <div class="toggle-info">
-          <div class="t-title">메시지 알림</div>
-          <div class="t-desc">새 메시지가 올 때 알림을 받아요</div>
-        </div>
-        <div class="toggle-switch"><input type="checkbox" id="t1" checked><label for="t1"></label></div>
-      </div>
-      <div class="toggle-item">
-        <div class="toggle-info">
-          <div class="t-title">단체채팅 알림</div>
-          <div class="t-desc">단체채팅의 메시지도 알림</div>
-        </div>
-        <div class="toggle-switch"><input type="checkbox" id="t2" checked><label for="t2"></label></div>
-      </div>
-      <div class="toggle-item">
-        <div class="toggle-info">
-          <div class="t-title">친구 요청 알림</div>
-          <div class="t-desc">친구 요청이 올 때 알림</div>
-        </div>
-        <div class="toggle-switch"><input type="checkbox" id="t3"><label for="t3"></label></div>
-      </div>
-      <div class="toggle-item">
-        <div class="toggle-info">
-          <div class="t-title">소리 알림</div>
-          <div class="t-desc">메시지 도착음 재생</div>
-        </div>
-        <div class="toggle-switch"><input type="checkbox" id="t4" checked><label for="t4"></label></div>
-      </div>
-    </div>
-
-    <div class="info-card" style="margin-bottom:16px">
-      <div class="info-card-title">화면 설정</div>
-      <div class="toggle-item">
-        <div class="toggle-info">
-          <div class="t-title">다크 모드</div>
-          <div class="t-desc">밤 테마로 눈 편하게</div>
-        </div>
-        <div class="toggle-switch">
-          <input type="checkbox" id="t-dark" onchange="toggleTheme()">
-          <label for="t-dark"></label>
-        </div>
-      </div>
-      <div class="toggle-item">
-        <div class="toggle-info">
-          <div class="t-title">읽음 표시 공개</div>
-          <div class="t-desc">상대방에게 읽음 표시 보여주기</div>
-        </div>
-        <div class="toggle-switch"><input type="checkbox" id="t5" checked><label for="t5"></label></div>
-      </div>
-      <div class="toggle-item">
-        <div class="toggle-info">
-          <div class="t-title">온라인 상태 공개</div>
-          <div class="t-desc">친구들에게 내 온라인 상태 보이기</div>
-        </div>
-        <div class="toggle-switch"><input type="checkbox" id="t6" checked><label for="t6"></label></div>
-      </div>
-    </div>
-
-    <div class="info-card" style="margin-bottom:20px">
-      <div class="info-card-title">개인정보 설정</div>
-      <div class="toggle-item">
-        <div class="toggle-info">
-          <div class="t-title">프로필 검색 허용</div>
-          <div class="t-desc">다른 사람이 아이디로 검색</div>
-        </div>
-        <div class="toggle-switch"><input type="checkbox" id="t7" checked><label for="t7"></label></div>
-      </div>
-      <div class="toggle-item">
-        <div class="toggle-info">
-          <div class="t-title">메시지 미리보기</div>
-          <div class="t-desc">잠금화면에서 내용 표시</div>
-        </div>
-        <div class="toggle-switch"><input type="checkbox" id="t8"><label for="t8"></label></div>
-      </div>
-    </div>
-
-    <button class="save-btn" onclick="showToast('✅ 설정이 저장되었습니다!')">설정 저장</button>
+  <!-- 기타 -->
+  <div class="section">
+    <div class="sec-title">기타</div>
+    <button class="secondary-btn" onclick="location.href='chat.html'">💬 채팅으로 돌아가기</button>
+    <button class="danger-btn" onclick="doLogout()">🚪 로그아웃</button>
   </div>
 </div>
 
-<div style="position:fixed;bottom:20px;right:20px;background:var(--accent);color:white;padding:12px 20px;border-radius:14px;font-size:13px;font-weight:600;opacity:0;transition:all 0.3s;box-shadow:0 6px 18px var(--accent-glow);transform:translateY(10px)" id="toast"></div>
+<div class="toast" id="toast-el"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut, updateProfile,
+         updatePassword as fbUpdatePassword, EmailAuthProvider, reauthenticateWithCredential }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getDatabase, ref, get, set, update, onValue }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig={apiKey:"AIzaSyDC9qSmH-1z778oiI7QbDY_JrKis95z_C4",authDomain:"tarrytalk.firebaseapp.com",databaseURL:"https://tarrytalk-default-rtdb.firebaseio.com",projectId:"tarrytalk",storageBucket:"tarrytalk.firebasestorage.app",messagingSenderId:"322779846377",appId:"1:322779846377:web:12253ee2f2330dd1a04278"};
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getDatabase(app);
+const ADMIN_EMAIL='tarry9653@daum.net';
+
+const COLORS=['#00a84a','#0087d4','#a855f7','#e85d04','#d62828','#2ec4b6','#f59e0b','#ec4899'];
+let currentUser=null, selectedColor=null, userProfile=null;
+
+onAuthStateChanged(auth, async user=>{
+  if(!user){location.href='index.html';return;}
+  currentUser=user;
+  const snap=await get(ref(db,`users/${user.uid}`));
+  userProfile=snap.val()||{};
+  renderProfile();
+  loadStats();
+  document.getElementById('loading-overlay').classList.add('hide');
+});
+
+function renderProfile(){
+  const name=userProfile.displayName||currentUser.displayName||'사용자';
+  const email=currentUser.email||'';
+  const color=userProfile.avatarColor||COLORS[0];
+  const isAdmin=currentUser.email===ADMIN_EMAIL||userProfile.isAdmin;
+
+  const av=document.getElementById('av-big');
+  av.textContent=name[0].toUpperCase();
+  av.style.background=color;
+  document.getElementById('prof-name').textContent=name;
+  document.getElementById('prof-email').textContent=email;
+  document.getElementById('prof-badge').textContent=isAdmin?'⚙️ 관리자':'● 회원';
+  document.getElementById('name-inp').value=name;
+
+  if(userProfile.joinedAt){
+    const d=new Date(userProfile.joinedAt);
+    document.getElementById('info-joined').textContent=d.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
+  }
+
+  // 색상 피커
+  selectedColor=color;
+  const picker=document.getElementById('color-picker');
+  picker.innerHTML=COLORS.map(c=>`
+    <div onclick="selectColor('${c}')" style="
+      width:44px;height:44px;border-radius:13px;background:${c};cursor:pointer;
+      display:flex;align-items:center;justify-content:center;font-size:18px;
+      border:2.5px solid ${c===color?'#fff':'transparent'};
+      box-shadow:${c===color?'0 0 0 3px rgba(0,220,110,.5)':'none'};
+      transition:all .2s;
+    " id="col-${c.replace('#','')}">${c===color?'✓':''}</div>`).join('');
+}
+
+async function loadStats(){
+  const uid=currentUser.uid;
+  // 메시지 수
+  const msgsSnap=await get(ref(db,'messages'));
+  const allMsgs=msgsSnap.val()||{};
+  let msgCount=0;
+  Object.values(allMsgs).forEach(room=>Object.values(room||{}).forEach(m=>{if(m.uid===uid)msgCount++;}));
+  document.getElementById('info-msgs').textContent=msgCount+'개';
+  // 채팅방 수
+  const roomsSnap=await get(ref(db,'rooms'));
+  const allRooms=roomsSnap.val()||{};
+  const roomCount=Object.values(allRooms).filter(r=>r.members?.[uid]).length;
+  document.getElementById('info-rooms').textContent=roomCount+'개';
+}
+
+window.selectColor=function(color){
+  selectedColor=color;
+  COLORS.forEach(c=>{
+    const el=document.getElementById('col-'+c.replace('#',''));
+    if(!el)return;
+    el.style.border=`2.5px solid ${c===color?'#fff':'transparent'}`;
+    el.style.boxShadow=c===color?'0 0 0 3px rgba(0,220,110,.5)':'none';
+    el.textContent=c===color?'✓':'';
+  });
+  document.getElementById('av-big').style.background=color;
+};
+
+window.saveAvatarColor=async function(){
+  if(!selectedColor||!currentUser)return;
+  await update(ref(db,`users/${currentUser.uid}`),{avatarColor:selectedColor});
+  userProfile.avatarColor=selectedColor;
+  showToast('🎨 아바타 색상이 저장됐습니다','ok');
+};
+
+window.updateName=async function(){
+  const name=document.getElementById('name-inp').value.trim();
+  if(!name||name.length<2){showToast('이름은 2자 이상 입력하세요','err');return;}
+  try{
+    await updateProfile(currentUser,{displayName:name});
+    await update(ref(db,`users/${currentUser.uid}`),{displayName:name});
+    userProfile.displayName=name;
+    document.getElementById('prof-name').textContent=name;
+    document.getElementById('av-big').textContent=name[0].toUpperCase();
+    showToast('✅ 이름이 변경됐습니다','ok');
+  }catch(e){showToast('변경 실패: '+e.message,'err');}
+};
+
+window.updatePassword=async function(){
+  const curPw=document.getElementById('cur-pw').value;
+  const newPw=document.getElementById('new-pw').value;
+  const newPw2=document.getElementById('new-pw2').value;
+  if(!curPw){showToast('현재 비밀번호를 입력하세요','err');return;}
+  if(newPw!==newPw2){showToast('새 비밀번호가 일치하지 않습니다','err');return;}
+  const pwOk=newPw.length>=6&&/[A-Z]/.test(newPw)&&/[a-z]/.test(newPw)&&/[0-9]/.test(newPw);
+  if(!pwOk){showToast('비밀번호 조건을 충족하지 않습니다','err');return;}
+  try{
+    const cred=EmailAuthProvider.credential(currentUser.email,curPw);
+    await reauthenticateWithCredential(currentUser,cred);
+    await fbUpdatePassword(currentUser,newPw);
+    document.getElementById('cur-pw').value='';
+    document.getElementById('new-pw').value='';
+    document.getElementById('new-pw2').value='';
+    showToast('🔒 비밀번호가 변경됐습니다','ok');
+  }catch(e){
+    const c=e.code||'';
+    if(c.includes('wrong-password')||c.includes('invalid-credential')) showToast('현재 비밀번호가 올바르지 않습니다','err');
+    else showToast('변경 실패: '+e.message,'err');
+  }
+};
+
+window.checkPwStrength=function(v){
+  const ok={l:v.length>=6,u:/[A-Z]/.test(v),lo:/[a-z]/.test(v),n:/[0-9]/.test(v)};
+  const p=Object.values(ok).filter(Boolean).length;
+  const fill=document.getElementById('pw-fill');
+  fill.style.width=[0,25,50,75,100][p]+'%';
+  fill.style.background=['','#ff4f6a','#ffd166','#60d394','#00dc6e'][p];
+  document.getElementById('pw-label').textContent=['','매우 약함','약함','보통','강함'][p];
+  document.getElementById('pw-label').style.color=['','#ff4f6a','#ffd166','#60d394','#00dc6e'][p];
+  document.getElementById('pc-len').classList.toggle('ok',ok.l);
+  document.getElementById('pc-up').classList.toggle('ok',ok.u);
+  document.getElementById('pc-lo').classList.toggle('ok',ok.lo);
+  document.getElementById('pc-num').classList.toggle('ok',ok.n);
+};
+
+window.doLogout=async function(){
+  if(currentUser) await set(ref(db,`users/${currentUser.uid}/online`),false);
+  await signOut(auth); location.href='index.html';
+};
+
+let _t;
+window.showToast=function(msg,type='ok'){const el=document.getElementById('toast-el');el.textContent=msg;el.className=`toast show t-${type}`;clearTimeout(_t);_t=setTimeout(()=>el.className='toast',2800);};
+</script>
 
 <script>
-  function toggleTheme() {
-    const html = document.documentElement;
-    const isDark = html.dataset.theme === 'dark';
-    html.dataset.theme = isDark ? 'light' : 'dark';
-    document.getElementById('theme-icon').textContent = isDark ? '🌙' : '☀️';
-    document.getElementById('theme-label').textContent = isDark ? '밤 모드' : '낮 모드';
-    const darkToggle = document.getElementById('t-dark');
-    if (darkToggle) darkToggle.checked = !isDark;
-    localStorage.setItem('theme', html.dataset.theme);
-  }
-  const saved = localStorage.getItem('theme');
-  if (saved) {
-    document.documentElement.dataset.theme = saved;
-    if (saved === 'dark') {
-      document.getElementById('theme-icon').textContent = '☀️';
-      document.getElementById('theme-label').textContent = '낮 모드';
-      const dt = document.getElementById('t-dark');
-      if (dt) dt.checked = true;
+// Service Worker 등록 (PWA)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').then(reg => {
+      console.log('SW registered:', reg.scope);
+    }).catch(err => console.log('SW registration failed:', err));
+  });
+}
+// SW 메시지 수신 (알림 클릭 → 해당 방 이동)
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', e => {
+    if (e.data?.type === 'NOTIFICATION_CLICK' && e.data.url) {
+      location.href = e.data.url;
     }
-  }
-
-  function switchTab(el, id) {
-    document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    el.classList.add('active');
-    document.getElementById('tab-' + id).classList.add('active');
-  }
-
-  function selectStatus(el) {
-    document.querySelectorAll('.status-opt').forEach(o => o.classList.remove('selected'));
-    el.classList.add('selected');
-  }
-
-  function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg; t.style.opacity = '1'; t.style.transform = 'translateY(0)';
-    setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(10px)'; }, 2000);
-  }
+  });
+}
 </script>
+
 </body>
 </html>

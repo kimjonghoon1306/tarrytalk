@@ -1,0 +1,125 @@
+{
+  "rules": {
+    /* ─── 기본: 모두 거부 ─── */
+    ".read": false,
+    ".write": false,
+
+    /* ─── 사용자 프로필 ─── */
+    "users": {
+      /* 목록 조회: 로그인한 모든 사용자 */
+      ".read": "auth != null",
+
+      "$uid": {
+        /* 자기 프로필은 본인만 쓰기 가능 */
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('isAdmin').val() === true)",
+
+        /* 필드 검증 */
+        "displayName": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 50"
+        },
+        "email": {
+          ".validate": "newData.isString()"
+        },
+        "isAdmin": {
+          /* isAdmin은 관리자만 변경 가능 */
+          ".write": "root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net'"
+        },
+        "disabled": {
+          ".write": "root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net'"
+        }
+      }
+    },
+
+    /* ─── 채팅방 ─── */
+    "rooms": {
+      /* 목록 조회: 로그인한 사용자 */
+      ".read": "auth != null",
+
+      "$roomId": {
+        /* 방 읽기: 멤버이거나 관리자 */
+        ".read": "auth != null && (data.child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true)",
+
+        /* 방 생성: 로그인한 사용자 */
+        ".write": "auth != null",
+
+        /* 멤버 관리 */
+        "members": {
+          "$uid": {
+            /* 방장이나 관리자만 멤버 추가/제거 */
+            ".write": "auth != null && (auth.uid === $uid || parent().parent().child('createdBy').val() === auth.uid || root.child('users').child(auth.uid).child('isAdmin').val() === true)"
+          }
+        },
+
+        /* 안읽음 카운트 */
+        "unread": {
+          "$uid": {
+            ".write": "auth != null"
+          }
+        },
+
+        /* lastMsg, lastAt: 멤버 모두 가능 */
+        "lastMsg": { ".write": "auth != null && data.parent().child('members').child(auth.uid).exists()" },
+        "lastAt":  { ".write": "auth != null && data.parent().child('members').child(auth.uid).exists()" }
+      }
+    },
+
+    /* ─── 메시지 ─── */
+    "messages": {
+      "$roomId": {
+        /* 메시지 읽기: 해당 방 멤버이거나 관리자 */
+        ".read": "auth != null && (root.child('rooms').child($roomId).child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true)",
+
+        "$msgId": {
+          /* 메시지 쓰기: 방 멤버 */
+          ".write": "auth != null && root.child('rooms').child($roomId).child('members').child(auth.uid).exists()",
+
+          /* 필드 검증 */
+          "text": {
+            ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 5000)"
+          },
+          "type": {
+            ".validate": "newData.isString() && newData.val().matches(/^(text|image|video|document|schedule|system)$/)"
+          },
+          "at": {
+            ".validate": "newData.isNumber()"
+          },
+
+          /* 반응: 모든 방 멤버 가능 */
+          "reactions": {
+            "$emoji": {
+              "$uid": {
+                ".write": "auth != null && auth.uid === $uid && root.child('rooms').child($roomId).child('members').child(auth.uid).exists()",
+                ".validate": "newData.isBoolean() || !newData.exists()"
+              }
+            }
+          },
+
+          /* 읽음 처리 */
+          "readBy": {
+            "$uid": {
+              ".write": "auth != null && auth.uid === $uid"
+            }
+          }
+        }
+      }
+    },
+
+    /* ─── 타이핑 인디케이터 (임시) ─── */
+    "typing": {
+      "$roomId": {
+        ".read": "auth != null && root.child('rooms').child($roomId).child('members').child(auth.uid).exists()",
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid",
+          ".validate": "!newData.exists() || (newData.hasChildren(['active','at']) && newData.child('active').isBoolean() && newData.child('at').isNumber())"
+        }
+      }
+    },
+
+    /* ─── 공지 ─── */
+    "notices": {
+      ".read": "auth != null",
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')"
+    }
+  }
+}
