@@ -215,7 +215,16 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;}input,textar
 .modal-title{font-size:16px;font-weight:800;}
 .modal-x{width:30px;height:30px;border-radius:50%;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--text2);}
 .type-sel{display:flex;gap:8px;padding:13px 18px;border-bottom:1px solid var(--border);}
-.type-btn{flex:1;padding:13px;border-radius:13px;border:1px solid var(--border);background:var(--surface);font-size:13px;font-weight:700;cursor:pointer;color:var(--text3);transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:5px;}
+.type-btn{flex:1;padding:10px 6px;border-radius:13px;border:1px solid var(--border);background:var(--surface);font-size:12px;font-weight:700;cursor:pointer;color:var(--text3);transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.guide-block{margin-bottom:16px;}
+.guide-badge{display:inline-block;font-size:10px;font-weight:800;padding:3px 9px;border-radius:50px;margin-bottom:8px;}
+.guide-badge.adm{background:rgba(0,220,110,.12);color:var(--green);}
+.guide-badge.mem{background:rgba(96,180,255,.12);color:var(--blue);}
+.guide-item{display:flex;gap:9px;align-items:flex-start;padding:8px 10px;background:var(--surface);border-radius:11px;margin-bottom:6px;border:1px solid var(--border);}
+.guide-item-icon{font-size:17px;flex-shrink:0;margin-top:1px;}
+.guide-item-text{font-size:12px;line-height:1.6;color:var(--text2);}
+.guide-item-text b{color:var(--text);font-weight:700;display:block;margin-bottom:1px;}
+.guide-divider{border:none;border-top:1px solid var(--border);margin:14px 0;}
 .type-btn .ti{font-size:22px;}
 .type-btn.on{border-color:var(--green);background:rgba(0,220,110,.08);color:var(--green);}
 .room-name-row{padding:10px 18px;border-bottom:1px solid var(--border);display:none;}
@@ -386,11 +395,14 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;}input,textar
   <div class="modal" id="modal">
     <div class="modal-drag"></div>
     <div class="modal-head"><div class="modal-title">✏️ 새로운 채팅 시작</div><div class="modal-x" onclick="closeModal()">✕</div></div>
-    <div class="type-sel"><button class="type-btn on" id="bt-dm" onclick="setType('dm')"><span class="ti">👤</span>1대1 채팅</button><button class="type-btn" id="bt-group" onclick="setType('group')"><span class="ti">👥</span>단체채팅</button></div>
+    <div class="type-sel"><button class="type-btn on" id="bt-dm" onclick="setType('dm')"><span class="ti">👤</span>1대1 채팅</button><button class="type-btn" id="bt-group" onclick="setType('group')"><span class="ti">👥</span>단체채팅</button><button class="type-btn" id="bt-guide" onclick="setType('guide')"><span class="ti">📖</span>사용법</button></div>
     <div class="room-name-row" id="room-name-row"><input class="rn-inp" id="rn-inp" placeholder="채팅방 이름" oninput="updateBtn()"></div>
     <div class="chips-row" id="chips-row"></div>
     <div class="m-search-row"><input class="ms-inp" id="ms-inp" placeholder="이름·이메일 검색..." oninput="filterMembers(this.value)"></div>
     <div class="m-list" id="m-list"></div>
+    <div class="guide-panel" id="guide-panel" style="display:none;overflow-y:auto;flex:1;padding:16px 18px 8px;">
+      <div class="guide-role" id="guide-content"></div>
+    </div>
     <div class="modal-foot"><button class="create-btn" id="create-btn" onclick="doCreate()" disabled>멤버를 선택하세요</button></div>
   </div>
 </div>
@@ -684,7 +696,44 @@ window.searchMessages=function(q){if(!q.trim()){document.querySelectorAll('.mg')
 window.openModal=function(){if(isGuest){showToast('로그인 후 이용 가능합니다','warn');return;}selUsers=[];selType='dm';document.getElementById('overlay').classList.add('show');document.getElementById('room-name-row').classList.remove('show');document.getElementById('chips-row').classList.remove('show');document.getElementById('chips-row').innerHTML='';document.getElementById('ms-inp').value='';document.getElementById('rn-inp').value='';document.getElementById('bt-dm').classList.add('on');document.getElementById('bt-group').classList.remove('on');document.getElementById('create-btn').disabled=true;document.getElementById('create-btn').textContent='멤버를 선택하세요';renderMembers('');};
 window.closeModal=()=>document.getElementById('overlay').classList.remove('show');
 window.outsideClose=e=>{if(e.target.id==='overlay')closeModal();};
-window.setType=function(t){selType=t;selUsers=[];document.getElementById('bt-dm').classList.toggle('on',t==='dm');document.getElementById('bt-group').classList.toggle('on',t==='group');document.getElementById('room-name-row').classList.toggle('show',t==='group');updateChips();renderMembers('');updateBtn();};
+window.setType=function(t){
+  selType=t;selUsers=[];
+  document.getElementById('bt-dm').classList.toggle('on',t==='dm');
+  document.getElementById('bt-group').classList.toggle('on',t==='group');
+  document.getElementById('bt-guide').classList.toggle('on',t==='guide');
+  document.getElementById('room-name-row').classList.toggle('show',t==='group');
+  // 사용법 탭이면 멤버목록/검색 숨기고 가이드 표시
+  const isGuide=t==='guide';
+  document.getElementById('m-search-row').style.display=isGuide?'none':'';
+  document.getElementById('m-list').style.display=isGuide?'none':'';
+  document.getElementById('guide-panel').style.display=isGuide?'flex':'none';
+  document.getElementById('create-btn').style.display=isGuide?'none':'';
+  if(isGuide){renderGuide();return;}
+  updateChips();renderMembers('');updateBtn();
+};
+function renderGuide(){
+  const isAdmin=sess?.isAdmin;
+  const gc=document.getElementById('guide-content');
+  gc.innerHTML=`
+    ${isAdmin?`
+    <div class="guide-block">
+      <div class="guide-badge adm">⚙️ 관리자 권한</div>
+      <div class="guide-item"><div class="guide-item-icon">👤</div><div class="guide-item-text"><b>1대1 채팅 개설</b>가입된 모든 회원과 1대1 채팅을 시작할 수 있습니다. 상대방 이름 또는 이메일로 검색하세요.</div></div>
+      <div class="guide-item"><div class="guide-item-icon">👥</div><div class="guide-item-text"><b>단체 채팅방 개설</b>여러 회원을 한 번에 초대해 단체 채팅방을 만들 수 있습니다. 채팅방 이름을 입력 후 멤버를 선택하세요.</div></div>
+      <div class="guide-item"><div class="guide-item-icon">🚪</div><div class="guide-item-text"><b>회원 내보내기</b>모든 채팅방에서 방장 여부와 관계없이 회원을 내보낼 수 있습니다.</div></div>
+      <div class="guide-item"><div class="guide-item-icon">🗑️</div><div class="guide-item-text"><b>채팅방 삭제</b>모든 채팅방을 삭제할 수 있습니다. 삭제 시 메시지도 함께 영구 삭제됩니다.</div></div>
+      <div class="guide-item"><div class="guide-item-icon">🔍</div><div class="guide-item-text"><b>회원 검색</b>이름 또는 이메일로 전체 회원을 검색할 수 있습니다.</div></div>
+    </div>
+    <hr class="guide-divider">` : ''}
+    <div class="guide-block">
+      <div class="guide-badge mem">👤 일반 회원</div>
+      <div class="guide-item"><div class="guide-item-icon">👤</div><div class="guide-item-text"><b>1대1 채팅 시작</b>내가 초대한 회원과 1대1 채팅을 시작할 수 있습니다. 목록에서 선택하거나 이름·이메일로 검색하세요.</div></div>
+      <div class="guide-item"><div class="guide-item-icon">👥</div><div class="guide-item-text"><b>단체 채팅방 개설</b>내가 초대한 회원들로 단체 채팅방을 만들 수 있습니다.</div></div>
+      <div class="guide-item"><div class="guide-item-icon">🔍</div><div class="guide-item-text"><b>회원 검색 방법</b>기본 목록에는 내가 초대한 회원만 표시됩니다. 이름 또는 이메일을 검색하면 전체 회원에서 찾을 수 있습니다.</div></div>
+      <div class="guide-item"><div class="guide-item-icon">👋</div><div class="guide-item-text"><b>회원 초대하기</b>채팅방 하단 <b>👋 초대</b> 버튼을 눌러 나만의 초대 링크를 공유하세요. 해당 링크로 가입한 회원이 내 목록에 추가됩니다.</div></div>
+    </div>
+  `;
+}
 window.filterMembers=v=>renderMembers(v);
 function renderMembers(filter){
   const allList=Object.entries(allUsers).filter(([uid,v])=>uid!==sess?.uid&&!v.disabled).map(([uid,v])=>({uid,name:v.displayName||uid,email:v.email||'',online:v.online||false,color:v.avatarColor||COLORS[0],invitedBy:v.invitedBy||''}));
