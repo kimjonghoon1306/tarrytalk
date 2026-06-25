@@ -728,15 +728,15 @@ function renderAllUsers() {
         ${!isProtected?`
           ${u.uid!==adminSess?.uid?`<button class="act-btn ab-admin" onclick="startDmWith('${u.uid}')">1:1 채팅</button>`:''}
           ${u.disabled
-            ?`<button class="act-btn ab-enable" onclick="toggleDisable('${u.uid}','${esc(u.displayName||'')}',false)">활성화</button>`
-            :`<button class="act-btn ab-dis" onclick="toggleDisable('${u.uid}','${esc(u.displayName||'')}',true)">비활성화</button>`
+            ?`<button class="act-btn ab-enable" onclick="toggleDisable('${u.uid}',${jsArg(u.displayName||'')},false)">활성화</button>`
+            :`<button class="act-btn ab-dis" onclick="toggleDisable('${u.uid}',${jsArg(u.displayName||'')},true)">비활성화</button>`
           }
           ${canManageManagers ? (u.isAdmin
-            ? `<button class="act-btn ab-admin" onclick="toggleManager('${u.uid}','${esc(u.displayName||'')}',false)">매니저 해제</button>`
-            : `<button class="act-btn ab-admin" onclick="toggleManager('${u.uid}','${esc(u.displayName||'')}',true)">매니저 지정</button>`
+            ? `<button class="act-btn ab-admin" onclick="toggleManager('${u.uid}',${jsArg(u.displayName||'')},false)">매니저 해제</button>`
+            : `<button class="act-btn ab-admin" onclick="toggleManager('${u.uid}',${jsArg(u.displayName||'')},true)">매니저 지정</button>`
           ) : ''}
-          <button class="act-btn ab-admin" onclick="resetUserPassword('${esc(u.email||'')}','${esc(u.displayName||'')}')">비번재설정</button>
-          <button class="act-btn ab-del" onclick="confirmDeleteUser('${u.uid}','${esc(u.displayName||u.email||'')}')">삭제</button>
+          <button class="act-btn ab-admin" onclick="resetUserPassword(${jsArg(u.email||'')},${jsArg(u.displayName||'')})">비번재설정</button>
+          <button class="act-btn ab-del" onclick="confirmDeleteUser('${u.uid}',${jsArg(u.displayName||u.email||'')})">삭제</button>
         `:'<span style="font-size:11px;color:var(--text3)">최고관리자(보호됨)</span>'}
       </div></td>
     </tr>`;
@@ -759,7 +759,7 @@ function renderRooms() {
         <div class="rc-sub">${r.type==='group'?'단체채팅':'1대1'} · 멤버 ${memCount}명 · 메시지 ${msgCount}개</div>
       </div>
       <button class="rc-watch" onclick="watchRoom('${r.id}')">👁 모니터링</button>
-      <button class="rc-del" onclick="confirmDeleteRoom('${r.id}','${esc(r.name)}')">삭제</button>
+      <button class="rc-del" onclick="confirmDeleteRoom('${r.id}',${jsArg(r.name||'')})">삭제</button>
     </div>`;
   }).join('');
 }
@@ -1235,6 +1235,8 @@ window.doLogout = async function() {
 /* ── 유틸 ── */
 function relTime(ts) { if(!ts)return'–'; const d=Date.now()-(typeof ts==='number'?ts:new Date(ts).getTime()); if(d<60000)return'방금'; if(d<3600000)return Math.floor(d/60000)+'분 전'; if(d<86400000)return Math.floor(d/3600000)+'시간 전'; return Math.floor(d/86400000)+'일 전'; }
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function escAttr(s){return esc(s).replace(/'/g,'&#39;');}
+function jsArg(s){return escAttr(JSON.stringify(String(s??'')));}
 let _t;
 window.showToast = function(msg,type='ok'){const el=document.getElementById('toast-el');el.textContent=msg;el.className=`toast show t-${type}`;clearTimeout(_t);_t=setTimeout(()=>el.className='toast',2800);};
 </script>

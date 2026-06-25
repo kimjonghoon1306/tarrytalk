@@ -55,6 +55,6 @@ module.exports = async (req, res) => {
 
     return res.status(200).json({ ok: true, authDeleted, uid: uid || null });
   } catch (e) {
-    return res.status(500).json({ error: e.message || 'server_error' });
+    return res.status(500).json({ error: 'server_error' });
   }
 };

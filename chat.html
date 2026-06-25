@@ -784,7 +784,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import{getAuth,onAuthStateChanged,signOut}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import{getDatabase,ref,onValue,push,set,update,remove,get,serverTimestamp,query,orderByChild,limitToLast,onDisconnect,increment}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import{getDatabase,ref,onValue,push,set,update,remove,get,serverTimestamp,query,orderByChild,equalTo,limitToLast,onDisconnect,increment}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import{getMessaging,getToken,onMessage,isSupported}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
 const FC={apiKey:"AIzaSyDC9qSmH-1z778oiI7QbDY_JrKis95z_C4",authDomain:"tarrytalk.firebaseapp.com",databaseURL:"https://tarrytalk-default-rtdb.firebaseio.com",projectId:"tarrytalk",storageBucket:"tarrytalk.firebasestorage.app",messagingSenderId:"322779846377",appId:"1:322779846377:web:12253ee2f2330dd1a04278"};
 const app=initializeApp(FC),auth=getAuth(app),db=getDatabase(app),ADMIN_EMAIL='tarry9653@daum.net';
@@ -985,7 +985,10 @@ window.closePopupNotice=function(){
   document.getElementById('popup-overlay').classList.remove('show');
 };
 function loadRooms(){
-  onValue(ref(db,'rooms'),snap=>{
+  const roomsRef=sess?.isAdmin
+    ? ref(db,'rooms')
+    : query(ref(db,'rooms'),orderByChild(`members/${sess.uid}`),equalTo(true));
+  onValue(roomsRef,snap=>{
     window._rooms=[];const data=snap.val()||{};
     Object.entries(data).forEach(([id,v])=>{if(!v)return;if(!sess||v.members?.[sess.uid]||sess.isAdmin||isGuest)window._rooms.push({id,...v});});
     renderRooms(document.getElementById('search-inp').value);
@@ -1086,7 +1089,7 @@ function renderUserCard(uid){
   document.getElementById('uc-card-email').textContent=u.email||'';
   document.getElementById('uc-card-status').textContent=u.online?'● 온라인':'○ 오프라인';
   document.getElementById('uc-card-actions').innerHTML=
-    `<button class="uc-act" onclick="startChatWithFriend('${uid}','${esc(u.displayName||'').replace(/'/g,"\\'")}');closeUserCard();">💬 1:1 채팅</button>`+
+    `<button class="uc-act" onclick="startChatWithFriend('${uid}',${jsArg(u.displayName||'')});closeUserCard();">💬 1:1 채팅</button>`+
     (fr?`<button class="uc-act danger" onclick="removeFriend('${uid}')"><span class="uc-pm">－</span> 친구 삭제</button>`
        :`<button class="uc-act primary" onclick="addFriend('${uid}')"><span class="uc-pm">＋</span> 친구 추가</button>`);
 }
@@ -1207,7 +1210,7 @@ window.renderFriends=function(filter=''){
   if(filter){const q=filter.toLowerCase();friends=friends.filter(u=>u.name.toLowerCase().includes(q)||u.email.toLowerCase().includes(q));}
   friends.sort((a,b)=>(b.online-a.online)||a.name.localeCompare(b.name));
   if(!friends.length){list.innerHTML=`<div class="empty-rooms"><div class="ei">👥</div><p>친구가 없어요\n👋 친구 초대하기로 추가하세요</p></div>`;return;}
-  list.innerHTML=friends.map(u=>`<div class="r-item" onclick="startChatWithFriend('${u.uid}','${esc(u.name).replace(/'/g,"\\'")}')"><div class="r-av" style="background:${u.color}">${esc(u.name[0]||'?').toUpperCase()}</div><div style="flex:1;min-width:0;"><div class="r-name">${esc(u.name)}${u.online?' <span style="color:var(--green);font-size:10px;">●</span>':''}</div><div class="r-prev">${esc(u.email)}</div></div></div>`).join('');
+  list.innerHTML=friends.map(u=>`<div class="r-item" onclick="startChatWithFriend('${u.uid}',${jsArg(u.name)})"><div class="r-av" style="background:${u.color}">${esc(u.name[0]||'?').toUpperCase()}</div><div style="flex:1;min-width:0;"><div class="r-name">${esc(u.name)}${u.online?' <span style="color:var(--green);font-size:10px;">●</span>':''}</div><div class="r-prev">${esc(u.email)}</div></div></div>`).join('');
 };
 window.startChatWithFriend=async function(uid,name){
   if(!sess)return;
@@ -1370,7 +1373,36 @@ async function loadLinkPreviews(){
       let og=_ogCache[url];
       if(!og){const r=await fetch('/api/og?url='+encodeURIComponent(url));og=await r.json();_ogCache[url]=og;}
       if(!og||!og.ok||(!og.title&&!og.image)){box.style.display='none';return;}
-      box.innerHTML=`<a href="${esc(url)}" target="_blank" rel="noopener" class="lp-link">${og.image?`<div class="lp-img" style="background-image:url('${esc(og.image)}')"></div>`:''}<div class="lp-body"><div class="lp-title">${esc(og.title||url)}</div>${og.description?`<div class="lp-desc">${esc(og.description)}</div>`:''}<div class="lp-site">🔗 ${esc(og.siteName||new URL(url).hostname)}</div></div></a>`;
+      box.textContent='';
+      const a=document.createElement('a');
+      a.href=url;
+      a.target='_blank';
+      a.rel='noopener';
+      a.className='lp-link';
+      if(og.image){
+        const img=document.createElement('div');
+        img.className='lp-img';
+        img.style.backgroundImage=`url("${String(og.image).replace(/["\\\n\r]/g,'')}")`;
+        a.appendChild(img);
+      }
+      const body=document.createElement('div');
+      body.className='lp-body';
+      const title=document.createElement('div');
+      title.className='lp-title';
+      title.textContent=og.title||url;
+      body.appendChild(title);
+      if(og.description){
+        const desc=document.createElement('div');
+        desc.className='lp-desc';
+        desc.textContent=og.description;
+        body.appendChild(desc);
+      }
+      const site=document.createElement('div');
+      site.className='lp-site';
+      site.textContent='🔗 '+(og.siteName||new URL(url).hostname);
+      body.appendChild(site);
+      a.appendChild(body);
+      box.appendChild(a);
     }catch(e){box.style.display='none';}
   });
 }
@@ -1390,9 +1422,9 @@ function buildMsg(m,prev){
     const label=kind==='image'?'사진':kind==='video'?'영상':'파일';
     content=`<div class="expired-media">🗑 2주가 지나 자동 삭제된 ${label}입니다</div>`;
   }
-  else if(m.type==='image'){const src=esc(m.data||m.url||'');content=`<div class="img-bub" onclick="openLightbox('${src}','${esc(m.fileName||'이미지')}')"><img src="${src}" alt="이미지" loading="lazy" class="loading" onload="this.classList.remove('loading')"><div class="img-cap">🖼️ ${esc(m.fileName||'이미지')} <a href="${src}" download="${m.fileName||'image'}" onclick="event.stopPropagation()">다운로드</a></div>${mediaNote}</div>`;}
-  else if(m.type==='document'){const icons={pdf:'📄',doc:'📝',docx:'📝',ppt:'📊',pptx:'📊',xls:'📗',xlsx:'📗',zip:'🗜️',hwp:'📄',txt:'📃'};const ext=(m.fileName||'').split('.').pop().toLowerCase();content=`<div class="file-card"><div class="file-card-body"><div class="file-icon">${icons[ext]||'📎'}</div><div class="file-info"><div class="file-name">${esc(m.fileName||'파일')}</div><div class="file-size">${m.fileSize||''}</div></div><a class="file-dl" href="${esc(m.data)}" download="${m.fileName||'file'}">받기</a></div>${mediaNote}</div>`;}
-  else if(m.type==='video'){content=`<div class="file-card"><video controls src="${esc(m.data)}" style="max-height:200px;width:100%;"></video><div class="file-card-body"><div class="file-icon">🎥</div><div class="file-info"><div class="file-name">${esc(m.fileName||'영상')}</div><div class="file-size">${m.fileSize||''}</div></div><a class="file-dl" href="${esc(m.data)}" download="${esc(m.fileName||'video.mp4')}" onclick="event.stopPropagation()">받기</a></div>${mediaNote}</div>`;}
+  else if(m.type==='image'){const src=esc(m.data||m.url||''),fn=m.fileName||'이미지';content=`<div class="img-bub" onclick="openLightbox(${jsArg(m.data||m.url||'')},${jsArg(fn)})"><img src="${src}" alt="이미지" loading="lazy" class="loading" onload="this.classList.remove('loading')"><div class="img-cap">🖼️ ${esc(fn)} <a href="${src}" download="${escAttr(fn||'image')}" onclick="event.stopPropagation()">다운로드</a></div>${mediaNote}</div>`;}
+  else if(m.type==='document'){const icons={pdf:'📄',doc:'📝',docx:'📝',ppt:'📊',pptx:'📊',xls:'📗',xlsx:'📗',zip:'🗜️',hwp:'📄',txt:'📃'};const ext=(m.fileName||'').split('.').pop().toLowerCase();content=`<div class="file-card"><div class="file-card-body"><div class="file-icon">${icons[ext]||'📎'}</div><div class="file-info"><div class="file-name">${esc(m.fileName||'파일')}</div><div class="file-size">${esc(m.fileSize||'')}</div></div><a class="file-dl" href="${esc(m.data)}" download="${escAttr(m.fileName||'file')}">받기</a></div>${mediaNote}</div>`;}
+  else if(m.type==='video'){content=`<div class="file-card"><video controls src="${esc(m.data)}" style="max-height:200px;width:100%;"></video><div class="file-card-body"><div class="file-icon">🎥</div><div class="file-info"><div class="file-name">${esc(m.fileName||'영상')}</div><div class="file-size">${esc(m.fileSize||'')}</div></div><a class="file-dl" href="${esc(m.data)}" download="${escAttr(m.fileName||'video.mp4')}" onclick="event.stopPropagation()">받기</a></div>${mediaNote}</div>`;}
   else if(m.type==='schedule'){const ds=new Date(m.scheduleDate).toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});content=`<div class="schedule-card" onclick="openScheduleView('${m.id}')" style="cursor:pointer;"><div class="sch-head"><div class="sch-date">📅 ${ds}${m.scheduleTime?' · '+m.scheduleTime:''}</div><div class="sch-title">${esc(m.scheduleTitle)}</div></div><div class="sch-body">${m.schedulePlace?`<div class="sch-row"><span>📍</span><span>${esc(m.schedulePlace)}</span></div>`:''}${m.scheduleMemo?`<div class="sch-row"><span>📝</span><span>${esc(m.scheduleMemo)}</span></div>`:''}<div class="sch-more">탭하여 크게 보기 →</div></div></div>`;}
   else{const txt=linkify(esc(m.text)).replace(/\n/g,'<br>');const firstUrl=extractFirstUrl(m.text||'');content=`<div class="bubble">${txt}</div>${firstUrl?`<div class="link-preview" data-url="${esc(firstUrl)}"></div>`:''}`;}
   const reactions=m.reactions?Object.entries(m.reactions).reduce((acc,[emoji,users])=>{const uids=Object.keys(users||{});if(uids.length)acc.push({emoji,count:uids.length,mine:sess&&uids.includes(sess.uid)});return acc;},[]):[];
@@ -1513,7 +1545,7 @@ window.openForwardModal=function(msgId){
   let html='';
   html+='<div class="fwd-sec">👥 친구에게 보내기</div>';
   if(!friends.length)html+='<div class="announce-empty" style="padding:14px 12px;">친구가 없어요. 👋 초대로 친구를 추가하세요.</div>';
-  else html+=friends.map(u=>`<div class="forward-room" onclick="doForwardUser('${u.uid}','${esc(u.name).replace(/'/g,"\\'")}')"><div class="fr-ico" style="background:${u.color}">${esc(u.name[0]||'?').toUpperCase()}</div><div style="flex:1;min-width:0;"><div class="fr-name">${esc(u.name)}</div><div class="fr-sub">${esc(u.email)}</div></div></div>`).join('');
+  else html+=friends.map(u=>`<div class="forward-room" onclick="doForwardUser('${u.uid}',${jsArg(u.name)})"><div class="fr-ico" style="background:${u.color}">${esc(u.name[0]||'?').toUpperCase()}</div><div style="flex:1;min-width:0;"><div class="fr-name">${esc(u.name)}</div><div class="fr-sub">${esc(u.email)}</div></div></div>`).join('');
   if(rooms.length){
     html+='<div class="fwd-sec">💬 채팅방으로 보내기</div>';
     html+=rooms.map(r=>`<div class="forward-room" onclick="doForward('${r.id}')"><div class="fr-ico">${roomEmoji(r)}</div><div style="flex:1;min-width:0;"><div class="fr-name">${esc(roomTitle(r))}</div><div class="fr-sub">${r.type==='group'?`멤버 ${Object.keys(r.members||{}).length}명`:'1대1 채팅'}</div></div></div>`).join('');
@@ -2048,7 +2080,7 @@ function renderMembers(filter){
   const f=filter?users.filter(u=>u.name.toLowerCase().includes(filter.toLowerCase())||u.email.toLowerCase().includes(filter.toLowerCase())):users;
   const list=document.getElementById('m-list');
   if(!f.length){list.innerHTML=`<div class="no-m">${users.length===0?'아직 다른 회원이 없습니다':'검색 결과 없음'}</div>`;return;}
-  list.innerHTML=f.map((u,i)=>{const on=selUsers.includes(u.uid);return`<div class="m-item${on?' on':''}" onclick="toggleMember('${u.uid}','${u.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">\n<div class="m-av" style="background:${u.color}">${u.name[0].toUpperCase()}</div>\n<div style="flex:1;min-width:0;"><div class="m-nm">${esc(u.name)}</div><div class="m-em">${esc(u.email)}</div></div>\n${u.online?'<div class="m-online"></div>':''}\n<div class="m-check">${on?'✓':''}</div>\n</div>`;}).join('');
+  list.innerHTML=f.map((u,i)=>{const on=selUsers.includes(u.uid);return`<div class="m-item${on?' on':''}" onclick="toggleMember('${u.uid}',${jsArg(u.name)})">\n<div class="m-av" style="background:${u.color}">${esc(u.name[0]||'?').toUpperCase()}</div>\n<div style="flex:1;min-width:0;"><div class="m-nm">${esc(u.name)}</div><div class="m-em">${esc(u.email)}</div></div>\n${u.online?'<div class="m-online"></div>':''}\n<div class="m-check">${on?'✓':''}</div>\n</div>`;}).join('');
 }
 window.toggleMember=function(uid,name){if(selType==='dm')selUsers=selUsers.includes(uid)?[]:[uid];else selUsers.includes(uid)?selUsers=selUsers.filter(e=>e!==uid):selUsers.push(uid);updateChips();renderMembers(document.getElementById('ms-inp').value);updateBtn();};
 function updateChips(){const wrap=document.getElementById('chips-row');if(!selUsers.length){wrap.classList.remove('show');wrap.innerHTML='';return;}wrap.classList.add('show');wrap.innerHTML=selUsers.map(uid=>{const u=allUsers[uid];const name=u?.displayName||uid;return`<div class="chip">${esc(name)}<span class="chip-x" onclick="toggleMember('${uid}','')">✕</span></div>`;}).join('');}
@@ -2103,11 +2135,11 @@ window.openRoomSettings=function(){
   document.getElementById('rs-title').textContent=roomTitle(room)+' 설정';
   const members=Object.keys(room.members||{});
   document.getElementById('rs-members').innerHTML=members.map((uid,i)=>{
-    const u=allUsers[uid];const name=u?.displayName||uid;const safe=name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const u=allUsers[uid];const name=u?.displayName||uid;
     const isMe=uid===sess?.uid;const isOwner=room.createdBy===uid;
     const canKick=!isMe&&(sess?.isAdmin||(!isOwner&&room.createdBy===sess?.uid));
     const canSanction=sess?.isAdmin&&!isMe;
-    return`<div class="rs-member"><div class="rs-m-av" style="background:${u?.avatarColor||COLORS[i%COLORS.length]}">${name[0].toUpperCase()}</div><div style="flex:1;min-width:0;"><div class="rs-m-name">${esc(name)}${isOwner?'<span style="font-size:10px;background:rgba(124,58,237,.12);color:var(--green);padding:2px 7px;border-radius:50px;margin-left:6px;font-weight:800;">방장</span>':''}</div><div class="rs-m-role">${u?.mutedUntil&&u.mutedUntil>Date.now()?'🔇 정지중':u?.online?'● 온라인':'○ 오프라인'}</div></div>${canSanction?`<button class="kick-btn" onclick="openSanction('${uid}','${safe}')">제재</button>`:''}${canKick?`<button class="kick-btn" onclick="kickMember('${uid}','${safe}')">내보내기</button>`:''}</div>`;
+    return`<div class="rs-member"><div class="rs-m-av" style="background:${u?.avatarColor||COLORS[i%COLORS.length]}">${esc(name[0]||'?').toUpperCase()}</div><div style="flex:1;min-width:0;"><div class="rs-m-name">${esc(name)}${isOwner?'<span style="font-size:10px;background:rgba(124,58,237,.12);color:var(--green);padding:2px 7px;border-radius:50px;margin-left:6px;font-weight:800;">방장</span>':''}</div><div class="rs-m-role">${u?.mutedUntil&&u.mutedUntil>Date.now()?'🔇 정지중':u?.online?'● 온라인':'○ 오프라인'}</div></div>${canSanction?`<button class="kick-btn" onclick="openSanction('${uid}',${jsArg(name)})">제재</button>`:''}${canKick?`<button class="kick-btn" onclick="kickMember('${uid}',${jsArg(name)})">내보내기</button>`:''}</div>`;
   }).join('');
   const canInvite=sess&&(sess.isAdmin||room.createdBy===sess.uid||room.members?.[sess.uid]);
   document.getElementById('rs-invite-sec').style.display=canInvite?'block':'none';
@@ -2180,6 +2212,8 @@ window.handleKey=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg
 window.autoResize=el=>{el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';};
 function avatarColor(n){const c=['#00a84a','#0087d4','#a855f7','#e85d04','#d62828','#2ec4b6'];let h=0;for(let i=0;i<n.length;i++)h=n.charCodeAt(i)+((h<<5)-h);return c[Math.abs(h)%c.length];}
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function escAttr(s){return esc(s).replace(/'/g,'&#39;');}
+function jsArg(s){return escAttr(JSON.stringify(String(s??'')));}
 // 이미 esc된 텍스트에서 URL/도메인을 클릭가능 링크로 (http없는 도메인·한글도메인 포함)
 function linkify(escaped){
   return escaped.replace(/(https?:\/\/[^\s<]+|www\.[^\s<]+|[a-zA-Z0-9가-힣][a-zA-Z0-9가-힣-]*\.(?:com|net|org|kr|io|app|co\.kr|온종일\.com)(?:\/[^\s<]*)?)/g,(m)=>{

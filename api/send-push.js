@@ -1,7 +1,9 @@
 const admin = require('firebase-admin');
 
+const ADMIN_EMAIL = 'tarry9653@daum.net';
 const DB_URL = 'https://tarrytalk-default-rtdb.firebaseio.com';
 const MAX_TOKENS = 500;
+const MAX_TARGETS = 100;
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -34,6 +36,21 @@ function toAbsoluteUrl(req, url) {
   return `${proto}://${host}${path}`;
 }
 
+function roomIdFromUrl(url) {
+  try {
+    const u = new URL(url || '/', 'https://example.invalid');
+    return u.searchParams.get('room') || '';
+  } catch (e) {
+    return '';
+  }
+}
+
+async function isAdminUser(db, decoded) {
+  if (decoded.email === ADMIN_EMAIL) return true;
+  const snap = await db.ref(`users/${decoded.uid}/isAdmin`).get();
+  return snap.val() === true;
+}
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method_not_allowed' });
 
@@ -45,13 +62,28 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'missing_params' });
     }
 
-    await admin.auth().verifyIdToken(idToken);
-
     const db = admin.database();
+    const decoded = await admin.auth().verifyIdToken(idToken);
+    const isAdmin = await isAdminUser(db, decoded);
+    const uniqueTargetUids = [...new Set(targetUids)].filter(uid => uid && typeof uid === 'string');
+
+    if (!uniqueTargetUids.length || uniqueTargetUids.length > MAX_TARGETS) {
+      return res.status(400).json({ error: 'bad_targets' });
+    }
+
+    if (!isAdmin) {
+      const roomId = roomIdFromUrl(url);
+      if (!roomId) return res.status(403).json({ error: 'forbidden' });
+      const roomSnap = await db.ref(`rooms/${roomId}/members`).get();
+      const members = roomSnap.val() || {};
+      if (members[decoded.uid] !== true) return res.status(403).json({ error: 'forbidden' });
+      const allowed = uniqueTargetUids.every(uid => uid !== decoded.uid && members[uid] === true);
+      if (!allowed) return res.status(403).json({ error: 'forbidden' });
+    }
+
     const tokenOwners = new Map();
 
-    await Promise.all([...new Set(targetUids)].map(async uid => {
-      if (!uid || typeof uid !== 'string') return;
+    await Promise.all(uniqueTargetUids.map(async uid => {
       const snap = await db.ref(`users/${uid}/fcmTokens`).get();
       const tokens = snap.val() || {};
       Object.keys(tokens).forEach(token => {
@@ -72,8 +104,8 @@ module.exports = async (req, res) => {
       const result = await admin.messaging().sendEachForMulticast({
         tokens: batch,
         notification: {
-          title: title || '온메신저',
-          body: body || '새 알림이 있습니다',
+          title: String(title || '온메신저').slice(0, 80),
+          body: String(body || '새 알림이 있습니다').slice(0, 180),
         },
         data: {
           url: link,
@@ -100,6 +132,6 @@ module.exports = async (req, res) => {
     if (removals.length) await Promise.allSettled(removals);
     return res.status(200).json({ ok: true, sent, failed, cleaned: removals.length });
   } catch (e) {
-    return res.status(500).json({ error: e.message || 'server_error' });
+    return res.status(500).json({ error: 'server_error' });
   }
 };

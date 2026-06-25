@@ -28,11 +28,17 @@ module.exports = async (req, res) => {
 
     const usersSnap = await admin.database().ref('users').get();
     const usersDb = usersSnap.val() || {};
-    const list = await admin.auth().listUsers(1000);
+    const authUsers = [];
+    let pageToken;
+    do {
+      const page = await admin.auth().listUsers(1000, pageToken);
+      authUsers.push(...page.users);
+      pageToken = page.pageToken;
+    } while (pageToken);
 
     const deleted = [];
     const kept = [];
-    for (const u of list.users) {
+    for (const u of authUsers) {
       if (u.email === ADMIN_EMAIL) { kept.push(u.email); continue; } // 최고관리자 보존
       const prof = usersDb[u.uid];
       const hasName = prof && prof.displayName;
@@ -46,6 +52,6 @@ module.exports = async (req, res) => {
     }
     return res.status(200).json({ ok: true, deletedCount: deleted.length, deleted, kept });
   } catch (e) {
-    return res.status(500).json({ error: e.message || 'server_error' });
+    return res.status(500).json({ error: 'server_error' });
   }
 };
