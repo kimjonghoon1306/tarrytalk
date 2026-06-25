@@ -490,6 +490,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
   </div>
   <div class="space-tabs">
     <button class="sp-tab on" id="spt-chat" onclick="setSpaceTab('chat')"><span class="sp-ico">💬</span>채팅</button>
+    <button class="sp-tab" id="spt-friends" onclick="setSpaceTab('friends')"><span class="sp-ico">👥</span>친구</button>
     <button class="sp-tab" id="spt-storage" onclick="setSpaceTab('storage')"><span class="sp-ico">📁</span>보관함</button>
     <button class="sp-tab" id="spt-schedule" onclick="setSpaceTab('schedule')"><span class="sp-ico">📅</span>일정</button>
   </div>
@@ -499,6 +500,11 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
     <div class="sb-search"><input type="text" placeholder="채팅방 검색..." oninput="filterRooms(this.value)" id="search-inp"></div>
     <div class="sb-tabs"><div class="sbt on" id="tab-g" onclick="setTab('group')">단체채팅</div><div class="sbt" id="tab-d" onclick="setTab('dm')">1대1 채팅</div></div>
     <div class="room-list" id="room-list"></div>
+  </div>
+  <div id="sp-friends" style="display:none;flex-direction:column;flex:1;min-height:0;">
+    <div class="how-to-banner" onclick="openInvite()" style="background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;border:none;">👋 친구 초대하기</div>
+    <div class="sb-search"><input type="text" placeholder="친구 검색 (이름·이메일)" oninput="renderFriends(this.value)" id="friend-search"></div>
+    <div class="room-list" id="friend-list"></div>
   </div>
   <div id="sp-storage" style="display:none;" class="placeholder-tab"><div class="pt-icon">📁</div><h3>비즈니스 보관함</h3><p>파일·문서·링크를<br>안전하게 보관하세요</p><span class="coming-badge">Coming Soon</span></div>
   <div id="sp-schedule" style="display:none;" class="placeholder-tab"><div class="pt-icon">📅</div><h3>스케줄러</h3><p>팀 일정을 공유하고<br>함께 관리하세요</p><span class="coming-badge">Coming Soon</span></div>
@@ -764,7 +770,7 @@ onAuthStateChanged(auth,async user=>{
     const snap=await get(ref(db,`users/${user.uid}`));let profile=snap.val()||{};
     if(profile.disabled){await signOut(auth);location.href='index.html';return;}
     profile=await ensureUserProfile(user,profile);
-    sess={uid:user.uid,name:profile.displayName||user.displayName||'사용자',email:user.email,isAdmin:user.email===ADMIN_EMAIL||profile.isAdmin===true,color:profile.avatarColor||avatarColor(profile.displayName||user.displayName||'?'),warnings:profile.warnings||0,mutedUntil:profile.mutedUntil||0};
+    sess={uid:user.uid,name:profile.displayName||user.displayName||'사용자',email:user.email,isAdmin:user.email===ADMIN_EMAIL||profile.isAdmin===true,color:profile.avatarColor||avatarColor(profile.displayName||user.displayName||'?'),warnings:profile.warnings||0,mutedUntil:profile.mutedUntil||0,invitedBy:profile.invitedBy||''};
     await set(ref(db,`users/${user.uid}/online`),true);
     onDisconnect(ref(db,`users/${user.uid}/online`)).set(false);
     onDisconnect(ref(db,`users/${user.uid}/lastSeen`)).set(serverTimestamp());
@@ -1068,7 +1074,29 @@ function renderRooms(filter=''){
 }
 window.filterRooms=v=>renderRooms(v);
 window.setTab=function(t){curTab=t;document.getElementById('tab-g').classList.toggle('on',t==='group');document.getElementById('tab-d').classList.toggle('on',t==='dm');renderRooms();};
-window.setSpaceTab=function(t){['chat','storage','schedule'].forEach(s=>{document.getElementById('spt-'+s).classList.toggle('on',s===t);const el=document.getElementById('sp-'+s);el.style.display=s===t?(s==='chat'?'flex':'block'):'none';if(s==='chat'){el.style.flexDirection='column';el.style.flex='1';el.style.minHeight='0';}});};
+window.setSpaceTab=function(t){['chat','friends','storage','schedule'].forEach(s=>{document.getElementById('spt-'+s).classList.toggle('on',s===t);const el=document.getElementById('sp-'+s);if(!el)return;el.style.display=s===t?((s==='chat'||s==='friends')?'flex':'block'):'none';if(s==='chat'||s==='friends'){el.style.flexDirection='column';el.style.flex='1';el.style.minHeight='0';}});if(t==='friends')renderFriends(document.getElementById('friend-search')?.value||'');};
+window.renderFriends=function(filter=''){
+  const list=document.getElementById('friend-list');if(!list||!sess)return;
+  // 친구 = 내가 초대했거나 나를 초대한 회원 (관리자는 전체)
+  let friends=Object.entries(allUsers).filter(([uid,v])=>{
+    if(uid===sess.uid||!v||v.disabled)return false;
+    if(sess.isAdmin)return true;
+    return v.invitedBy===sess.uid||v.uid===sess.invitedBy||uid===sess.invitedBy;
+  }).map(([uid,v])=>({uid,name:v.displayName||uid,email:v.email||'',online:v.online||false,color:v.avatarColor||avatarColor(v.displayName||uid)}));
+  if(filter){const q=filter.toLowerCase();friends=friends.filter(u=>u.name.toLowerCase().includes(q)||u.email.toLowerCase().includes(q));}
+  friends.sort((a,b)=>(b.online-a.online)||a.name.localeCompare(b.name));
+  if(!friends.length){list.innerHTML=`<div class="empty-rooms"><div class="ei">👥</div><p>친구가 없어요\n👋 친구 초대하기로 추가하세요</p></div>`;return;}
+  list.innerHTML=friends.map(u=>`<div class="r-item" onclick="startChatWithFriend('${u.uid}','${esc(u.name).replace(/'/g,"\\'")}')"><div class="r-av" style="background:${u.color}">${esc(u.name[0]||'?').toUpperCase()}</div><div style="flex:1;min-width:0;"><div class="r-name">${esc(u.name)}${u.online?' <span style="color:var(--green);font-size:10px;">●</span>':''}</div><div class="r-prev">${esc(u.email)}</div></div></div>`).join('');
+};
+window.startChatWithFriend=async function(uid,name){
+  if(!sess)return;
+  let room=(window._rooms||[]).find(r=>r.type==='dm'&&r.members?.[sess.uid]&&r.members?.[uid]&&Object.keys(r.members||{}).length===2);
+  if(room){setSpaceTab('chat');setTab('dm');openRoom(room.id);return;}
+  const members={[sess.uid]:true,[uid]:true};const rRef=push(ref(db,'rooms'));
+  await set(rRef,{name:name,type:'dm',emoji:(name&&name[0])||'👤',members,createdBy:sess.uid,createdAt:Date.now(),lastAt:Date.now()});
+  await set(push(ref(db,`messages/${rRef.key}`)),{uid:'system',displayName:'system',text:`${sess.name}님이 대화를 시작했습니다`,type:'system',at:Date.now()});
+  setSpaceTab('chat');setTab('dm');setTimeout(()=>openRoom(rRef.key),300);
+};
 function listenAnnouncements(){
   if(!sess)return;
   onValue(ref(db,'announcements'),snap=>{
