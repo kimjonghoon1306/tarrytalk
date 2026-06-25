@@ -1182,8 +1182,20 @@ function loadMessages(roomId){
     const data=snap.val()||{};
     const msgs=Object.entries(data).map(([id,v])=>({id,...v})).sort((a,b)=>a.at-b.at);
     cleanupExpiredMedia(roomId,msgs);
+    markMessagesRead(roomId,msgs);
     renderMessages(msgs);
   });
+}
+function markMessagesRead(roomId,msgs){
+  if(!sess||isGuest||sess.uid==='admin')return;
+  // 남이 보낸, 내가 아직 안읽은 메시지를 읽음 처리
+  const updates={};
+  msgs.forEach(m=>{
+    if(m.uid&&m.uid!==sess.uid&&m.uid!=='system'&&m.type!=='deleted'&&!m.deleted&&!(m.readBy&&m.readBy[sess.uid])){
+      updates[`messages/${roomId}/${m.id}/readBy/${sess.uid}`]=true;
+    }
+  });
+  if(Object.keys(updates).length)update(ref(db),updates).catch(()=>{});
 }
 function cleanupExpiredMedia(roomId,msgs){
   if(!sess||isGuest)return;
