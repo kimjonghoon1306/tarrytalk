@@ -1382,12 +1382,12 @@ function buildMsg(m,prev){
 function bindMessageContext(el,m){
   if(!m?.id||m.local||['system','deleted'].includes(m.type))return;
   el.addEventListener('contextmenu',e=>{
-    if(e.target.closest('a,button'))return;
+    if(e.target.closest('a,button,.mg-av'))return;
     e.preventDefault();
     showMsgMenu(m.id,e.clientX,e.clientY);
   });
   el.addEventListener('touchstart',e=>{
-    if(e.target.closest('a,button,input,textarea,video'))return;
+    if(e.target.closest('a,button,input,textarea,video,.mg-av'))return;
     longPressFired=false;
     const t=e.touches[0];
     lastContextPoint={x:t.clientX,y:t.clientY};
@@ -2093,7 +2093,7 @@ window.openRoomSettings=function(){
   const canManage=sess&&(sess.isAdmin||room.createdBy===sess.uid);
   const isMember=sess&&room.members?.[sess.uid];
   document.getElementById('rs-delete-btn').style.display=canManage?'':'none';
-  document.getElementById('rs-leave-btn').style.display=(isMember&&room.type==='group')?'':'none';
+  document.getElementById('rs-leave-btn').style.display=isMember?'':'none';
   document.getElementById('rs-overlay').classList.add('show');
 };
 window.leaveRoom=async function(){
