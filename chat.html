@@ -224,6 +224,8 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 @keyframes menuPop{from{opacity:0;transform:translateY(6px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
 .forward-modal{width:min(420px,calc(100vw - 28px));background:var(--surface);border:1px solid var(--border2);border-radius:20px;overflow:hidden;box-shadow:0 18px 55px rgba(0,0,0,.28);}
 .forward-body{padding:14px;max-height:min(440px,70vh);overflow:auto;}
+.fwd-sec{font-size:11px;font-weight:900;color:var(--text3);margin:10px 4px 7px;letter-spacing:.5px;}
+.fwd-sec:first-child{margin-top:0;}
 .forward-room{display:flex;align-items:center;gap:11px;padding:12px;border:1px solid var(--border);border-radius:14px;margin-bottom:8px;background:var(--bg2);cursor:pointer;transition:all .16s;}
 .forward-room:hover{border-color:var(--border2);box-shadow:0 10px 24px var(--glow);transform:translateY(-1px);}
 .forward-room .fr-ico{width:38px;height:38px;border-radius:13px;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0;}
@@ -1307,9 +1309,18 @@ window.openForwardModal=function(msgId){
   if(!m||m.expired){showToast('전달할 수 없는 메시지입니다','warn');return;}
   forwardMsgId=msgId;
   const rooms=(window._rooms||[]).filter(r=>r.id!==curRoom&&r.members?.[sess.uid]).sort((a,b)=>(b.lastAt||0)-(a.lastAt||0));
+  // 친구(회원) 목록 — 본인/비활성 제외
+  const friends=Object.entries(allUsers).filter(([uid,v])=>uid!==sess.uid&&v&&!v.disabled).map(([uid,v])=>({uid,name:v.displayName||uid,email:v.email||'',color:v.avatarColor||'#7c3aed'}));
   const list=document.getElementById('forward-list');
-  if(!rooms.length){list.innerHTML='<div class="announce-empty" style="padding:34px 12px;">전달할 다른 채팅방이 없습니다.</div>';}
-  else list.innerHTML=rooms.map(r=>`<div class="forward-room" onclick="doForward('${r.id}')"><div class="fr-ico">${roomEmoji(r)}</div><div style="flex:1;min-width:0;"><div class="fr-name">${esc(roomTitle(r))}</div><div class="fr-sub">${r.type==='group'?`멤버 ${Object.keys(r.members||{}).length}명`:'1대1 채팅'}</div></div></div>`).join('');
+  let html='';
+  html+='<div class="fwd-sec">👥 회원에게 보내기</div>';
+  if(!friends.length)html+='<div class="announce-empty" style="padding:14px 12px;">보낼 회원이 없습니다.</div>';
+  else html+=friends.map(u=>`<div class="forward-room" onclick="doForwardUser('${u.uid}','${esc(u.name).replace(/'/g,"\\'")}')"><div class="fr-ico" style="background:${u.color}">${esc(u.name[0]||'?').toUpperCase()}</div><div style="flex:1;min-width:0;"><div class="fr-name">${esc(u.name)}</div><div class="fr-sub">${esc(u.email)}</div></div></div>`).join('');
+  if(rooms.length){
+    html+='<div class="fwd-sec">💬 채팅방으로 보내기</div>';
+    html+=rooms.map(r=>`<div class="forward-room" onclick="doForward('${r.id}')"><div class="fr-ico">${roomEmoji(r)}</div><div style="flex:1;min-width:0;"><div class="fr-name">${esc(roomTitle(r))}</div><div class="fr-sub">${r.type==='group'?`멤버 ${Object.keys(r.members||{}).length}명`:'1대1 채팅'}</div></div></div>`).join('');
+  }
+  list.innerHTML=html;
   document.getElementById('forward-overlay').classList.add('show');
 };
 window.closeForwardModal=function(){document.getElementById('forward-overlay').classList.remove('show');forwardMsgId=null;};
@@ -1338,6 +1349,33 @@ window.doForward=async function(roomId){
   notifyRoomMembers(room,summary);
   closeForwardModal();
   showToast('메시지를 전달했습니다','ok');
+};
+window.doForwardUser=async function(uid,name){
+  if(!forwardMsgId||!sess||isGuest)return;
+  if(blockIfMuted())return;
+  const m=msgById(forwardMsgId);
+  if(!m){showToast('전달할 수 없는 메시지입니다','warn');return;}
+  // 기존 1:1 방 찾기
+  let room=(window._rooms||[]).find(r=>r.type==='dm'&&r.members?.[sess.uid]&&r.members?.[uid]&&Object.keys(r.members||{}).length===2);
+  let roomId;
+  if(room){roomId=room.id;}
+  else{
+    // 방 자동 생성
+    const members={[sess.uid]:true,[uid]:true};
+    const rRef=push(ref(db,'rooms'));
+    roomId=rRef.key;
+    await set(rRef,{name:name,type:'dm',emoji:(name&&name[0])||'👤',members,createdBy:sess.uid,createdAt:Date.now(),lastAt:Date.now()});
+    await set(push(ref(db,`messages/${roomId}`)),{uid:'system',displayName:'system',text:`${sess.name}님이 대화를 시작했습니다`,type:'system',at:Date.now()});
+    room={id:roomId,type:'dm',members,createdBy:sess.uid};
+  }
+  const msg=cloneForwardMessage(m);
+  if(!msg||(MEDIA_TYPES.has(msg.type)&&!msg.data&&!msg.url)){showToast('전달할 수 없는 메시지입니다','warn');return;}
+  await set(push(ref(db,`messages/${roomId}`)),msg);
+  const summary='↗ '+msgSummary(m);
+  await update(ref(db),{[`rooms/${roomId}/lastMsg`]:summary,[`rooms/${roomId}/lastAt`]:Date.now(),[`rooms/${roomId}/unread/${uid}`]:1});
+  notifyRoomMembers(room,summary);
+  closeForwardModal();
+  showToast(`${name}님에게 전달했습니다`,'ok');
 };
 window.pinNotice=async function(msgId){
   const m=msgById(msgId),room=currentRoom();
