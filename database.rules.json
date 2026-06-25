@@ -37,7 +37,7 @@
       }
     },
     "rooms": {
-      ".read": "auth != null && (root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net' || (query.orderByChild === 'members/' + auth.uid && query.equalTo === true))",
+      ".read": "auth != null",
       "$roomId": {
         ".read": "auth != null && (data.child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')",
         ".write": "auth != null && ((!data.exists() && newData.exists()) || (!newData.exists() && (data.child('createdBy').val() === auth.uid || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')) || (data.exists() && newData.exists() && (data.child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')))",
