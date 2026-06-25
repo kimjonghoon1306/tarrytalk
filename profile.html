@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-theme="light">
 <head>
 <meta charset="UTF-8">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -29,7 +29,11 @@ button:active::after{opacity:.55;transform:scale(1.8);transition:0s;}
 button:active,.section:active,.info-row:active{transform:scale(.98);}
 
 /* ── 레이아웃 ── */
-.page{max-width:600px;margin:0 auto;padding:24px 16px 60px;}
+.page{max-width:980px;margin:0 auto;padding:20px 20px 60px;}
+.prof-grid{display:grid;grid-template-columns:1fr;gap:14px;}
+@media(min-width:780px){.prof-grid{grid-template-columns:1fr 1fr;align-items:start;}.profile-hero{grid-column:1/-1;}}
+.theme-btn{width:38px;height:38px;border-radius:11px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:var(--text2);transition:all .2s;margin-left:auto;}
+.theme-btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px var(--glow);}
 
 /* ── 탑바 ── */
 .topbar{display:flex;align-items:center;gap:12px;padding:14px 0 20px;}
@@ -39,10 +43,14 @@ button:active,.section:active,.info-row:active{transform:scale(.98);}
 
 /* ── 프로필 히어로 ── */
 .profile-hero{
-  background:var(--bg3);border:1px solid var(--border);border-radius:24px;
-  padding:32px 24px;text-align:center;margin-bottom:16px;
+  background:linear-gradient(135deg,#a855f7,#7c3aed 60%,#6d28d9);border:none;border-radius:24px;
+  padding:38px 24px;text-align:center;margin-bottom:0;color:#fff;
   position:relative;overflow:hidden;animation:itemIn .32s ease both;
+  box-shadow:0 18px 44px rgba(124,58,237,.32);
 }
+.profile-hero .profile-name{color:#fff;}
+.profile-hero .profile-email{color:rgba(255,255,255,.85);}
+.profile-hero::after{content:'';position:absolute;bottom:-60px;left:-40px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.12),transparent 70%);pointer-events:none;}
 .profile-hero:hover,.section:hover{border-color:var(--border2);box-shadow:0 12px 32px rgba(168,85,247,.12);transform:translateY(-2px);}
 .profile-hero::before{
   content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;
@@ -149,8 +157,10 @@ button:active,.section:active,.info-row:active{transform:scale(.98);}
   <div class="topbar">
     <button class="back-btn" onclick="history.back()">←</button>
     <div class="topbar-title">내 프로필</div>
+    <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="테마 전환">🌙</button>
   </div>
 
+  <div class="prof-grid">
   <!-- 프로필 히어로 -->
   <div class="profile-hero">
     <div class="av-wrap">
@@ -232,6 +242,7 @@ button:active,.section:active,.info-row:active{transform:scale(.98);}
     <button class="secondary-btn" onclick="location.href='chat.html'">💬 채팅으로 돌아가기</button>
     <button class="danger-btn" onclick="doLogout()">🚪 로그아웃</button>
   </div>
+  </div>
 </div>
 
 <div class="toast" id="toast-el"></div>
@@ -252,6 +263,9 @@ const ADMIN_EMAIL='tarry9653@daum.net';
 
 const COLORS=['#00a84a','#0087d4','#a855f7','#e85d04','#d62828','#2ec4b6','#f59e0b','#ec4899'];
 let currentUser=null, selectedColor=null, userProfile=null;
+// 테마
+{const t=localStorage.getItem('tt_theme')||'light';document.documentElement.dataset.theme=t;const b=document.getElementById('theme-btn');if(b)b.textContent=t==='dark'?'☀️':'🌙';}
+window.toggleTheme=function(){const d=document.documentElement.dataset.theme==='dark',n=d?'light':'dark';document.documentElement.dataset.theme=n;const b=document.getElementById('theme-btn');if(b)b.textContent=n==='dark'?'☀️':'🌙';localStorage.setItem('tt_theme',n);};
 
 onAuthStateChanged(auth, async user=>{
   if(!user){location.href='index.html';return;}
