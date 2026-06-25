@@ -74,16 +74,18 @@ button:active,.nav-item:active,.card:active,.room-card:active,.ad-row:active,.an
 .adm-sb.open{transform:translateX(0);}
 .adm-drawer-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99;}
 .adm-drawer-bg.show{display:block;}
-.adm-main{padding:18px 16px;}
+.adm-main{padding:18px 16px;overflow-x:hidden;}
 .adm-hamburger{display:inline-flex;}
 }
 .theme-fab{display:none;}
+.adm-mtop{display:none;}
+.adm-theme-m{display:inline-flex;align-items:center;gap:6px;background:var(--bg2);border:1.5px solid var(--border2);border-radius:50px;padding:9px 15px;font-size:13px;font-weight:800;color:var(--text2);cursor:pointer;}
+.adm-theme-m:hover{border-color:var(--green);color:var(--green);}
 @media(max-width:720px){
-  .theme-fab{display:flex;align-items:center;gap:6px;position:fixed;bottom:20px;right:20px;
-    background:var(--bg2);border:1.5px solid var(--border2);border-radius:50px;
-    padding:9px 16px;font-size:13px;font-weight:700;color:var(--text2);
-    cursor:pointer;z-index:400;box-shadow:0 4px 16px rgba(0,0,0,.2);transition:all .2s;}
-  .theme-fab:hover{border-color:var(--green);color:var(--green);}
+  .adm-mtop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;}
+  .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .grid2{grid-template-columns:minmax(0,1fr);}
+  .card,.stat-card,.room-card,.ad-row,.ann-row{min-width:0;max-width:100%;}
 }
 
 /* 페이지 헤더 */
@@ -250,12 +252,13 @@ tr:hover td{background:rgba(124,58,237,.04);}
 .ad-row-text{font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .ad-row-link{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
 .ad-row-meta{display:flex;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--text3);font-weight:800;margin-top:5px;}
-.ad-stat{padding:3px 8px;border-radius:999px;background:rgba(124,58,237,.08);border:1px solid var(--border);}
+.ad-row-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px;}
+.ad-stat{padding:3px 8px;border-radius:999px;background:rgba(124,58,237,.08);border:1px solid var(--border);white-space:nowrap;}
 .ad-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
 .ad-file-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .ad-img-preview{width:120px;height:64px;border-radius:12px;background:var(--surface);border:1px solid var(--border);object-fit:cover;display:none;}
 .ad-help{font-size:11px;color:var(--text3);line-height:1.6;margin-top:5px;}
-@media(max-width:640px){.ad-row{align-items:flex-start}.ad-thumb{width:68px;height:48px}.ad-actions{width:100%;justify-content:flex-start}}
+@media(max-width:640px){.ad-row{flex-direction:column;align-items:stretch}.ad-thumb{width:100%;height:130px}.ad-actions{width:100%;justify-content:flex-start}.ad-row-meta{margin-top:8px}}
 .small-btn{padding:7px 11px;border-radius:9px;font-size:12px;font-weight:800;border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;white-space:nowrap;}
 .small-btn.on{background:var(--green);color:#fff;border-color:var(--green);}
 .preview-box{background:linear-gradient(135deg,rgba(124,58,237,.16),rgba(168,85,247,.08));border:1px solid var(--border2);border-radius:16px;padding:18px;margin-top:12px;}
@@ -316,7 +319,10 @@ tr:hover td{background:rgba(124,58,237,.04);}
 
 <!-- ── 메인 ── -->
 <div class="adm-main">
-  <button class="adm-hamburger" onclick="toggleAdmSb()" aria-label="메뉴">☰</button>
+  <div class="adm-mtop">
+    <button class="adm-hamburger" onclick="toggleAdmSb()" aria-label="메뉴">☰</button>
+    <button class="adm-theme-m" onclick="toggleTheme()"><span id="ti-m">🌙</span><span id="tl-m">밤 모드</span></button>
+  </div>
   <div class="pg-head">
     <div>
       <div class="pg-title">대시보드 <span>📊</span></div>
@@ -573,7 +579,6 @@ tr:hover td{background:rgba(124,58,237,.04);}
 </div>
 
 <div class="toast" id="toast-el"></div>
-<button class="theme-fab" onclick="toggleTheme()"><span id="ti-m">🌙</span><span id="tl-m">밤 모드</span></button>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
