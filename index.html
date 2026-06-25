@@ -45,6 +45,8 @@ body::after{content:'';position:fixed;width:500px;height:500px;
   background:radial-gradient(circle,rgba(255,255,255,.09) 0%,transparent 65%);
   bottom:-120px;right:-120px;pointer-events:none;animation:blob 11s ease-in-out infinite reverse;}
 @keyframes blob{0%,100%{transform:scale(1)}50%{transform:scale(1.1) translate(15px,15px)}}
+@media(max-width:720px){body::before,body::after{animation:none!important;}.logo-icon{animation:none!important;}.btn{animation:none!important;}}
+@media(prefers-reduced-motion:reduce){body::before,body::after,.logo-icon,.btn,.card,.bf{animation:none!important;}}
 .theme-btn{position:fixed;top:16px;right:16px;background:rgba(255,255,255,.2);backdrop-filter:blur(8px);border:1.5px solid rgba(255,255,255,.35);border-radius:50px;padding:8px 16px;cursor:pointer;font-size:13px;font-weight:700;color:#fff;display:flex;align-items:center;gap:6px;z-index:100;font-family:'Noto Sans KR',sans-serif;transition:all .3s;}
 .theme-btn:hover{background:rgba(255,255,255,.32);transform:translateY(-2px);box-shadow:0 10px 24px rgba(124,58,237,.28);}
 .theme-btn:active,.btn:active,.browse-btn:active,.tab:active,.admin-gear:active,.pw-eye:active{transform:scale(.96);}

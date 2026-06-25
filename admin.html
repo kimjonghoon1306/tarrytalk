@@ -577,7 +577,7 @@ tr:hover td{background:rgba(124,58,237,.04);}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut }
+import { getAuth, onAuthStateChanged, signOut, sendPasswordResetEmail }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getDatabase, ref, onValue, set, get, push, remove, update, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -728,6 +728,8 @@ function renderAllUsers() {
             ? `<button class="act-btn ab-admin" onclick="toggleManager('${u.uid}','${esc(u.displayName||'')}',false)">매니저 해제</button>`
             : `<button class="act-btn ab-admin" onclick="toggleManager('${u.uid}','${esc(u.displayName||'')}',true)">매니저 지정</button>`
           ) : ''}
+          <button class="act-btn ab-admin" onclick="resetUserPassword('${esc(u.email||'')}','${esc(u.displayName||'')}')">비번재설정</button>
+          <button class="act-btn ab-del" onclick="confirmDeleteUser('${u.uid}','${esc(u.displayName||u.email||'')}')">삭제</button>
         `:'<span style="font-size:11px;color:var(--text3)">최고관리자(보호됨)</span>'}
       </div></td>
     </tr>`;
@@ -1061,6 +1063,15 @@ window.startDmWith = async function(uid) {
   location.href = `chat.html?room=${encodeURIComponent(rRef.key)}`;
 };
 
+window.confirmDeleteUser = function(uid, name) {
+  pendingAction = async () => { await remove(ref(db,`users/${uid}`)); showToast(`🗑️ ${name||'회원'}님을 삭제했습니다`,'ok'); };
+  openConfirm('🗑️','회원 삭제',`"${name||'회원'}" 회원을 목록에서 삭제합니다. (로그인 계정 완전 삭제는 서버 작업이 필요합니다)`,'삭제');
+};
+window.resetUserPassword = function(email, name) {
+  if(!email){ showToast('이메일이 없는 계정입니다','warn'); return; }
+  pendingAction = async () => { await sendPasswordResetEmail(auth, email); showToast(`📧 ${name||email}님에게 재설정 메일을 보냈습니다`,'ok'); };
+  openConfirm('🔑','비밀번호 재설정',`"${name||email}"(${email})에게 비밀번호 재설정 메일을 보냅니다. 회원이 메일 링크에서 새 비밀번호를 직접 설정합니다.`,'메일 발송');
+};
 window.toggleDisable = function(uid, name, disable) {
   pendingAction = async () => {
     await update(ref(db,`users/${uid}`),{disabled:disable});
