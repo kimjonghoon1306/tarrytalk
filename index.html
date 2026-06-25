@@ -230,9 +230,17 @@ body::after{content:'';position:fixed;width:500px;height:500px;
       <div style="font-size:12px;color:var(--text2);margin-top:4px;">권한이 없으면 접근이 제한됩니다</div>
     </div>
     <div class="field">
+      <label>관리자 이메일</label>
+      <div class="iw">
+        <input type="email" id="adm-em" placeholder="admin@example.com" oninput="clrMsg('adm-em-msg','adm-em')" autocomplete="email">
+        <span class="ico">✉️</span>
+      </div>
+      <div class="msg" id="adm-em-msg"><span></span><span></span></div>
+    </div>
+    <div class="field">
       <label>비밀번호</label>
       <div class="iw">
-        <input type="password" id="adm-pw" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doAdmin()" autocomplete="off">
+        <input type="password" id="adm-pw" placeholder="비밀번호 입력" oninput="clrMsg('adm-pw-msg','adm-pw')" onkeydown="if(event.key==='Enter')doAdmin()" autocomplete="current-password">
         <button class="pw-eye" onclick="togglePw('adm-pw',this)">👁️</button>
       </div>
       <div class="msg" id="adm-pw-msg"><span></span><span></span></div>
@@ -250,7 +258,7 @@ body::after{content:'';position:fixed;width:500px;height:500px;
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
-         updateProfile, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+         updateProfile, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getDatabase, ref, set, get, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
@@ -268,12 +276,13 @@ const auth = getAuth(app);
 const db   = getDatabase(app);
 const ADMIN_EMAIL = 'tarry9653@daum.net';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+let adminLoginInProgress = false;
 
 /* 이미 로그인 시 바로 이동 */
 onAuthStateChanged(auth, user => {
   if (user) {
-    const snap = sessionStorage.getItem('tt_guest');
-    if (!snap && sessionStorage.getItem('tt_admin') !== '1') { location.href = 'chat.html'; }
+    sessionStorage.removeItem('tt_guest');
+    if (!adminLoginInProgress) { location.href = 'chat.html'; }
   }
 });
 
@@ -382,11 +391,12 @@ window.doLogin = async function() {
     // 계정 비활성화 여부 확인
     const snap = await get(ref(db, `users/${cred.user.uid}/disabled`));
     if (snap.val() === true) {
-      await auth.signOut();
+      await signOut(auth);
       showMsg('li-em-msg','err','❌','접근이 제한된 계정입니다. 관리자에게 문의하세요'); setState('li-em','ng');
       showLoading(false); btn.disabled = false; btn.textContent = '로그인'; return;
     }
     // 온라인 상태 업데이트
+    sessionStorage.removeItem('tt_guest');
     await set(ref(db, `users/${cred.user.uid}/online`), true);
     await set(ref(db, `users/${cred.user.uid}/lastSeen`), serverTimestamp());
     showToast('👋 반갑습니다!', 'ok');
@@ -418,6 +428,7 @@ window.doSignup = async function() {
   try {
     const cred = await createUserWithEmailAndPassword(auth, em, pw);
     await updateProfile(cred.user, { displayName: nm });
+    sessionStorage.removeItem('tt_guest');
     const urlRef = new URLSearchParams(location.search).get('ref');
     await set(ref(db, `users/${cred.user.uid}`), {
       displayName: nm, email: em,
@@ -437,15 +448,39 @@ window.doSignup = async function() {
 };
 
 /* ── 관리자 ── */
-window.doAdmin = function() {
+window.doAdmin = async function() {
+  const em = document.getElementById('adm-em').value.trim();
   const pw = document.getElementById('adm-pw').value;
-  if (!pw) { showMsg('adm-pw-msg','err','❌','비밀번호를 입력하세요'); return; }
-  if (pw === '456789') {
-    sessionStorage.setItem('tt_admin','1');
-    showToast('⚙️ 관리자로 접속합니다', 'ok');
-    setTimeout(() => location.href='admin.html', 800);
-  } else {
-    showMsg('adm-pw-msg','err','❌','비밀번호가 올바르지 않습니다');
+  if (!em || !EMAIL_RE.test(em)) { showMsg('adm-em-msg','err','❌','올바른 이메일 주소를 입력해주세요'); setState('adm-em','ng'); return; }
+  if (!pw) { showMsg('adm-pw-msg','err','❌','비밀번호를 입력하세요'); setState('adm-pw','ng'); return; }
+  adminLoginInProgress = true;
+  showLoading(true);
+  try {
+    const cred = await signInWithEmailAndPassword(auth, em, pw);
+    const snap = await get(ref(db, `users/${cred.user.uid}/isAdmin`));
+    const isAdmin = snap.val() === true || cred.user.email === ADMIN_EMAIL;
+    if (!isAdmin) {
+      await signOut(auth);
+      adminLoginInProgress = false;
+      showLoading(false);
+      showMsg('adm-em-msg','err','❌','관리자 권한이 없는 계정입니다');
+      setState('adm-em','ng');
+      return;
+    }
+    sessionStorage.removeItem('tt_guest');
+    await set(ref(db, `users/${cred.user.uid}/online`), true);
+    await set(ref(db, `users/${cred.user.uid}/lastSeen`), serverTimestamp());
+    showToast('⚙️ 관리자 권한 확인 완료', 'ok');
+    setTimeout(() => location.href='admin.html', 500);
+  } catch(e) {
+    adminLoginInProgress = false;
+    showLoading(false);
+    const c = e.code || '';
+    if (c.includes('invalid-credential')||c.includes('user-not-found')||c.includes('wrong-password'))
+      showMsg('adm-pw-msg','err','❌','이메일 또는 비밀번호가 올바르지 않습니다');
+    else
+      showMsg('adm-pw-msg','err','❌','관리자 로그인 실패: '+e.message);
+    setState('adm-pw','ng');
   }
 };
 

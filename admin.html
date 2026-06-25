@@ -216,6 +216,20 @@ tr:hover td{background:rgba(124,58,237,.04);}
 /* 공지 전송 버튼 */
 .notice-send-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--green),var(--green2));border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px var(--glow);margin-top:10px;transition:all .2s;}
 .notice-send-btn:hover{transform:translateY(-1px);}
+.form-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:12px;}
+@media(min-width:760px){.form-grid.two{grid-template-columns:1.2fr 1fr;}}
+.admin-input{width:100%;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color .2s;}
+.admin-input:focus{border-color:var(--green);}
+.admin-label{font-size:11px;font-weight:800;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;display:block;}
+.ad-row{display:flex;align-items:center;gap:10px;padding:12px;border-radius:13px;background:var(--surface);border:1px solid var(--border);margin-bottom:8px;}
+.ad-main{flex:1;min-width:0;}
+.ad-row-text{font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ad-row-link{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
+.small-btn{padding:7px 11px;border-radius:9px;font-size:12px;font-weight:800;border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;white-space:nowrap;}
+.small-btn.on{background:var(--green);color:#fff;border-color:var(--green);}
+.preview-box{background:linear-gradient(135deg,rgba(124,58,237,.16),rgba(168,85,247,.08));border:1px solid var(--border2);border-radius:16px;padding:18px;margin-top:12px;}
+.preview-title{font-size:16px;font-weight:900;margin-bottom:7px;color:var(--text);}
+.preview-body{font-size:13px;line-height:1.75;color:var(--text2);white-space:pre-wrap;}
 </style>
 </head>
 <body>
@@ -236,6 +250,8 @@ tr:hover td{background:rgba(124,58,237,.04);}
   <div class="nav-item" onclick="switchSection('users')"><span class="ni">👥</span>회원 관리</div>
   <div class="nav-item" onclick="switchSection('rooms')"><span class="ni">💬</span>채팅방 관리</div>
   <div class="nav-item" onclick="switchSection('notice')"><span class="ni">📢</span>공지 발송</div>
+  <div class="nav-item" onclick="switchSection('ads')"><span class="ni">🏷️</span>광고 관리</div>
+  <div class="nav-item" onclick="switchSection('popup')"><span class="ni">🪧</span>공지 팝업</div>
   <div class="adm-sb-foot">
     <div class="nav-item" onclick="location.href='chat.html'"><span class="ni">💬</span>채팅으로</div>
     <button class="theme-btn" onclick="toggleTheme()"><span class="ni" id="ti">🌙</span><span id="tl">밤 모드</span></button>
@@ -339,6 +355,53 @@ tr:hover td{background:rgba(124,58,237,.04);}
       <button class="notice-send-btn" onclick="sendNotice()">📢 전체 채팅방에 발송</button>
     </div>
   </div>
+
+  <!-- 광고 관리 섹션 -->
+  <div id="sec-ads" style="display:none;">
+    <div class="card">
+      <div class="card-head"><div class="card-title">🏷️ 광고 관리</div></div>
+      <div class="form-grid two">
+        <div>
+          <label class="admin-label">광고 문구</label>
+          <input class="admin-input" id="ad-text-inp" placeholder="상단 배너에 표시할 문구">
+        </div>
+        <div>
+          <label class="admin-label">연결 링크 (선택)</label>
+          <input class="admin-input" id="ad-link-inp" placeholder="https://...">
+        </div>
+      </div>
+      <button class="notice-send-btn" onclick="saveAd()">＋ 광고 등록</button>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">등록된 광고</div><span class="card-action" id="ad-count-lbl">0개</span></div>
+      <div id="ads-list"><div class="empty-tbl">등록된 광고가 없습니다</div></div>
+    </div>
+  </div>
+
+  <!-- 공지 팝업 섹션 -->
+  <div id="sec-popup" style="display:none;">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">🪧 공지 팝업</div>
+        <button class="small-btn" id="popup-active-btn" onclick="togglePopupActive()">비활성</button>
+      </div>
+      <div class="form-grid">
+        <div>
+          <label class="admin-label">제목</label>
+          <input class="admin-input" id="popup-title-inp" placeholder="공지 제목">
+        </div>
+        <div>
+          <label class="admin-label">내용</label>
+          <textarea class="notice-area" id="popup-body-inp" placeholder="회원 접속 시 팝업으로 보여줄 내용"></textarea>
+        </div>
+      </div>
+      <button class="notice-send-btn" onclick="savePopup()">💾 팝업 저장</button>
+      <div class="preview-box">
+        <div class="preview-title" id="popup-preview-title">공지 제목 미리보기</div>
+        <div class="preview-body" id="popup-preview-body">공지 내용 미리보기</div>
+      </div>
+    </div>
+  </div>
 </div>
 </div>
 
@@ -379,7 +442,7 @@ tr:hover td{background:rgba(124,58,237,.04);}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, updateProfile }
+import { getAuth, onAuthStateChanged, signOut }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getDatabase, ref, onValue, set, get, push, remove, update, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -402,17 +465,28 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 let adminSess = null;
 let allUsers = {}, allRooms = {}, allMsgs = {};
+let allAds = {}, popupData = {};
 let pendingAction = null;
 
 /* ── 관리자 인증 ── */
-if (sessionStorage.getItem('tt_admin') !== '1') {
-  location.href = 'index.html';
-} else {
-  adminSess = { uid: 'admin', name: '관리자', email: '' };
+onAuthStateChanged(auth, async user => {
+  if (!user) { location.href = 'index.html'; return; }
+  const snap = await get(ref(db,`users/${user.uid}`));
+  const profile = snap.val() || {};
+  const isAdmin = profile.isAdmin === true || user.email === ADMIN_EMAIL;
+  if (!isAdmin) {
+    await signOut(auth);
+    location.href = 'index.html';
+    return;
+  }
+  if (user.email === ADMIN_EMAIL && profile.isAdmin !== true) {
+    await update(ref(db,`users/${user.uid}`),{isAdmin:true});
+  }
+  adminSess = { uid:user.uid, name:profile.displayName || user.displayName || '관리자', email:user.email };
   document.getElementById('loading-overlay').classList.add('hide');
   document.getElementById('pg-date').textContent = new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
   loadData();
-}
+});
 
 /* ── 실시간 데이터 로드 ── */
 function loadData() {
@@ -427,6 +501,14 @@ function loadData() {
   onValue(ref(db,'messages'), snap => {
     allMsgs = snap.val()||{};
     renderStats(); renderBarChart(); renderLog();
+  });
+  onValue(ref(db,'ads'), snap => {
+    allAds = snap.val()||{};
+    renderAds();
+  });
+  onValue(ref(db,'popup'), snap => {
+    popupData = snap.val()||{};
+    renderPopupForm();
   });
 }
 
@@ -480,12 +562,12 @@ function renderAllUsers() {
       <td><span class="pill ${u.disabled?'p-dis':u.isAdmin?'p-admin':'p-on'}">${u.disabled?'비활성':u.isAdmin?'관리자':'회원'}</span></td>
       <td><div class="act-btns">
         ${!isProtected?`
+          ${u.uid!==adminSess?.uid?`<button class="act-btn ab-admin" onclick="startDmWith('${u.uid}')">1:1 채팅</button>`:''}
           ${u.disabled
             ?`<button class="act-btn ab-enable" onclick="toggleDisable('${u.uid}','${esc(u.displayName||'')}',false)">활성화</button>`
             :`<button class="act-btn ab-dis" onclick="toggleDisable('${u.uid}','${esc(u.displayName||'')}',true)">비활성화</button>`
           }
           ${!u.isAdmin?`<button class="act-btn ab-admin" onclick="toggleAdmin('${u.uid}','${esc(u.displayName||'')}')">관리자 설정</button>`:''}
-          <button class="act-btn ab-del" onclick="confirmDeleteUser('${u.uid}','${esc(u.displayName||u.email||'')}')">삭제</button>
         `:'<span style="font-size:11px;color:var(--text3)">보호됨</span>'}
       </div></td>
     </tr>`;
@@ -550,14 +632,81 @@ function renderLog() {
 
 /* ── 섹션 전환 ── */
 window.switchSection = function(sec) {
-  ['dashboard','users','rooms','notice'].forEach(s=>{
+  ['dashboard','users','rooms','notice','ads','popup'].forEach(s=>{
     document.getElementById('sec-'+s).style.display = s===sec?'':'none';
   });
   document.querySelectorAll('.nav-item').forEach((el,i)=>{
-    const secs=['dashboard','users','rooms','notice'];
+    const secs=['dashboard','users','rooms','notice','ads','popup'];
     el.classList.toggle('on', secs[i]===sec);
   });
 };
+
+/* ── 광고 관리 ── */
+function renderAds() {
+  const ads = Object.entries(allAds).map(([id,v])=>({id,...v})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  document.getElementById('ad-count-lbl').textContent = ads.length+'개';
+  const el = document.getElementById('ads-list');
+  if(!ads.length){el.innerHTML='<div class="empty-tbl">등록된 광고가 없습니다</div>';return;}
+  el.innerHTML = ads.map(ad=>`
+    <div class="ad-row">
+      <div class="ad-main">
+        <div class="ad-row-text">${esc(ad.text||'')}</div>
+        <div class="ad-row-link">${ad.link?esc(ad.link):'링크 없음'} · ${ad.active?'활성':'비활성'}</div>
+      </div>
+      <button class="small-btn ${ad.active?'on':''}" onclick="toggleAd('${ad.id}',${ad.active===true})">${ad.active?'ON':'OFF'}</button>
+      <button class="small-btn" onclick="deleteAd('${ad.id}')">삭제</button>
+    </div>
+  `).join('');
+}
+window.saveAd = async function() {
+  const text = document.getElementById('ad-text-inp').value.trim();
+  const link = document.getElementById('ad-link-inp').value.trim();
+  if(!text){showToast('광고 문구를 입력하세요','info');return;}
+  await set(push(ref(db,'ads')),{text,link,active:true,createdAt:Date.now()});
+  document.getElementById('ad-text-inp').value='';
+  document.getElementById('ad-link-inp').value='';
+  showToast('🏷️ 광고가 등록됐습니다','ok');
+};
+window.toggleAd = async function(id, active) {
+  await update(ref(db,`ads/${id}`),{active:!active});
+  showToast(!active?'광고를 활성화했습니다':'광고를 비활성화했습니다','ok');
+};
+window.deleteAd = async function(id) {
+  await remove(ref(db,`ads/${id}`));
+  showToast('광고가 삭제됐습니다','ok');
+};
+
+/* ── 팝업 공지 ── */
+function renderPopupForm() {
+  document.getElementById('popup-title-inp').value = popupData.title || '';
+  document.getElementById('popup-body-inp').value = popupData.body || '';
+  renderPopupPreview();
+  const btn = document.getElementById('popup-active-btn');
+  btn.textContent = popupData.active ? '활성' : '비활성';
+  btn.classList.toggle('on', popupData.active === true);
+}
+function renderPopupPreview() {
+  const title = document.getElementById('popup-title-inp').value.trim() || '공지 제목 미리보기';
+  const body = document.getElementById('popup-body-inp').value.trim() || '공지 내용 미리보기';
+  document.getElementById('popup-preview-title').textContent = title;
+  document.getElementById('popup-preview-body').textContent = body;
+}
+window.savePopup = async function() {
+  const title = document.getElementById('popup-title-inp').value.trim();
+  const body = document.getElementById('popup-body-inp').value.trim();
+  if(!title||!body){showToast('제목과 내용을 입력하세요','info');return;}
+  await set(ref(db,'popup'),{title,body,active:popupData.active===true,updatedAt:Date.now()});
+  showToast('🪧 팝업 공지가 저장됐습니다','ok');
+};
+window.togglePopupActive = async function() {
+  const next = popupData.active !== true;
+  await update(ref(db,'popup'),{active:next,updatedAt:Date.now()});
+  showToast(next?'팝업을 활성화했습니다':'팝업을 비활성화했습니다','ok');
+};
+['popup-title-inp','popup-body-inp'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el)el.addEventListener('input',renderPopupPreview);
+});
 
 /* ── 사용자 추가 (Firebase Auth + DB) ── */
 window.openAddModal = () => { clearAddModal(); document.getElementById('add-overlay').classList.add('show'); };
@@ -596,6 +745,38 @@ window.doAddUser = async function() {
 };
 
 /* ── 비활성화/활성화 ── */
+window.startDmWith = async function(uid) {
+  if (!adminSess || !uid || uid === adminSess.uid) return;
+  const exist = Object.entries(allRooms).find(([,r]) =>
+    r?.type === 'dm' &&
+    r.members?.[adminSess.uid] &&
+    r.members?.[uid] &&
+    Object.keys(r.members || {}).length === 2
+  );
+  if (exist) { location.href = `chat.html?room=${encodeURIComponent(exist[0])}`; return; }
+  const target = allUsers[uid] || {};
+  const targetName = target.displayName || target.email || '회원';
+  const rRef = push(ref(db,'rooms'));
+  const members = { [adminSess.uid]: true, [uid]: true };
+  await set(rRef,{
+    name: targetName,
+    type: 'dm',
+    emoji: targetName[0] || '👤',
+    members,
+    createdBy: adminSess.uid,
+    createdAt: Date.now(),
+    lastAt: Date.now()
+  });
+  await set(push(ref(db,`messages/${rRef.key}`)),{
+    uid:'system',
+    displayName:'system',
+    text:`${adminSess.name}님이 대화를 시작했습니다`,
+    type:'system',
+    at:Date.now()
+  });
+  location.href = `chat.html?room=${encodeURIComponent(rRef.key)}`;
+};
+
 window.toggleDisable = function(uid, name, disable) {
   pendingAction = async () => {
     await update(ref(db,`users/${uid}`),{disabled:disable});
@@ -611,15 +792,6 @@ window.toggleAdmin = function(uid, name) {
     showToast(`⚙️ ${name}님에게 관리자 권한을 부여했습니다`,'ok');
   };
   openConfirm('⚙️','관리자 권한 부여',`${name}님에게 관리자 권한을 부여합니다. 이 권한은 데이터베이스에서만 취소할 수 있습니다.`,'권한 부여');
-};
-
-/* ── 사용자 삭제 ── */
-window.confirmDeleteUser = function(uid, name) {
-  pendingAction = async () => {
-    await update(ref(db,`users/${uid}`),{disabled:true,deletedAt:Date.now()});
-    showToast(`🗑️ ${name}님이 비활성화됐습니다 (Auth 삭제는 서버에서)`, 'ok');
-  };
-  openConfirm('🗑️','회원 삭제',`"${name}" 님의 계정을 삭제합니다. 이 작업은 되돌리기 어렵습니다.`,'삭제');
 };
 
 /* ── 채팅방 삭제 ── */
@@ -688,8 +860,9 @@ window.toggleTheme = function() {
 }
 
 /* ── 로그아웃 ── */
-window.doLogout = function() {
-  sessionStorage.removeItem('tt_admin'); location.href='index.html';
+window.doLogout = async function() {
+  await signOut(auth);
+  location.href='index.html';
 };
 
 /* ── 유틸 ── */

@@ -12,7 +12,7 @@
       "$uid": {
         /* 자기 프로필은 본인만 쓰기 가능 */
         ".read": "auth != null",
-        ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('isAdmin').val() === true)",
+        ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')",
 
         /* 필드 검증 */
         "displayName": {
@@ -23,10 +23,10 @@
         },
         "isAdmin": {
           /* isAdmin은 관리자만 변경 가능 */
-          ".write": "root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net'"
+          ".write": "auth != null && (root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')"
         },
         "disabled": {
-          ".write": "root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net'"
+          ".write": "auth != null && (root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')"
         }
       }
     },
@@ -38,7 +38,7 @@
 
       "$roomId": {
         /* 방 읽기: 멤버이거나 관리자 */
-        ".read": "auth != null && (data.child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true)",
+        ".read": "auth != null && (data.child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')",
 
         /* 방 생성: 로그인한 사용자 */
         ".write": "auth != null",
@@ -47,7 +47,7 @@
         "members": {
           "$uid": {
             /* 방장이나 관리자만 멤버 추가/제거 */
-            ".write": "auth != null && (auth.uid === $uid || parent().parent().child('createdBy').val() === auth.uid || root.child('users').child(auth.uid).child('isAdmin').val() === true)"
+            ".write": "auth != null && (auth.uid === $uid || parent().parent().child('createdBy').val() === auth.uid || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')"
           }
         },
 
@@ -59,8 +59,8 @@
         },
 
         /* lastMsg, lastAt: 멤버 모두 가능 */
-        "lastMsg": { ".write": "auth != null && data.parent().child('members').child(auth.uid).exists()" },
-        "lastAt":  { ".write": "auth != null && data.parent().child('members').child(auth.uid).exists()" }
+        "lastMsg": { ".write": "auth != null && (data.parent().child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')" },
+        "lastAt":  { ".write": "auth != null && (data.parent().child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')" }
       }
     },
 
@@ -68,11 +68,11 @@
     "messages": {
       "$roomId": {
         /* 메시지 읽기: 해당 방 멤버이거나 관리자 */
-        ".read": "auth != null && (root.child('rooms').child($roomId).child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true)",
+        ".read": "auth != null && (root.child('rooms').child($roomId).child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')",
 
         "$msgId": {
           /* 메시지 쓰기: 방 멤버 */
-          ".write": "auth != null && root.child('rooms').child($roomId).child('members').child(auth.uid).exists()",
+          ".write": "auth != null && (root.child('rooms').child($roomId).child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')",
 
           /* 필드 검증 */
           "text": {
@@ -118,6 +118,18 @@
 
     /* ─── 공지 ─── */
     "notices": {
+      ".read": "auth != null",
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')"
+    },
+
+    /* ─── 상단 광고 배너 ─── */
+    "ads": {
+      ".read": "auth != null",
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')"
+    },
+
+    /* ─── 접속 공지 팝업 ─── */
+    "popup": {
       ".read": "auth != null",
       ".write": "auth != null && (root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')"
     }
