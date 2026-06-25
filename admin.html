@@ -1064,8 +1064,17 @@ window.startDmWith = async function(uid) {
 };
 
 window.confirmDeleteUser = function(uid, name) {
-  pendingAction = async () => { await remove(ref(db,`users/${uid}`)); showToast(`🗑️ ${name||'회원'}님을 삭제했습니다`,'ok'); };
-  openConfirm('🗑️','회원 삭제',`"${name||'회원'}" 회원을 목록에서 삭제합니다. (로그인 계정 완전 삭제는 서버 작업이 필요합니다)`,'삭제');
+  pendingAction = async () => {
+    const u = auth.currentUser; if(!u){ showToast('로그인이 필요합니다','warn'); return; }
+    try {
+      const idToken = await u.getIdToken();
+      const r = await fetch('/api/delete-user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({idToken,targetUid:uid})});
+      const d = await r.json().catch(()=>({}));
+      if(r.ok && d.ok) showToast(`🗑️ ${name||'회원'}님을 완전히 삭제했습니다`,'ok');
+      else showToast('삭제 실패: '+(d.error||r.status),'warn');
+    } catch(e){ showToast('삭제 오류: '+e.message,'warn'); }
+  };
+  openConfirm('🗑️','회원 완전 삭제',`"${name||'회원'}" 회원을 로그인 계정까지 완전히 삭제합니다. 되돌릴 수 없습니다.`,'완전 삭제');
 };
 window.resetUserPassword = function(email, name) {
   if(!email){ showToast('이메일이 없는 계정입니다','warn'); return; }
