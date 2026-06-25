@@ -621,7 +621,7 @@ const app=initializeApp(FC),auth=getAuth(app),db=getDatabase(app),ADMIN_EMAIL='t
 let sess=null,isGuest=false,curRoom=null,curTab='group',selType='dm',selUsers=[],existId=null,sanctionTarget=null;
 let allUsers={},replyTo=null,reactionTarget=null,typingTimer=null,isAtBottom=true,newMsgCount=0;
 let _msgUnsub=null,_typingUnsub=null;
-let activeAds=[],adIndex=0,adTimer=null,popupNotice=null,introIndex=0;
+let activeAds=[],adIndex=0,adTimer=null,popupNotice=null,welcomeData=null,introIndex=0;
 let announcements=[];
 const viewedAds=new Set();
 const COLORS=['#00a84a','#0087d4','#a855f7','#e85d04','#d62828','#2ec4b6'];
@@ -663,6 +663,7 @@ function initUI(){
     listenAnnouncements();
     listenAds();
     listenPopupNotice();
+    listenWelcome();
   }else{document.getElementById('uc-name').textContent='게스트';document.getElementById('uc-role').textContent='👀 둘러보기';document.getElementById('new-btn').style.display='none';}
   if(sess)loadRooms();else{window._rooms=[];renderRooms('');}
   setupScrollDetect();
@@ -724,6 +725,21 @@ function listenPopupNotice(){
     popupNotice=snap.val();
     maybeShowPopupNotice();
   });
+}
+function listenWelcome(){
+  if(!sess)return;
+  onValue(ref(db,'welcome'),snap=>{
+    welcomeData=snap.val()||null;
+    maybeShowWelcome();
+  });
+}
+function maybeShowWelcome(){
+  if(!sess||!welcomeData||welcomeData.active!==true||!welcomeData.text)return;
+  const key=`tt_welcomed_${sess.uid}`;
+  if(localStorage.getItem(key)==='1')return;
+  if(initialRoomId||curRoom)return;
+  localStorage.setItem(key,'1');
+  openOnbot({autoWelcome:true});
 }
 function maybeShowPopupNotice(){
   if(!popupNotice||popupNotice.active!==true||!popupNotice.updatedAt)return;
@@ -997,7 +1013,7 @@ function renderOnbot(){
   el.appendChild(chips);
   scrollToBottom();
 }
-window.openOnbot=function(){
+window.openOnbot=function(opts={}){
   curRoom='onbot';
   if(_msgUnsub){_msgUnsub();_msgUnsub=null;}if(_typingUnsub){_typingUnsub();_typingUnsub=null;}
   document.getElementById('tb-av').style.display='flex';document.getElementById('tb-av').innerHTML=ONBOT_SVG;
@@ -1010,6 +1026,9 @@ window.openOnbot=function(){
   document.querySelector('.emoji-row').style.display='';document.getElementById('m-inp').placeholder='메시지를 입력하세요...';
   clearReply();
   if(!onbotMessages.length)onbotMessages=[onbotMsg('안녕하세요, 저는 온메신저 도우미 온봇이에요. 아래 버튼을 누르거나 궁금한 기능을 편하게 입력해 주세요. 사진·영상·파일 보관기간도 바로 안내해 드릴게요.')];
+  if(opts.autoWelcome&&welcomeData?.active===true&&welcomeData.text){
+    onbotMessages.push(onbotMsg(welcomeData.text));
+  }
   renderOnbot();renderRooms(document.getElementById('search-inp')?.value||'');closeSb();document.getElementById('m-inp').focus();
 };
 window.closeOnbot=function(){

@@ -153,6 +153,12 @@
     "popup": {
       ".read": "auth != null",
       ".write": "auth != null && (root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')"
+    },
+
+    /* ─── 가입 환영 메시지 ─── */
+    "welcome": {
+      ".read": "auth != null",
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')"
     }
   }
 }
