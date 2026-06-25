@@ -1210,11 +1210,11 @@ window.toggleTheme = function() {
   if(tl) tl.textContent = label;
   if(tiM) tiM.textContent = icon;
   if(tlM) tlM.textContent = label;
-  localStorage.setItem('tt_theme', h.dataset.theme);
+  sessionStorage.setItem('tt_theme', h.dataset.theme);
 };
 // 테마 초기화 (type=module은 DOM 로드 후 실행되므로 직접 실행)
 {
-  const t = localStorage.getItem('tt_theme') || 'light';
+  const t = sessionStorage.getItem('tt_theme') || 'light';
   document.documentElement.dataset.theme = t;
   const ti = document.getElementById('ti'), tl = document.getElementById('tl');
   const tiM = document.getElementById('ti-m'), tlM = document.getElementById('tl-m');

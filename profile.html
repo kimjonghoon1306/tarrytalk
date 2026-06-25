@@ -8,7 +8,15 @@
 <title>온메신저 — 프로필</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
-:root{
+:root[data-theme="light"]{
+  --bg:#f5f3ff;--bg2:#ffffff;--bg3:#faf8ff;
+  --surface:#ffffff;--surface2:#f3eefc;
+  --border:rgba(124,58,237,.14);--border2:rgba(124,58,237,.26);
+  --text:#21172f;--text2:#5b4b7a;--text3:#8b7aa8;
+  --green:#7c3aed;--green2:#6d28d9;--glow:rgba(124,58,237,.14);--glow2:rgba(124,58,237,.25);
+  --red:#e0223a;--red-bg:rgba(224,34,58,.08);
+}
+:root[data-theme="dark"]{
   --bg:#1a1622;--bg2:#221c2e;--bg3:#2a2238;
   --surface:#271f35;--surface2:#322847;
   --border:rgba(168,85,247,.14);--border2:rgba(168,85,247,.26);
@@ -264,8 +272,8 @@ const ADMIN_EMAIL='tarry9653@daum.net';
 const COLORS=['#00a84a','#0087d4','#a855f7','#e85d04','#d62828','#2ec4b6','#f59e0b','#ec4899'];
 let currentUser=null, selectedColor=null, userProfile=null;
 // 테마
-{const t=localStorage.getItem('tt_theme')||'light';document.documentElement.dataset.theme=t;const b=document.getElementById('theme-btn');if(b)b.textContent=t==='dark'?'☀️':'🌙';}
-window.toggleTheme=function(){const d=document.documentElement.dataset.theme==='dark',n=d?'light':'dark';document.documentElement.dataset.theme=n;const b=document.getElementById('theme-btn');if(b)b.textContent=n==='dark'?'☀️':'🌙';localStorage.setItem('tt_theme',n);};
+{const t=sessionStorage.getItem('tt_theme')||'light';document.documentElement.dataset.theme=t;const b=document.getElementById('theme-btn');if(b)b.textContent=t==='dark'?'☀️':'🌙';}
+window.toggleTheme=function(){const d=document.documentElement.dataset.theme==='dark',n=d?'light':'dark';document.documentElement.dataset.theme=n;const b=document.getElementById('theme-btn');if(b)b.textContent=n==='dark'?'☀️':'🌙';sessionStorage.setItem('tt_theme',n);};
 
 onAuthStateChanged(auth, async user=>{
   if(!user){location.href='index.html';return;}

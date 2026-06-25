@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-theme="light">
 <head>
 <meta charset="UTF-8">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -805,10 +805,10 @@ const isAdminUser=()=>sess?.isAdmin===true;
 const MEDIA_TTL=14*24*60*60*1000;
 const MEDIA_TYPES=new Set(['image','video','document']);
 const DAY=24*60*60*1000;
-const savedTheme=localStorage.getItem('tt_theme')||'light';
+const savedTheme=sessionStorage.getItem('tt_theme')||'light';
 document.documentElement.dataset.theme=savedTheme;
 document.getElementById('theme-btn').textContent=savedTheme==='dark'?'🌙':'☀️';
-window.toggleTheme=function(){const d=document.documentElement.dataset.theme==='dark',n=d?'light':'dark';document.documentElement.dataset.theme=n;document.getElementById('theme-btn').textContent=n==='dark'?'🌙':'☀️';localStorage.setItem('tt_theme',n);};
+window.toggleTheme=function(){const d=document.documentElement.dataset.theme==='dark',n=d?'light':'dark';document.documentElement.dataset.theme=n;document.getElementById('theme-btn').textContent=n==='dark'?'🌙':'☀️';sessionStorage.setItem('tt_theme',n);};
 const urlP=new URLSearchParams(location.search);
 isGuest=urlP.get('guest')==='1'||sessionStorage.getItem('tt_guest')==='1';
 let initialRoomId=urlP.get('room')||'';
