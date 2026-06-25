@@ -220,13 +220,22 @@ tr:hover td{background:rgba(124,58,237,.04);}
 .notice-send-btn:hover{transform:translateY(-1px);}
 .form-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:12px;}
 @media(min-width:760px){.form-grid.two{grid-template-columns:1.2fr 1fr;}}
+@media(min-width:900px){.form-grid.three{grid-template-columns:1fr 1fr 1fr;}}
 .admin-input{width:100%;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color .2s;}
 .admin-input:focus{border-color:var(--green);}
 .admin-label{font-size:11px;font-weight:800;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;display:block;}
-.ad-row{display:flex;align-items:center;gap:10px;padding:12px;border-radius:13px;background:var(--surface);border:1px solid var(--border);margin-bottom:8px;}
+.ad-row{display:flex;align-items:center;gap:12px;padding:12px;border-radius:13px;background:var(--surface);border:1px solid var(--border);margin-bottom:8px;}
+.ad-thumb{width:86px;height:54px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);object-fit:cover;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:18px;font-weight:900;}
 .ad-main{flex:1;min-width:0;}
 .ad-row-text{font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .ad-row-link{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
+.ad-row-meta{display:flex;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--text3);font-weight:800;margin-top:5px;}
+.ad-stat{padding:3px 8px;border-radius:999px;background:rgba(124,58,237,.08);border:1px solid var(--border);}
+.ad-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+.ad-file-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.ad-img-preview{width:120px;height:64px;border-radius:12px;background:var(--surface);border:1px solid var(--border);object-fit:cover;display:none;}
+.ad-help{font-size:11px;color:var(--text3);line-height:1.6;margin-top:5px;}
+@media(max-width:640px){.ad-row{align-items:flex-start}.ad-thumb{width:68px;height:48px}.ad-actions{width:100%;justify-content:flex-start}}
 .small-btn{padding:7px 11px;border-radius:9px;font-size:12px;font-weight:800;border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;white-space:nowrap;}
 .small-btn.on{background:var(--green);color:#fff;border-color:var(--green);}
 .preview-box{background:linear-gradient(135deg,rgba(124,58,237,.16),rgba(168,85,247,.08));border:1px solid var(--border2);border-radius:16px;padding:18px;margin-top:12px;}
@@ -378,15 +387,49 @@ tr:hover td{background:rgba(124,58,237,.04);}
   <!-- 광고 관리 섹션 -->
   <div id="sec-ads" style="display:none;">
     <div class="card">
-      <div class="card-head"><div class="card-title">🏷️ 광고 관리</div></div>
+      <div class="card-head"><div class="card-title">🏷️ 창업 광고 배너 관리</div></div>
+      <div class="form-grid two">
+        <div>
+          <label class="admin-label">이미지 배너 (선택)</label>
+          <div class="ad-file-row">
+            <input class="admin-input" type="file" id="ad-image-inp" accept="image/*" onchange="onAdImageSelected(event)">
+            <img class="ad-img-preview" id="ad-img-preview" alt="광고 이미지 미리보기">
+          </div>
+          <div class="ad-help">권장 2MB 이하. 초과해도 등록 전 경고합니다.</div>
+        </div>
+        <div>
+          <label class="admin-label">우선순위</label>
+          <input class="admin-input" id="ad-priority-inp" type="number" value="0" placeholder="숫자가 클수록 먼저 노출">
+        </div>
+      </div>
       <div class="form-grid two">
         <div>
           <label class="admin-label">광고 문구</label>
-          <input class="admin-input" id="ad-text-inp" placeholder="상단 배너에 표시할 문구">
+          <input class="admin-input" id="ad-text-inp" placeholder="예: 온종일팜 창업 파트너 모집">
         </div>
         <div>
-          <label class="admin-label">연결 링크 (선택)</label>
+          <label class="admin-label">배너 링크 (선택)</label>
           <input class="admin-input" id="ad-link-inp" placeholder="https://...">
+        </div>
+      </div>
+      <div class="form-grid two">
+        <div>
+          <label class="admin-label">CTA 버튼 문구 (선택)</label>
+          <input class="admin-input" id="ad-cta-label-inp" placeholder="예: 창업 문의하기">
+        </div>
+        <div>
+          <label class="admin-label">CTA 링크 (선택)</label>
+          <input class="admin-input" id="ad-cta-link-inp" placeholder="https://...">
+        </div>
+      </div>
+      <div class="form-grid two">
+        <div>
+          <label class="admin-label">노출 시작일 (선택)</label>
+          <input class="admin-input" id="ad-start-inp" type="date">
+        </div>
+        <div>
+          <label class="admin-label">노출 종료일 (선택)</label>
+          <input class="admin-input" id="ad-end-inp" type="date">
         </div>
       </div>
       <button class="notice-send-btn" onclick="saveAd()">＋ 광고 등록</button>
@@ -521,6 +564,7 @@ let allUsers = {}, allRooms = {}, allMsgs = {};
 let allAds = {}, popupData = {};
 let pendingAction = null;
 let groupSelected = [];
+let adImageData = '';
 
 /* ── 관리자 인증 ── */
 onAuthStateChanged(auth, async user => {
@@ -703,29 +747,62 @@ window.switchSection = function(sec) {
 };
 
 /* ── 광고 관리 ── */
+function dateInputToStart(v){return v?new Date(v+'T00:00:00').getTime():null;}
+function dateInputToEnd(v){return v?new Date(v+'T23:59:59.999').getTime():null;}
+function fmtAdDate(ts){return ts?new Date(ts).toLocaleDateString('ko-KR'):'제한 없음';}
 function renderAds() {
-  const ads = Object.entries(allAds).map(([id,v])=>({id,...v})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  const ads = Object.entries(allAds).map(([id,v])=>({id,...v})).sort((a,b)=>(Number(b.priority||0)-Number(a.priority||0))||((b.createdAt||0)-(a.createdAt||0)));
   document.getElementById('ad-count-lbl').textContent = ads.length+'개';
   const el = document.getElementById('ads-list');
   if(!ads.length){el.innerHTML='<div class="empty-tbl">등록된 광고가 없습니다</div>';return;}
   el.innerHTML = ads.map(ad=>`
     <div class="ad-row">
+      ${ad.imageData?`<img class="ad-thumb" src="${esc(ad.imageData)}" alt="광고 썸네일">`:`<div class="ad-thumb">AD</div>`}
       <div class="ad-main">
-        <div class="ad-row-text">${esc(ad.text||'')}</div>
-        <div class="ad-row-link">${ad.link?esc(ad.link):'링크 없음'} · ${ad.active?'활성':'비활성'}</div>
+        <div class="ad-row-text">${esc(ad.text||'이미지 광고')}</div>
+        <div class="ad-row-link">배너: ${ad.link?esc(ad.link):'링크 없음'} · CTA: ${ad.ctaLabel?esc(ad.ctaLabel):'없음'} · 우선순위 ${Number(ad.priority||0)}</div>
+        <div class="ad-row-link">기간: ${fmtAdDate(ad.startAt)} ~ ${fmtAdDate(ad.endAt)}</div>
+        <div class="ad-row-meta"><span class="ad-stat">👁 ${Number(ad.views||0).toLocaleString()}</span><span class="ad-stat">👆 ${Number(ad.clicks||0).toLocaleString()}</span><span class="ad-stat">${ad.active?'활성':'비활성'}</span></div>
       </div>
-      <button class="small-btn ${ad.active?'on':''}" onclick="toggleAd('${ad.id}',${ad.active===true})">${ad.active?'ON':'OFF'}</button>
-      <button class="small-btn" onclick="deleteAd('${ad.id}')">삭제</button>
+      <div class="ad-actions">
+        <button class="small-btn ${ad.active?'on':''}" onclick="toggleAd('${ad.id}',${ad.active===true})">${ad.active?'ON':'OFF'}</button>
+        <button class="small-btn" onclick="deleteAd('${ad.id}')">삭제</button>
+      </div>
     </div>
   `).join('');
 }
+window.onAdImageSelected = function(e) {
+  const file = e.target.files?.[0];
+  adImageData = '';
+  document.getElementById('ad-img-preview').style.display = 'none';
+  if(!file)return;
+  if(file.size > 2 * 1024 * 1024)showToast('이미지는 2MB 이하를 권장합니다','info');
+  const reader = new FileReader();
+  reader.onload = ev => {
+    adImageData = ev.target.result;
+    const img = document.getElementById('ad-img-preview');
+    img.src = adImageData;
+    img.style.display = 'block';
+  };
+  reader.onerror = () => showToast('이미지 읽기 실패','err');
+  reader.readAsDataURL(file);
+};
 window.saveAd = async function() {
   const text = document.getElementById('ad-text-inp').value.trim();
   const link = document.getElementById('ad-link-inp').value.trim();
-  if(!text){showToast('광고 문구를 입력하세요','info');return;}
-  await set(push(ref(db,'ads')),{text,link,active:true,createdAt:Date.now()});
-  document.getElementById('ad-text-inp').value='';
-  document.getElementById('ad-link-inp').value='';
+  const ctaLabel = document.getElementById('ad-cta-label-inp').value.trim();
+  const ctaLink = document.getElementById('ad-cta-link-inp').value.trim();
+  const priority = Number(document.getElementById('ad-priority-inp').value || 0);
+  const startAt = dateInputToStart(document.getElementById('ad-start-inp').value);
+  const endAt = dateInputToEnd(document.getElementById('ad-end-inp').value);
+  if(!text && !adImageData){showToast('광고 문구나 이미지를 입력하세요','info');return;}
+  if(startAt && endAt && startAt > endAt){showToast('노출 종료일이 시작일보다 빠릅니다','info');return;}
+  await set(push(ref(db,'ads')),{imageData:adImageData||'',text,link,ctaLabel,ctaLink,priority,active:true,startAt:startAt||null,endAt:endAt||null,views:0,clicks:0,createdAt:Date.now()});
+  ['ad-text-inp','ad-link-inp','ad-cta-label-inp','ad-cta-link-inp','ad-start-inp','ad-end-inp'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ad-priority-inp').value='0';
+  document.getElementById('ad-image-inp').value='';
+  document.getElementById('ad-img-preview').style.display='none';
+  adImageData='';
   showToast('🏷️ 광고가 등록됐습니다','ok');
 };
 window.toggleAd = async function(id, active) {

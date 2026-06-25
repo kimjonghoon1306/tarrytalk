@@ -132,7 +132,15 @@
     /* ─── 상단 광고 배너 ─── */
     "ads": {
       ".read": "auth != null",
-      ".write": "auth != null && (root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')"
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')",
+      "$adId": {
+        "views": {
+          ".write": "auth != null"
+        },
+        "clicks": {
+          ".write": "auth != null"
+        }
+      }
     },
 
     /* ─── 접속 공지 팝업 ─── */
