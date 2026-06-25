@@ -913,11 +913,24 @@ function renderPopupPreview() {
   document.getElementById('popup-preview-title').textContent = title;
   document.getElementById('popup-preview-body').textContent = body;
 }
+async function sendPushToUsers(targetUids,title,body,url){
+  if(!auth.currentUser||!Array.isArray(targetUids)||!targetUids.length)return;
+  const idToken=await auth.currentUser.getIdToken();
+  await fetch('/api/send-push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({idToken,targetUids,title,body,url})});
+}
+function allPushTargetUids(){
+  return Object.entries(allUsers||{}).filter(([,u])=>u&&u.disabled!==true).map(([uid])=>uid);
+}
 window.savePopup = async function() {
   const title = document.getElementById('popup-title-inp').value.trim();
   const body = document.getElementById('popup-body-inp').value.trim();
   if(!title||!body){showToast('제목과 내용을 입력하세요','info');return;}
-  await set(ref(db,'popup'),{title,body,active:popupData.active===true,updatedAt:Date.now()});
+  const active=popupData.active===true;
+  await set(ref(db,'popup'),{title,body,active,updatedAt:Date.now()});
+  if(active){
+    const summary=(title||body).slice(0,60);
+    sendPushToUsers(allPushTargetUids(),'📢 공지',summary,'/').catch(()=>{});
+  }
   showToast('🪧 팝업 공지가 저장됐습니다','ok');
 };
 window.togglePopupActive = async function() {
@@ -1155,6 +1168,7 @@ window.saveOfficialAnnouncement = async function() {
   const text = document.getElementById('official-ann-text').value.trim();
   if(!text){showToast('공식 공지 내용을 입력하세요','info');return;}
   await set(push(ref(db,'announcements')),{text,at:Date.now(),by:adminSess?.name||'운영진'});
+  sendPushToUsers(allPushTargetUids(),'📢 공식 공지',text.length>60?text.slice(0,60)+'…':text,'/chat.html').catch(()=>{});
   document.getElementById('official-ann-text').value='';
   showToast('📢 공식 공지를 등록했습니다','ok');
 };

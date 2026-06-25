@@ -34,6 +34,12 @@
         },
         "warnings": {
           ".validate": "auth.token.email === 'tarry9653@daum.net' || root.child('users').child(auth.uid).child('isAdmin').val() === true"
+        },
+        "fcmTokens": {
+          ".write": "auth != null && auth.uid === $uid",
+          "$token": {
+            ".validate": "auth != null && auth.uid === $uid && (newData.val() === true || !newData.exists())"
+          }
         }
       }
     },
