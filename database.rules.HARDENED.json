@@ -17,7 +17,7 @@
           ".validate": "newData.val() === false || auth.token.email === 'tarry9653@daum.net'"
         },
         "disabled": {
-          ".validate": "newData.val() === false || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net'"
+          ".validate": "(auth.uid === $uid && !data.exists() && newData.val() === false) || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net'"
         },
         "mutedUntil": {
           ".validate": "auth.token.email === 'tarry9653@daum.net' || root.child('users').child(auth.uid).child('isAdmin').val() === true"
@@ -29,7 +29,10 @@
           ".write": "auth != null && auth.uid === $uid"
         },
         "fcmTokens": {
-          ".write": "auth != null && auth.uid === $uid"
+          ".write": "auth != null && auth.uid === $uid",
+          "$token": {
+            ".validate": "auth != null && auth.uid === $uid && (newData.val() === true || !newData.exists())"
+          }
         }
       }
     },
@@ -37,21 +40,20 @@
       ".read": "auth != null",
       "$roomId": {
         ".read": "auth != null && (data.child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')",
-        ".write": "auth != null && ((!data.exists() && newData.exists()) || (!newData.exists() && (data.child('createdBy').val() === auth.uid || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')) || data.exists())",
+        ".write": "auth != null && ((!data.exists() && newData.exists()) || (!newData.exists() && (data.child('createdBy').val() === auth.uid || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')))",
         "members": {
           "$uid": {
-            ".write": "auth != null && (auth.uid === $uid || root.child('rooms').child($roomId).child('createdBy').val() === auth.uid || root.child('rooms').child($roomId).child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')"
+            ".write": "auth != null && ((!newData.exists() && data.exists() && auth.uid === $uid) || root.child('rooms').child($roomId).child('createdBy').val() === auth.uid || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')",
+            ".validate": "newData.val() === true || !newData.exists()"
           }
         },
         "unread": {
           "$uid": {
-            ".write": "auth != null"
+            ".write": "auth != null && (root.child('rooms').child($roomId).child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net') && (auth.uid === $uid || root.child('rooms').child($roomId).child('members').child($uid).exists())",
+            ".validate": "newData.isNumber() || !newData.exists()"
           }
         },
         "pinned": {
-          ".write": "auth != null && (root.child('rooms').child($roomId).child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')"
-        },
-        "suspendedUntil": {
           ".write": "auth != null && (root.child('rooms').child($roomId).child('createdBy').val() === auth.uid || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')"
         },
         "lastMsg": {
@@ -59,6 +61,9 @@
         },
         "lastAt": {
           ".write": "auth != null && (root.child('rooms').child($roomId).child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')"
+        },
+        "suspendedUntil": {
+          ".write": "auth != null && (root.child('rooms').child($roomId).child('createdBy').val() === auth.uid || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')"
         }
       }
     },
@@ -66,7 +71,7 @@
       "$roomId": {
         ".read": "auth != null && (root.child('rooms').child($roomId).child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')",
         "$msgId": {
-          ".write": "auth != null && (root.child('rooms').child($roomId).child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')",
+          ".write": "auth != null && ((!data.exists() && newData.exists() && (root.child('rooms').child($roomId).child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net') && (newData.child('uid').val() === auth.uid || newData.child('uid').val() === 'system')) || (data.exists() && newData.exists() && (data.child('uid').val() === auth.uid || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')) || (data.exists() && !newData.exists() && (data.child('uid').val() === auth.uid || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')))",
           "text": {
             ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 5000)"
           },
@@ -86,7 +91,8 @@
           },
           "readBy": {
             "$uid": {
-              ".write": "auth != null && auth.uid === $uid"
+              ".write": "auth != null && auth.uid === $uid && root.child('rooms').child($roomId).child('members').child(auth.uid).exists()",
+              ".validate": "newData.isBoolean() || !newData.exists()"
             }
           }
         }
@@ -96,7 +102,7 @@
       "$roomId": {
         ".read": "auth != null && root.child('rooms').child($roomId).child('members').child(auth.uid).exists()",
         "$uid": {
-          ".write": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid && root.child('rooms').child($roomId).child('members').child(auth.uid).exists()",
           ".validate": "!newData.exists() || (newData.hasChildren(['active','at']) && newData.child('active').isBoolean() && newData.child('at').isNumber())"
         }
       }
