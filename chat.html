@@ -14,6 +14,7 @@
 :root[data-theme="light"]{--bg:#f5f3ff;--bg2:#ffffff;--bg3:#ede9fe;--surface:#ffffff;--surface2:#faf8ff;--border:rgba(124,58,237,.12);--border2:rgba(124,58,237,.24);--text:#21172f;--text2:#5b4b7a;--text3:#8b7aa8;--green:#7c3aed;--green2:#6d28d9;--glow:rgba(124,58,237,.12);--glow2:rgba(124,58,237,.25);--red:#e0223a;--red-bg:rgba(224,34,58,.08);--yellow:#c8860a;--blue:#1a7acc;--out-bubble:#7c3aed;--in-bubble:#faf8ff;--r:10px;--R:16px;}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body,#wrap{height:100%;overflow:hidden;background:var(--bg);}
+html,body{overflow-x:hidden;max-width:100%;}
 body{font-family:'Noto Sans KR',sans-serif;color:var(--text);}
 ::-webkit-scrollbar{width:3px;height:3px;}::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px;}
 button{font-family:inherit;cursor:pointer;border:none;outline:none;}input,textarea{font-family:inherit;outline:none;}a{color:inherit;}
@@ -311,6 +312,8 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .lightbox img{max-width:92vw;max-height:82vh;border-radius:12px;object-fit:contain;box-shadow:0 24px 64px rgba(0,0,0,.8);}
 .lb-close{position:fixed;top:20px;right:20px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;color:#fff;}
 .lb-name{color:rgba(255,255,255,.5);font-size:12px;margin-top:14px;}
+.lb-save{margin-top:16px;display:inline-flex;align-items:center;gap:6px;padding:11px 24px;border-radius:50px;background:var(--green);color:#fff;font-size:14px;font-weight:800;text-decoration:none;box-shadow:0 8px 24px var(--glow);cursor:pointer;}
+.lb-save:hover{transform:translateY(-2px);}
 
 /* MODALS */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);}
@@ -585,7 +588,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 </div>
 
 <!-- 라이트박스 -->
-<div class="lightbox" id="lightbox" onclick="closeLightbox()"><div class="lb-close" onclick="closeLightbox()">✕</div><img id="lb-img" src="" alt=""><div class="lb-name" id="lb-name"></div></div>
+<div class="lightbox" id="lightbox" onclick="closeLightbox()"><div class="lb-close" onclick="closeLightbox()">✕</div><img id="lb-img" src="" alt=""><div class="lb-name" id="lb-name"></div><a id="lb-save" class="lb-save" download onclick="event.stopPropagation()">💾 이미지 저장</a></div>
 
 <!-- 새 채팅방 모달 -->
 <div class="overlay" id="overlay" onclick="outsideClose(event)">
@@ -1386,7 +1389,7 @@ window.clearReply = function(){
   window._editingMsgId = null;
   _origClearReply();
 };
-window.openLightbox=function(src,name){document.getElementById('lb-img').src=src;document.getElementById('lb-name').textContent=name;document.getElementById('lightbox').classList.add('show');};
+window.openLightbox=function(src,name){document.getElementById('lb-img').src=src;document.getElementById('lb-name').textContent=name;const s=document.getElementById('lb-save');if(s){s.href=src;s.download=name||'image';}document.getElementById('lightbox').classList.add('show');};
 window.closeLightbox=function(){document.getElementById('lightbox').classList.remove('show');};
 window.toggleSearchBar=function(){const bar=document.getElementById('search-bar');bar.classList.toggle('show');if(bar.classList.contains('show'))document.getElementById('msg-search-inp').focus();else{document.getElementById('msg-search-inp').value='';searchMessages('');}};
 window.closeSearchBar=function(){document.getElementById('search-bar').classList.remove('show');document.getElementById('msg-search-inp').value='';searchMessages('');};

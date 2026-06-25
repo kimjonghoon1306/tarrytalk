@@ -307,7 +307,7 @@ let signupInProgress = false;
 onAuthStateChanged(auth, user => {
   if (user) {
     sessionStorage.removeItem('tt_guest');
-    if (!adminLoginInProgress && !signupInProgress) { location.href = 'chat.html'; }
+    if (!adminLoginInProgress && !signupInProgress) { location.replace('chat.html'); }
   }
 });
 
@@ -426,7 +426,7 @@ window.doLogin = async function() {
     await set(ref(db, `users/${cred.user.uid}/lastSeen`), serverTimestamp());
     localStorage.setItem('tt_theme','light');
     showToast('👋 반갑습니다!', 'ok');
-    setTimeout(() => location.href='chat.html', 800);
+    setTimeout(() => location.replace('chat.html'), 800);
   } catch(e) {
     showLoading(false); btn.disabled = false; btn.textContent = '로그인';
     const c = e.code||'';
@@ -466,7 +466,7 @@ window.doSignup = async function() {
     });
     localStorage.setItem('tt_theme','light');
     showToast('🎉 가입 완료! 환영합니다', 'ok');
-    location.href='chat.html';
+    location.replace('chat.html');
   } catch(e) {
     signupInProgress = false;
     showLoading(false); btn.disabled = false; btn.textContent = '회원가입 완료';
