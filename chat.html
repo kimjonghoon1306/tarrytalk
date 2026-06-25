@@ -17,7 +17,7 @@ html,body,#wrap{height:100%;overflow:hidden;background:var(--bg);}
 body{font-family:'Noto Sans KR',sans-serif;color:var(--text);}
 ::-webkit-scrollbar{width:3px;height:3px;}::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px;}
 button{font-family:inherit;cursor:pointer;border:none;outline:none;}input,textarea{font-family:inherit;outline:none;}a{color:inherit;}
-button,.ib,.fb,.sp-tab,.new-btn,.how-to-banner,.sbt,.r-item,.ad-cta,.ad-close,.send-btn,.tb2,.bot-chip,.ma-btn,.file-dl,.guide-card,.announce-card,.reaction,.inv-btn,.create-btn,.small-btn,.popup-close{transition:transform .18s cubic-bezier(.16,1,.3,1),box-shadow .18s,border-color .18s,background .18s,color .18s;will-change:transform;}
+button,.ib,.fb,.sp-tab,.new-btn,.how-to-banner,.sbt,.r-item,.ad-cta,.empty-ad-cta,.ad-close,.send-btn,.tb2,.bot-chip,.ma-btn,.file-dl,.guide-card,.announce-card,.reaction,.inv-btn,.create-btn,.small-btn,.popup-close{transition:transform .18s cubic-bezier(.16,1,.3,1),box-shadow .18s,border-color .18s,background .18s,color .18s;will-change:transform;}
 button{position:relative;overflow:hidden;}
 button::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at var(--rx,50%) var(--ry,50%),rgba(255,255,255,.34),transparent 34%);opacity:0;transform:scale(.7);transition:opacity .35s,transform .35s;pointer-events:none;}
 button:active::after{opacity:.55;transform:scale(1.7);transition:0s;}
@@ -110,26 +110,54 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .ad-cta.show{display:block;}
 .ad-close{width:26px;height:26px;border-radius:50%;background:var(--surface);border:1px solid var(--border);color:var(--text2);font-size:13px;flex-shrink:0;}
 @media(max-width:520px){.ad-banner{padding:8px 10px;font-size:12px;gap:8px}.ad-label{display:none}.ad-thumb{width:70px;height:42px}.ad-cta{padding:7px 9px;font-size:11px}.ad-sub{display:none}}
-.chat-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--text3);text-align:center;padding:40px;}
-.chat-empty .ce-icon{font-size:60px;opacity:.18;}
-.chat-empty h2{font-size:20px;font-weight:800;color:var(--text2);}
-.chat-empty p{font-size:13px;line-height:1.8;max-width:260px;}
-.intro-card{width:min(560px,100%);border:1px solid var(--border2);border-radius:24px;overflow:hidden;background:linear-gradient(135deg,#322847,#7c3aed 48%,#a855f7);box-shadow:0 18px 54px var(--glow);position:relative;isolation:isolate;min-height:260px;display:flex;align-items:center;justify-content:center;padding:30px;}
-.intro-card::before{content:'';position:absolute;inset:-45%;background:radial-gradient(circle,rgba(255,255,255,.22),transparent 42%);animation:introDrift 12s ease-in-out infinite;z-index:-1;}
-.intro-card::after{content:'';position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,255,255,.16),transparent 42%,rgba(0,0,0,.12));z-index:-1;}
-.intro-slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center;color:#fff;opacity:0;transform:translateY(18px) scale(.98);transition:opacity .75s ease,transform .75s ease;}
-.intro-slide.on{opacity:1;transform:translateY(0) scale(1);}
-.intro-icon{width:76px;height:76px;border-radius:24px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:18px;box-shadow:0 16px 42px rgba(0,0,0,.18);}
-.intro-title{font-size:28px;font-weight:900;line-height:1.22;letter-spacing:0;text-shadow:0 6px 24px rgba(0,0,0,.22);}
-.intro-copy{font-size:14px;font-weight:700;opacity:.86;margin-top:9px;line-height:1.6;}
+.chat-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--text3);text-align:center;padding:24px;overflow-y:auto;}
+.empty-ad{display:none;width:min(760px,100%);border-radius:24px;overflow:hidden;border:1px solid var(--border2);background:linear-gradient(135deg,rgba(124,58,237,.18),rgba(76,201,240,.1));box-shadow:0 18px 48px var(--glow);animation:itemIn .32s ease both;}
+.empty-ad.show{display:block;}
+.empty-ad-link{display:grid;grid-template-columns:220px 1fr auto;gap:18px;align-items:center;padding:16px;text-decoration:none;color:var(--text);min-height:138px;}
+.empty-ad.no-img .empty-ad-link{grid-template-columns:1fr auto;}
+.empty-ad-img{width:100%;height:112px;border-radius:18px;object-fit:cover;background:var(--surface2);border:1px solid var(--border);}
+.empty-ad-copy{text-align:left;min-width:0;}
+.empty-ad-kicker{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:rgba(124,58,237,.14);border:1px solid var(--border2);color:var(--green);font-size:11px;font-weight:900;margin-bottom:9px;}
+.empty-ad-text{font-size:20px;font-weight:900;line-height:1.35;color:var(--text);word-break:keep-all;}
+.empty-ad-sub{font-size:12px;color:var(--text3);font-weight:700;margin-top:6px;}
+.empty-ad-cta{display:none;padding:11px 16px;border-radius:999px;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;font-size:13px;font-weight:900;box-shadow:0 8px 24px var(--glow);white-space:nowrap;cursor:pointer;}
+.empty-ad-cta.show{display:inline-flex;}
+.intro-card{width:min(760px,100%);border:1px solid var(--border2);border-radius:28px;overflow:hidden;background:var(--intro-bg);box-shadow:0 22px 64px var(--glow);position:relative;isolation:isolate;min-height:380px;display:flex;align-items:center;justify-content:center;padding:0;}
+[data-theme="dark"] .intro-card{--intro-bg:linear-gradient(135deg,#161020,#271f35 44%,#2a2248);--scene-text:#fff;--scene-soft:rgba(255,255,255,.72);--scene-panel:rgba(255,255,255,.12);}
+[data-theme="light"] .intro-card{--intro-bg:linear-gradient(135deg,#ffffff,#f5f3ff 48%,#ede9fe);--scene-text:#21172f;--scene-soft:#5b4b7a;--scene-panel:rgba(124,58,237,.08);}
+.intro-card::before{content:'';position:absolute;inset:-35%;background:radial-gradient(circle at 22% 20%,rgba(255,107,157,.24),transparent 25%),radial-gradient(circle at 82% 26%,rgba(76,201,240,.22),transparent 28%),radial-gradient(circle at 52% 86%,rgba(255,209,102,.18),transparent 30%);animation:introDrift 13s ease-in-out infinite;z-index:-1;}
+.intro-card::after{content:'';position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,255,255,.12),transparent 42%,rgba(0,0,0,.08));z-index:-1;}
+.intro-slide{position:absolute;inset:0;display:grid;grid-template-columns:1.1fr .9fr;align-items:center;gap:18px;padding:30px 34px;text-align:left;color:var(--scene-text);opacity:0;transform:translateY(22px) scale(.96) rotate(.4deg);transition:opacity .72s ease,transform .72s cubic-bezier(.16,1,.3,1);pointer-events:none;}
+.intro-slide.on{opacity:1;transform:translateY(0) scale(1) rotate(0);pointer-events:auto;}
+.scene-copy{position:relative;z-index:3;}
+.intro-kicker{font-size:12px;font-weight:900;color:var(--scene-soft);margin-bottom:8px;letter-spacing:.4px;}
+.intro-title{font-size:34px;font-weight:900;line-height:1.16;letter-spacing:0;color:var(--scene-text);text-shadow:0 8px 28px rgba(0,0,0,.18);}
+.intro-copy{font-size:15px;font-weight:800;color:var(--scene-soft);margin-top:10px;line-height:1.65;}
+.intro-bot{width:74px;height:74px;border-radius:22px;overflow:hidden;filter:drop-shadow(0 16px 24px rgba(124,58,237,.28));animation:heroBot 3.8s ease-in-out infinite;transform-origin:center;}
+.scene-art{width:100%;max-width:310px;justify-self:center;position:relative;z-index:2;}
+.scene-art svg{width:100%;height:auto;display:block;overflow:visible;}
+.scene-bubble{display:inline-flex;align-items:center;gap:9px;background:var(--scene-panel);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(8px);border-radius:20px;padding:10px 12px;margin-top:18px;box-shadow:0 14px 34px rgba(0,0,0,.12);}
+.particle{animation:floatBits 3.2s ease-in-out infinite;transform-origin:center;}
+.draw{stroke-dasharray:420;stroke-dashoffset:420;animation:drawLine 3.8s ease-in-out infinite;}
+.pulse{animation:pulseGlow 2.4s ease-in-out infinite;transform-origin:center;}
+.pop{animation:scenePop 2.8s ease-in-out infinite;transform-origin:center;}
+.spin-soft{animation:spinSoft 5.4s linear infinite;transform-origin:center;}
+.rocket{animation:rocketFly 3.8s ease-in-out infinite;transform-origin:center;}
 .intro-dots{display:flex;gap:7px;margin-top:2px;}
 .intro-dot{width:7px;height:7px;border-radius:50%;background:var(--border2);transition:all .35s;}
 .intro-dot.on{width:22px;background:var(--green);}
 .intro-caption{font-size:13px;line-height:1.8;max-width:320px;color:var(--text2);}
 @keyframes introDrift{0%,100%{transform:translate(-5%,-3%) rotate(0deg)}50%{transform:translate(7%,5%) rotate(16deg)}}
+@keyframes heroBot{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-7px) rotate(2deg)}}
+@keyframes floatBits{0%,100%{transform:translateY(0) rotate(0);opacity:.72}50%{transform:translateY(-12px) rotate(10deg);opacity:1}}
+@keyframes drawLine{0%{stroke-dashoffset:420;opacity:.2}35%,75%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:-420;opacity:.2}}
+@keyframes pulseGlow{0%,100%{transform:scale(1);opacity:.78}50%{transform:scale(1.08);opacity:1}}
+@keyframes scenePop{0%,100%{transform:translateY(0) scale(1)}42%{transform:translateY(-8px) scale(1.04)}}
+@keyframes spinSoft{to{transform:rotate(360deg)}}
+@keyframes rocketFly{0%,100%{transform:translate(0,0) rotate(-8deg)}50%{transform:translate(10px,-18px) rotate(3deg)}}
 @keyframes itemIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes onbotFloat{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-2px) rotate(1.2deg)}}
-@media(max-width:700px){.chat-empty{padding:24px 14px}.intro-card{min-height:230px;border-radius:20px}.intro-title{font-size:23px}.intro-icon{width:64px;height:64px;font-size:30px}}
+@media(max-width:760px){.chat-empty{padding:18px 12px}.empty-ad-link{grid-template-columns:86px 1fr;gap:12px;min-height:0}.empty-ad-img{height:72px;border-radius:14px}.empty-ad-cta{grid-column:1/-1;justify-content:center}.empty-ad-text{font-size:15px}.intro-card{min-height:520px;border-radius:22px}.intro-slide{grid-template-columns:1fr;padding:24px 20px;text-align:center;align-content:center}.scene-art{max-width:270px;order:-1}.scene-bubble{justify-content:center}.intro-title{font-size:27px}.intro-copy{font-size:13px}.intro-bot{width:62px;height:62px}}
 
 /* MESSAGES */
 .msg-wrap{flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column;}
@@ -401,7 +429,8 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 @media(max-width:520px){.popup-card{border-radius:20px}.popup-foot{flex-direction:column;align-items:stretch}.popup-close{width:100%;}}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.001ms!important;}
-  button,.r-item,.mg,.announce-card,.guide-card,.onbot-avatar svg{transform:none!important;}
+  button,.r-item,.mg,.announce-card,.guide-card,.onbot-avatar svg,.intro-bot,.particle,.pop,.pulse,.rocket,.spin-soft{transform:none!important;}
+  .draw{stroke-dashoffset:0!important;opacity:1!important;}
 }
 </style>
 </head>
@@ -466,13 +495,42 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
   </div>
   <div class="msg-wrap">
     <div class="chat-empty" id="chat-empty">
+      <div class="empty-ad" id="empty-ad">
+        <a class="empty-ad-link" id="empty-ad-link" href="#" target="_blank" rel="noopener" onclick="handleHeroAdClick(event,'banner')">
+          <img class="empty-ad-img" id="empty-ad-img" alt="광고 이미지" style="display:none">
+          <div class="empty-ad-copy">
+            <div class="empty-ad-kicker">AD · 창업 소식</div>
+            <div class="empty-ad-text" id="empty-ad-text"></div>
+            <div class="empty-ad-sub">온메신저 공식 광고</div>
+          </div>
+          <span class="empty-ad-cta" id="empty-ad-cta" onclick="handleHeroAdClick(event,'cta')"></span>
+        </a>
+      </div>
       <div class="intro-card" id="intro-card">
-        <div class="intro-slide on"><div class="intro-icon">💬</div><div class="intro-title">온메신저</div><div class="intro-copy">우리들의 모임, 하나로 연결</div></div>
-        <div class="intro-slide"><div class="intro-icon">💬</div><div class="intro-title">실시간 채팅</div><div class="intro-copy">메시지가 바로바로</div></div>
-        <div class="intro-slide"><div class="intro-icon">👥</div><div class="intro-title">단톡 · 1:1</div><div class="intro-copy">소모임을 한 곳에</div></div>
-        <div class="intro-slide"><div class="intro-icon">📅</div><div class="intro-title">일정 공유</div><div class="intro-copy">파일 전송까지 한 번에</div></div>
-        <div class="intro-slide"><div class="intro-icon">🔔</div><div class="intro-title">초대 링크</div><div class="intro-copy">초대로 모임을 키워보세요</div></div>
-        <div class="intro-slide"><div class="intro-icon">✨</div><div class="intro-title">지금 바로 시작하기</div><div class="intro-copy">대화를 선택하거나 새 모임을 만들어보세요</div></div>
+        <div class="intro-slide on">
+          <div class="scene-copy"><div class="intro-kicker">Welcome</div><div class="intro-title">온메신저</div><div class="intro-copy">우리들의 모임, 하나로 연결</div><div class="scene-bubble"><span class="intro-bot"></span><span>반가워요! 제가 안내할게요.</span></div></div>
+          <div class="scene-art"><svg viewBox="0 0 320 240" aria-hidden="true"><defs><linearGradient id="g1" x1="0" x2="1"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#ff6b9d"/></linearGradient><filter id="glow1"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><circle cx="160" cy="120" r="78" fill="url(#g1)" opacity=".18"/><path class="draw" d="M72 136 C110 54,210 54,248 136" fill="none" stroke="#ff6b9d" stroke-width="8" stroke-linecap="round"/><g class="pulse" filter="url(#glow1)"><rect x="96" y="76" width="128" height="92" rx="30" fill="url(#g1)"/><circle cx="136" cy="118" r="10" fill="#fff"/><circle cx="184" cy="118" r="10" fill="#fff"/><path d="M132 143 Q160 160 188 143" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/></g><g fill="#ffd166"><path class="particle" d="M58 58l8 15 15 8-15 8-8 15-8-15-15-8 15-8z"/><path class="particle" style="animation-delay:.5s" d="M252 44l6 11 11 6-11 6-6 11-6-11-11-6 11-6z"/></g><text class="particle" x="238" y="166" font-size="28">💜</text></svg></div>
+        </div>
+        <div class="intro-slide">
+          <div class="scene-copy"><div class="intro-kicker">Realtime</div><div class="intro-title">실시간 채팅</div><div class="intro-copy">메시지가 바로바로 도착하고 대화가 살아 움직여요.</div><div class="scene-bubble"><span class="intro-bot"></span><span>말풍선이 톡톡!</span></div></div>
+          <div class="scene-art"><svg viewBox="0 0 320 240" aria-hidden="true"><defs><linearGradient id="g2" x1="0" x2="1"><stop stop-color="#ff6b9d"/><stop offset="1" stop-color="#ffd166"/></linearGradient></defs><circle cx="80" cy="64" r="28" fill="#ffd166" opacity=".28" class="particle"/><rect class="pop" x="54" y="70" width="138" height="54" rx="20" fill="#ff6b9d"/><rect class="pop" style="animation-delay:.25s" x="118" y="126" width="150" height="58" rx="22" fill="#ffd166"/><rect class="pop" style="animation-delay:.5s" x="86" y="32" width="168" height="48" rx="19" fill="url(#g2)" opacity=".92"/><g fill="#fff"><circle cx="92" cy="98" r="5"/><circle cx="112" cy="98" r="5"/><circle cx="132" cy="98" r="5"/><path d="M162 154h68" stroke="#fff" stroke-width="8" stroke-linecap="round"/><path d="M124 56h88" stroke="#fff" stroke-width="7" stroke-linecap="round"/></g><path class="draw" d="M42 184 C96 216,232 214,280 70" fill="none" stroke="#4cc9f0" stroke-width="5" stroke-linecap="round" opacity=".8"/></svg></div>
+        </div>
+        <div class="intro-slide">
+          <div class="scene-copy"><div class="intro-kicker">Together</div><div class="intro-title">단톡 · 1:1</div><div class="intro-copy">소모임과 개인 대화를 한 곳에서 편하게 연결해요.</div><div class="scene-bubble"><span class="intro-bot"></span><span>사람들이 선으로 이어져요.</span></div></div>
+          <div class="scene-art"><svg viewBox="0 0 320 240" aria-hidden="true"><defs><linearGradient id="g3" x1="0" x2="1"><stop stop-color="#4cc9f0"/><stop offset="1" stop-color="#7c3aed"/></linearGradient></defs><path class="draw" d="M92 72 L224 68 L252 154 L160 194 L70 150 Z" fill="none" stroke="#4cc9f0" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><g class="pop"><circle cx="92" cy="72" r="30" fill="#4cc9f0"/><text x="92" y="83" text-anchor="middle" font-size="28">👤</text></g><g class="pop" style="animation-delay:.2s"><circle cx="224" cy="68" r="32" fill="#7c3aed"/><text x="224" y="79" text-anchor="middle" font-size="28">👥</text></g><g class="pop" style="animation-delay:.4s"><circle cx="252" cy="154" r="29" fill="#ff6b9d"/><text x="252" y="165" text-anchor="middle" font-size="26">👤</text></g><g class="pop" style="animation-delay:.6s"><circle cx="160" cy="194" r="31" fill="#06d6a0"/><text x="160" y="205" text-anchor="middle" font-size="27">👤</text></g><circle class="pulse" cx="160" cy="122" r="34" fill="url(#g3)" opacity=".35"/></svg></div>
+        </div>
+        <div class="intro-slide">
+          <div class="scene-copy"><div class="intro-kicker">Share</div><div class="intro-title">일정 · 파일 공유</div><div class="intro-copy">캘린더, 자료, 체크리스트까지 채팅 안에서 한 번에.</div><div class="scene-bubble"><span class="intro-bot"></span><span>약속과 파일을 놓치지 않게!</span></div></div>
+          <div class="scene-art"><svg viewBox="0 0 320 240" aria-hidden="true"><defs><linearGradient id="g4" x1="0" x2="1"><stop stop-color="#ff9f43"/><stop offset="1" stop-color="#ffd166"/></linearGradient></defs><rect x="60" y="52" width="126" height="132" rx="22" fill="url(#g4)" class="pop"/><rect x="78" y="82" width="90" height="16" rx="8" fill="#fff" opacity=".9"/><g fill="#fff" opacity=".8"><rect x="82" y="116" width="22" height="22" rx="6"/><rect x="114" y="116" width="22" height="22" rx="6"/><rect x="146" y="116" width="22" height="22" rx="6"/><rect x="82" y="148" width="22" height="22" rx="6"/></g><path class="draw" d="M117 127l10 10 23-28" fill="none" stroke="#06d6a0" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><g class="pop" style="animation-delay:.35s"><path d="M202 62h52l24 24v92a16 16 0 0 1-16 16h-60a16 16 0 0 1-16-16V78a16 16 0 0 1 16-16z" fill="#fff" opacity=".92"/><path d="M254 62v24h24" fill="#ffd166"/><path d="M208 122h48M208 146h38" stroke="#ff9f43" stroke-width="8" stroke-linecap="round"/></g></svg></div>
+        </div>
+        <div class="intro-slide">
+          <div class="scene-copy"><div class="intro-kicker">Invite</div><div class="intro-title">초대로 모임 확장</div><div class="intro-copy">링크를 보내고 새 멤버를 빠르게 초대하세요.</div><div class="scene-bubble"><span class="intro-bot"></span><span>초대장이 날아갑니다.</span></div></div>
+          <div class="scene-art"><svg viewBox="0 0 320 240" aria-hidden="true"><defs><linearGradient id="g5" x1="0" x2="1"><stop stop-color="#06d6a0"/><stop offset="1" stop-color="#ff6b9d"/></linearGradient></defs><path class="draw" d="M58 170 C116 64,210 210,270 76" fill="none" stroke="#06d6a0" stroke-width="6" stroke-linecap="round" opacity=".85"/><g class="rocket"><path d="M72 80l178-42-62 152-34-68z" fill="url(#g5)"/><path d="M154 122l96-84-62 152z" fill="#fff" opacity=".32"/><circle cx="187" cy="83" r="11" fill="#fff"/></g><g class="pop" style="animation-delay:.4s"><rect x="78" y="154" width="112" height="42" rx="18" fill="#fff" opacity=".9"/><path d="M112 175h44" stroke="#7c3aed" stroke-width="8" stroke-linecap="round"/></g><text class="particle" x="58" y="62" font-size="26">🔗</text><text class="particle" style="animation-delay:.6s" x="242" y="166" font-size="28">✨</text></svg></div>
+        </div>
+        <div class="intro-slide">
+          <div class="scene-copy"><div class="intro-kicker">Launch</div><div class="intro-title">지금 바로 시작하기</div><div class="intro-copy">대화를 선택하거나 새 모임을 만들고 연결을 시작하세요.</div><div class="scene-bubble"><span class="intro-bot"></span><span>출발 준비 완료!</span></div></div>
+          <div class="scene-art"><svg viewBox="0 0 320 240" aria-hidden="true"><defs><linearGradient id="g6" x1="0" x2="1"><stop stop-color="#7c3aed"/><stop offset=".35" stop-color="#ff6b9d"/><stop offset=".7" stop-color="#ffd166"/><stop offset="1" stop-color="#4cc9f0"/></linearGradient></defs><g class="rocket"><path d="M162 34c42 34 42 84 10 132l-22 2c-28-42-22-96 12-134z" fill="url(#g6)"/><circle cx="166" cy="86" r="17" fill="#fff"/><path d="M142 142l-42 34 50-8zM184 140l44 30-52-4z" fill="#06d6a0"/><path class="pulse" d="M154 172c-12 18-8 34 8 50 18-18 22-34 8-50z" fill="#ff9f43"/></g><g fill="none" stroke-width="5" stroke-linecap="round"><path class="draw" d="M60 74l24 24M78 72L58 98" stroke="#ffd166"/><path class="draw" style="animation-delay:.3s" d="M244 54l28 20M270 52l-24 24" stroke="#4cc9f0"/><path class="draw" style="animation-delay:.6s" d="M250 170l24 24M274 170l-24 24" stroke="#ff6b9d"/></g><circle class="particle" cx="92" cy="154" r="8" fill="#06d6a0"/><circle class="particle" style="animation-delay:.4s" cx="226" cy="122" r="7" fill="#ffd166"/></svg></div>
+        </div>
       </div>
       <div class="intro-dots" id="intro-dots"></div>
       <div class="intro-caption">왼쪽에서 채팅방을 선택하거나 <b>새로운 채팅 시작</b>을 눌러보세요</div>
@@ -621,7 +679,7 @@ const app=initializeApp(FC),auth=getAuth(app),db=getDatabase(app),ADMIN_EMAIL='t
 let sess=null,isGuest=false,curRoom=null,curTab='group',selType='dm',selUsers=[],existId=null,sanctionTarget=null;
 let allUsers={},replyTo=null,reactionTarget=null,typingTimer=null,isAtBottom=true,newMsgCount=0;
 let _msgUnsub=null,_typingUnsub=null;
-let activeAds=[],adIndex=0,adTimer=null,popupNotice=null,welcomeData=null,introIndex=0;
+let activeAds=[],adIndex=0,adTimer=null,heroAdIndex=0,heroAdTimer=null,popupNotice=null,welcomeData=null,introIndex=0;
 let announcements=[];
 const viewedAds=new Set();
 const COLORS=['#00a84a','#0087d4','#a855f7','#e85d04','#d62828','#2ec4b6'];
@@ -672,6 +730,7 @@ function initUI(){
 function initIntro(){
   const slides=[...document.querySelectorAll('.intro-slide')],dots=document.getElementById('intro-dots');
   if(!slides.length||!dots)return;
+  document.querySelectorAll('.intro-bot').forEach(el=>{el.innerHTML=ONBOT_SVG;});
   dots.innerHTML=slides.map((_,i)=>`<span class="intro-dot${i===0?' on':''}"></span>`).join('');
   setInterval(()=>{introIndex=(introIndex+1)%slides.length;slides.forEach((s,i)=>s.classList.toggle('on',i===introIndex));document.querySelectorAll('.intro-dot').forEach((d,i)=>d.classList.toggle('on',i===introIndex));},3800);
 }
@@ -682,13 +741,15 @@ function listenAds(){
     activeAds=Object.entries(data).map(([id,v])=>({id,...v}))
       .filter(ad=>ad.active===true&&(ad.text||ad.imageData)&&(!ad.startAt||now>=ad.startAt)&&(!ad.endAt||now<=ad.endAt))
       .sort((a,b)=>(Number(b.priority||0)-Number(a.priority||0))||((b.createdAt||0)-(a.createdAt||0)));
-    adIndex=0;
+    adIndex=0;heroAdIndex=0;
     renderAdBanner();
+    renderHeroAd();
   });
 }
 function renderAdBanner(){
   const banner=document.getElementById('ad-banner');
-  if(sessionStorage.getItem('ads_closed')==='1'||!activeAds.length){banner.classList.remove('show');clearInterval(adTimer);adTimer=null;return;}
+  const inRoom=!!(curRoom&&curRoom!=='onbot'&&curRoom!=='announce');
+  if(!inRoom||sessionStorage.getItem('ads_closed')==='1'||!activeAds.length){banner.classList.remove('show');clearInterval(adTimer);adTimer=null;return;}
   const ad=activeAds[adIndex%activeAds.length];
   banner.dataset.adId=ad.id;
   const link=document.getElementById('ad-link'),text=document.getElementById('ad-text'),thumb=document.getElementById('ad-thumb'),cta=document.getElementById('ad-cta');
@@ -702,6 +763,23 @@ function renderAdBanner(){
   clearInterval(adTimer);
   if(activeAds.length>1)adTimer=setInterval(()=>{adIndex=(adIndex+1)%activeAds.length;renderAdBanner();},5000);
 }
+function renderHeroAd(){
+  const box=document.getElementById('empty-ad');
+  if(!box)return;
+  const onEmpty=!curRoom&&document.getElementById('chat-empty').style.display!=='none';
+  if(!onEmpty||!sess||!activeAds.length){box.classList.remove('show');clearInterval(heroAdTimer);heroAdTimer=null;return;}
+  const ad=activeAds[heroAdIndex%activeAds.length];
+  const link=document.getElementById('empty-ad-link'),img=document.getElementById('empty-ad-img'),text=document.getElementById('empty-ad-text'),cta=document.getElementById('empty-ad-cta');
+  text.textContent=ad.text||'창업 파트너 모집 중';
+  if(ad.imageData){img.src=ad.imageData;img.style.display='block';box.classList.remove('no-img');}else{img.removeAttribute('src');img.style.display='none';box.classList.add('no-img');}
+  link.href=ad.link||ad.ctaLink||'#';
+  if(ad.ctaLabel&&ad.ctaLink){cta.textContent=ad.ctaLabel;cta.classList.add('show');}else{cta.textContent='';cta.classList.remove('show');}
+  box.dataset.adId=ad.id;
+  box.classList.add('show');
+  trackAdView(ad.id);
+  clearInterval(heroAdTimer);
+  if(activeAds.length>1)heroAdTimer=setInterval(()=>{heroAdIndex=(heroAdIndex+1)%activeAds.length;renderHeroAd();},5000);
+}
 function trackAdView(id){
   if(!sess||!id||viewedAds.has(id))return;
   viewedAds.add(id);
@@ -709,6 +787,18 @@ function trackAdView(id){
 }
 window.handleAdClick=function(e,type){
   const ad=activeAds[adIndex%activeAds.length];
+  if(!ad)return;
+  if(type==='cta'){
+    e.preventDefault();
+    e.stopPropagation();
+    if(ad.ctaLink)window.open(ad.ctaLink,'_blank','noopener');
+  }else if(!(ad.link||ad.ctaLink)){
+    e.preventDefault();
+  }
+  if(sess)update(ref(db,`ads/${ad.id}`),{clicks:increment(1)}).catch(()=>{});
+};
+window.handleHeroAdClick=function(e,type){
+  const ad=activeAds[heroAdIndex%activeAds.length];
   if(!ad)return;
   if(type==='cta'){
     e.preventDefault();
@@ -871,6 +961,7 @@ window.openAnnouncements=function(){
   document.getElementById('secret-badge').classList.remove('show');
   document.getElementById('tb-logo').style.display='none';document.getElementById('tb-onbot-close').style.display='none';document.getElementById('tb-settings').style.display='none';document.getElementById('tb-search-btn').style.display='none';
   document.getElementById('chat-empty').style.display='none';document.getElementById('messages').style.display='flex';document.getElementById('messages').style.filter='';
+  renderHeroAd();renderAdBanner();
   document.getElementById('guest-wall').style.display='none';document.getElementById('typing-bar').classList.remove('show');
   document.getElementById('readonly-note').classList.toggle('show',!sess.isAdmin);
   document.getElementById('input-wrap').style.display=sess.isAdmin?'block':'none';
@@ -904,6 +995,7 @@ window.openRoom=async function(id){
   document.getElementById('tb-search-btn').style.display=sess?'flex':'none';
   document.getElementById('readonly-note').classList.remove('show');
   document.getElementById('chat-empty').style.display='none';document.getElementById('messages').style.display='flex';
+  renderHeroAd();renderAdBanner();
   document.getElementById('tool-row').style.display='flex';
   document.querySelector('.emoji-row').style.display='';
   document.getElementById('m-inp').placeholder='메시지를 입력하세요...';
@@ -1020,6 +1112,7 @@ window.openOnbot=function(opts={}){
   document.getElementById('tb-info').style.display='block';document.getElementById('tb-name').textContent='온봇';document.getElementById('tb-sub').textContent='● 온메신저 도우미';
   document.getElementById('tb-logo').style.display='none';document.getElementById('tb-onbot-close').style.display='flex';document.getElementById('tb-settings').style.display='none';document.getElementById('tb-search-btn').style.display='none';
   document.getElementById('chat-empty').style.display='none';document.getElementById('messages').style.display='flex';document.getElementById('messages').style.filter='';
+  renderHeroAd();renderAdBanner();
   document.getElementById('guest-wall').style.display='none';document.getElementById('typing-bar').classList.remove('show');
   document.getElementById('readonly-note').classList.remove('show');
   document.getElementById('input-wrap').style.display='block';document.getElementById('tool-row').style.display='none';document.getElementById('link-row').classList.remove('show');
@@ -1039,6 +1132,7 @@ window.closeOnbot=function(){
   document.getElementById('messages').style.filter='';
   document.getElementById('input-wrap').style.display='none';
   document.getElementById('chat-empty').style.display='flex';
+  renderHeroAd();renderAdBanner();
   document.getElementById('guest-wall').style.display='none';
   document.getElementById('typing-bar').classList.remove('show');
   document.getElementById('search-bar').classList.remove('show');
@@ -1207,6 +1301,7 @@ window.closeRoomByModeration=async function(){
   document.getElementById('secret-badge').classList.remove('show');
   document.getElementById('tb-settings').style.display='none';
   document.getElementById('tb-search-btn').style.display='none';
+  renderHeroAd();renderAdBanner();
   renderRooms();
   showToast('🚫 채팅방을 폐쇄했습니다','ok');
 };
@@ -1406,7 +1501,7 @@ window.toggleInviteMembers=function(){const box=document.getElementById('rs-invi
 window.renderInviteMembers=function(filter=''){const room=(window._rooms||[]).find(r=>r.id===curRoom);const list=document.getElementById('rs-invite-list');if(!room||!list)return;const memberSet=new Set(Object.keys(room.members||{}));let users=Object.entries(allUsers).filter(([uid,u])=>!memberSet.has(uid)&&!u.disabled).map(([uid,u])=>({uid,name:u.displayName||uid,email:u.email||'',online:u.online||false,color:u.avatarColor||avatarColor(u.displayName||uid),invitedBy:u.invitedBy||''}));if(!sess?.isAdmin&&!filter)users=users.filter(u=>u.invitedBy===sess?.uid);if(filter){const q=filter.toLowerCase();users=users.filter(u=>u.name.toLowerCase().includes(q)||u.email.toLowerCase().includes(q));}if(!users.length){list.innerHTML='<div class="no-m">초대할 수 있는 회원이 없습니다</div>';return;}list.innerHTML=users.map(u=>`<div class="m-item" onclick="inviteMember('${u.uid}')"><div class="m-av" style="background:${u.color}">${u.name[0].toUpperCase()}</div><div style="flex:1;min-width:0;"><div class="m-nm">${esc(u.name)}</div><div class="m-em">${esc(u.email)}</div></div>${u.online?'<div class="m-online"></div>':''}<div class="m-check">＋</div></div>`).join('');};
 window.inviteMember=async function(uid){if(!curRoom||!sess)return;const room=(window._rooms||[]).find(r=>r.id===curRoom);if(!room||room.type!=='group')return;if(!(sess.isAdmin||room.createdBy===sess.uid)){showToast('초대 권한이 없습니다','warn');return;}const u=allUsers[uid];const name=u?.displayName||uid;await set(ref(db,`rooms/${curRoom}/members/${uid}`),true);room.members={...(room.members||{}),[uid]:true};await set(push(ref(db,`messages/${curRoom}`)),{uid:'system',displayName:'system',text:`${name}님이 초대되었습니다`,type:'system',at:Date.now()});await update(ref(db),{[`rooms/${curRoom}/lastMsg`]:`${name}님이 초대되었습니다`,[`rooms/${curRoom}/lastAt`]:Date.now()});showToast(`＋ ${name}님을 초대했습니다`,'ok');renderInviteMembers(document.getElementById('rs-invite-search').value);};
 window.kickMember=async function(uid,name){if(!curRoom||!sess)return;await remove(ref(db,`rooms/${curRoom}/members/${uid}`));await set(push(ref(db,`messages/${curRoom}`)),{uid:'system',displayName:'system',text:`${name}님이 내보내졌습니다`,type:'system',at:Date.now()});closeRoomSettings();openRoom(curRoom);showToast(`👋 ${name}님을 내보냈습니다`,'ok');};
-window.doDeleteRoom=async function(){if(!curRoom||!sess)return;await remove(ref(db,`rooms/${curRoom}`));await remove(ref(db,`messages/${curRoom}`));await remove(ref(db,`typing/${curRoom}`));curRoom=null;closeRoomSettings();document.getElementById('messages').style.display='none';document.getElementById('input-wrap').style.display='none';document.getElementById('chat-empty').style.display='flex';document.getElementById('tb-logo').style.display='';document.getElementById('tb-av').style.display='none';document.getElementById('tb-info').style.display='none';document.getElementById('secret-badge').classList.remove('show');document.getElementById('tb-onbot-close').style.display='none';document.getElementById('tb-settings').style.display='none';document.getElementById('tb-search-btn').style.display='none';renderRooms();showToast('🗑️ 채팅방이 삭제됐습니다','ok');};
+window.doDeleteRoom=async function(){if(!curRoom||!sess)return;await remove(ref(db,`rooms/${curRoom}`));await remove(ref(db,`messages/${curRoom}`));await remove(ref(db,`typing/${curRoom}`));curRoom=null;closeRoomSettings();document.getElementById('messages').style.display='none';document.getElementById('input-wrap').style.display='none';document.getElementById('chat-empty').style.display='flex';document.getElementById('tb-logo').style.display='';document.getElementById('tb-av').style.display='none';document.getElementById('tb-info').style.display='none';document.getElementById('secret-badge').classList.remove('show');document.getElementById('tb-onbot-close').style.display='none';document.getElementById('tb-settings').style.display='none';document.getElementById('tb-search-btn').style.display='none';renderHeroAd();renderAdBanner();renderRooms();showToast('🗑️ 채팅방이 삭제됐습니다','ok');};
 window.openSchedule=function(){if(!curRoom||!sess){showToast('채팅방을 먼저 선택하세요','warn');return;}document.getElementById('sch-date').value=new Date().toISOString().split('T')[0];['sch-title','sch-time','sch-place','sch-memo'].forEach(id=>document.getElementById(id).value='');document.getElementById('sch-overlay').classList.add('show');};
 window.closeSchedule=()=>document.getElementById('sch-overlay').classList.remove('show');
 window.sendSchedule=async function(){if(isSecretWatch(currentRoom())){showToast('시크릿 관전 중에는 일정을 보낼 수 없습니다','warn');return;}if(blockIfMuted())return;const title=document.getElementById('sch-title').value.trim(),date=document.getElementById('sch-date').value;if(!title){showToast('일정 제목을 입력하세요','warn');return;}if(!date){showToast('날짜를 선택하세요','warn');return;}await set(push(ref(db,`messages/${curRoom}`)),{uid:sess.uid,displayName:sess.name,type:'schedule',scheduleTitle:title,scheduleDate:date,scheduleTime:document.getElementById('sch-time').value,schedulePlace:document.getElementById('sch-place').value.trim(),scheduleMemo:document.getElementById('sch-memo').value.trim(),at:Date.now()});await update(ref(db),{[`rooms/${curRoom}/lastMsg`]:'📅 '+title,[`rooms/${curRoom}/lastAt`]:Date.now()});closeSchedule();showToast('📅 일정이 공유됐습니다','ok');};
