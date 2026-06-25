@@ -718,8 +718,9 @@ initIntro();
 onAuthStateChanged(auth,async user=>{
   if(user){
     isGuest=false;sessionStorage.removeItem('tt_guest');
-    const snap=await get(ref(db,`users/${user.uid}`));const profile=snap.val()||{};
+    const snap=await get(ref(db,`users/${user.uid}`));let profile=snap.val()||{};
     if(profile.disabled){await signOut(auth);location.href='index.html';return;}
+    profile=await ensureUserProfile(user,profile);
     sess={uid:user.uid,name:profile.displayName||user.displayName||'사용자',email:user.email,isAdmin:user.email===ADMIN_EMAIL||profile.isAdmin===true,color:profile.avatarColor||avatarColor(profile.displayName||user.displayName||'?'),warnings:profile.warnings||0,mutedUntil:profile.mutedUntil||0};
     await set(ref(db,`users/${user.uid}/online`),true);
     onDisconnect(ref(db,`users/${user.uid}/online`)).set(false);
@@ -727,6 +728,22 @@ onAuthStateChanged(auth,async user=>{
     initUI();
   }else if(isGuest){initUI();}else{location.href='index.html';}
 });
+async function ensureUserProfile(user,profile){
+  const email=user.email||profile.email||'';
+  const fallback=(user.displayName||email.split('@')[0]||'사용자').trim().slice(0,50)||'사용자';
+  const updates={};
+  if(!profile.displayName||typeof profile.displayName!=='string'||!profile.displayName.trim())updates.displayName=fallback;
+  if(!profile.email&&email)updates.email=email;
+  if(!profile.joinedAt)updates.joinedAt=serverTimestamp();
+  if(profile.disabled!==true&&profile.disabled!==false)updates.disabled=false;
+  updates.online=true;
+  if(profile.isAdmin!==true&&profile.isAdmin!==false)updates.isAdmin=false;
+  if(Object.keys(updates).length){
+    await update(ref(db,`users/${user.uid}`),updates);
+    profile={...profile,...updates,displayName:updates.displayName||profile.displayName,email:updates.email||profile.email};
+  }
+  return profile;
+}
 function initUI(){
   document.getElementById('loading-overlay').classList.add('hide');
   if(sess){

@@ -464,7 +464,7 @@ window.doSignup = async function() {
       ...(urlRef ? { invitedBy: urlRef } : {})
     });
     showToast('🎉 가입 완료! 환영합니다', 'ok');
-    setTimeout(() => location.href='chat.html', 900);
+    location.href='chat.html';
   } catch(e) {
     signupInProgress = false;
     showLoading(false); btn.disabled = false; btn.textContent = '회원가입 완료';
