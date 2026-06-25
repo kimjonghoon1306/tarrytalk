@@ -528,6 +528,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
     <div style="flex:1;min-width:0;display:none;" id="tb-info"><div class="tb-name" id="tb-name"></div><div class="tb-sub" id="tb-sub"></div><div class="secret-badge" id="secret-badge">🔒 시크릿 모드 · 멤버에게 보이지 않음</div></div>
     <div id="tb-logo" style="flex:1;display:flex;align-items:center;gap:7px;font-size:15px;font-weight:900;"><svg viewBox="0 0 512 512" width="24" height="24" style="flex-shrink:0;" aria-hidden="true"><rect width="512" height="512" rx="120" fill="#7c3aed"/><path d="M120 168c0-39.8 32.2-72 72-72h128c39.8 0 72 32.2 72 72v96c0 39.8-32.2 72-72 72h-44l-58 64V336h-26c-39.8 0-72-32.2-72-72v-96z" fill="#fff"/><text x="256" y="250" font-family="Arial,sans-serif" font-size="118" font-weight="900" fill="#7c3aed" text-anchor="middle" dominant-baseline="middle" letter-spacing="2">ON</text></svg><span style="background:linear-gradient(135deg,var(--green),var(--green2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">온메신저</span></div>
     <div class="tb-acts">
+      <div class="ib" id="tb-home" style="display:none" onclick="goHome()" title="홈으로">🏠</div>
       <div class="ib" id="tb-onbot-close" style="display:none" onclick="closeOnbot()" title="온봇 닫기">✕</div>
       <div class="ib" id="tb-search-btn" style="display:none" onclick="toggleSearchBar()" title="검색">🔍</div>
       <div class="ib" id="tb-settings" style="display:none" onclick="openRoomSettings()" title="방 설정">⚙️</div>
@@ -537,7 +538,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
     <span class="ad-label">AD</span>
     <a class="ad-link" id="ad-link" href="#" target="_blank" rel="noopener" onclick="handleAdClick(event,'banner')">
       <img class="ad-thumb" id="ad-thumb" alt="광고 이미지" style="display:none">
-      <span class="ad-copy"><span class="ad-text" id="ad-text"></span><span class="ad-sub">창업 광고 · 온메신저</span></span>
+      <span class="ad-copy"><span class="ad-text" id="ad-text"></span><span class="ad-sub">추천 광고 · 온메신저</span></span>
     </a>
     <button class="ad-cta" id="ad-cta" onclick="handleAdClick(event,'cta')"></button>
     <button class="ad-close" onclick="closeAdBanner()" title="닫기">✕</button>
@@ -703,7 +704,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
           <div class="m-list" id="rs-invite-list" style="max-height:240px;margin-top:8px;border:1px solid var(--border);border-radius:13px;"></div>
         </div>
       </div>
-      <div class="rs-sec"><div class="rs-sec-title" style="color:var(--red)">위험 구역</div><button class="del-room-btn" onclick="doDeleteRoom()">🗑️ 채팅방 삭제</button></div>
+      <div class="rs-sec"><div class="rs-sec-title" style="color:var(--red)">위험 구역</div><button class="del-room-btn" id="rs-leave-btn" onclick="leaveRoom()" style="background:rgba(124,58,237,.1);color:var(--green);border-color:var(--border2);margin-bottom:8px;">🚪 채팅방 나가기</button><button class="del-room-btn" id="rs-delete-btn" onclick="doDeleteRoom()">🗑️ 채팅방 삭제</button></div>
     </div>
   </div>
 </div>
@@ -857,7 +858,7 @@ function renderAdBanner(){
   const ad=activeAds[adIndex%activeAds.length];
   banner.dataset.adId=ad.id;
   const link=document.getElementById('ad-link'),text=document.getElementById('ad-text'),thumb=document.getElementById('ad-thumb'),cta=document.getElementById('ad-cta');
-  text.textContent=ad.text||'창업 파트너 모집 중';
+  text.textContent=ad.text||'추천 광고';
   if(ad.imageData){thumb.src=ad.imageData;thumb.style.display='block';}else{thumb.removeAttribute('src');thumb.style.display='none';}
   link.href=ad.link||ad.ctaLink||'#';
   link.style.pointerEvents=(ad.link||ad.ctaLink)?'auto':'none';
@@ -876,7 +877,7 @@ function renderHeroAd(){
   const ad=activeAds[heroAdIndex%activeAds.length];
   const link=document.getElementById('empty-ad-link'),img=document.getElementById('empty-ad-img'),text=document.getElementById('empty-ad-text'),cta=document.getElementById('empty-ad-cta'),dots=document.getElementById('empty-ad-dots');
   box.classList.toggle('full-img',ad.fullImage===true);
-  text.textContent=ad.text||'창업 파트너 모집 중';
+  text.textContent=ad.text||'추천 광고';
   if(ad.imageData){img.src=ad.imageData;img.style.display='block';box.classList.remove('no-img');}else{img.removeAttribute('src');img.style.display='none';box.classList.add('no-img');}
   link.href=ad.link||ad.ctaLink||'#';
   if(ad.ctaLabel&&ad.ctaLink){cta.textContent=(ad.ctaLabel||'자세히 보기')+' →';cta.classList.add('show');}else if(ad.link){cta.textContent='자세히 보기 →';cta.classList.add('show');}else{cta.textContent='';cta.classList.remove('show');}
@@ -1204,7 +1205,8 @@ window.openRoom=async function(id){
   document.getElementById('tb-logo').style.display='none';
   const isCreator=sess&&(room.createdBy===sess.uid||sess.isAdmin);
   document.getElementById('tb-onbot-close').style.display='none';
-  document.getElementById('tb-settings').style.display=isCreator?'flex':'none';
+  document.getElementById('tb-home').style.display='flex';
+  document.getElementById('tb-settings').style.display=(sess&&(isCreator||room.members?.[sess.uid]))?'flex':'none';
   document.getElementById('tb-search-btn').style.display=sess?'flex':'none';
   document.getElementById('readonly-note').classList.remove('show');
   document.getElementById('chat-empty').style.display='none';document.getElementById('messages').style.display='flex';
@@ -1529,6 +1531,31 @@ window.openOnbot=function(opts={}){
     onbotMessages.push(onbotMsg(welcomeData.text));
   }
   renderOnbot();renderRooms(document.getElementById('search-inp')?.value||'');closeSb();document.getElementById('m-inp').focus();
+};
+window.goHome=function(){
+  if(_msgUnsub){_msgUnsub();_msgUnsub=null;}
+  if(_typingUnsub){_typingUnsub();_typingUnsub=null;}
+  curRoom=null;clearReply();
+  document.getElementById('messages').innerHTML='';
+  document.getElementById('messages').style.display='none';
+  document.getElementById('messages').style.filter='';
+  hidePinnedBanner();
+  document.getElementById('input-wrap').style.display='none';
+  document.getElementById('chat-empty').style.display='flex';
+  renderHeroAd();renderAdBanner();
+  document.getElementById('guest-wall').style.display='none';
+  document.getElementById('typing-bar').classList.remove('show');
+  document.getElementById('search-bar').classList.remove('show');
+  document.getElementById('readonly-note')?.classList.remove('show');
+  document.getElementById('tb-logo').style.display='';
+  document.getElementById('tb-av').style.display='none';
+  document.getElementById('tb-info').style.display='none';
+  document.getElementById('secret-badge')?.classList.remove('show');
+  document.getElementById('tb-home').style.display='none';
+  document.getElementById('tb-onbot-close').style.display='none';
+  document.getElementById('tb-settings').style.display='none';
+  document.getElementById('tb-search-btn').style.display='none';
+  renderRooms(document.getElementById('search-inp')?.value||'');
 };
 window.closeOnbot=function(){
   if(curRoom!=='onbot')return;
@@ -1979,7 +2006,21 @@ window.openRoomSettings=function(){
   document.getElementById('rs-invite-box').style.display='none';
   document.getElementById('rs-invite-search').value='';
   document.getElementById('rs-invite-list').innerHTML='';
+  // 삭제는 방장·관리자만, 나가기는 멤버 모두. 1:1방은 나가기 숨김(삭제로)
+  const canManage=sess&&(sess.isAdmin||room.createdBy===sess.uid);
+  const isMember=sess&&room.members?.[sess.uid];
+  document.getElementById('rs-delete-btn').style.display=canManage?'':'none';
+  document.getElementById('rs-leave-btn').style.display=(isMember&&room.type==='group')?'':'none';
   document.getElementById('rs-overlay').classList.add('show');
+};
+window.leaveRoom=async function(){
+  if(!curRoom||!sess)return;
+  const room=(window._rooms||[]).find(r=>r.id===curRoom);if(!room)return;
+  if(!confirm('이 채팅방에서 나가시겠어요? 다시 초대받아야 들어올 수 있어요.'))return;
+  await remove(ref(db,`rooms/${curRoom}/members/${sess.uid}`));
+  await remove(ref(db,`rooms/${curRoom}/unread/${sess.uid}`)).catch(()=>{});
+  await set(push(ref(db,`messages/${curRoom}`)),{uid:'system',displayName:'system',text:`${sess.name}님이 나갔습니다`,type:'system',at:Date.now()});
+  closeRoomSettings();goHome();showToast('채팅방에서 나왔습니다','ok');
 };
 window.closeRoomSettings=()=>document.getElementById('rs-overlay').classList.remove('show');
 window.rsOutside=e=>{if(e.target.classList.contains('rs-overlay'))closeRoomSettings();};
