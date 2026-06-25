@@ -197,6 +197,15 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .reply-preview{background:var(--surface2);border-left:2px solid var(--green);border-radius:8px 8px 0 0;padding:6px 10px;font-size:11px;color:var(--text3);margin-bottom:-4px;}
 .reply-preview strong{color:var(--green);font-size:11px;display:block;margin-bottom:1px;}
 .bubble{padding:10px 13px;border-radius:18px;font-size:14px;line-height:1.65;word-break:break-word;}
+.bubble a{color:inherit;text-decoration:underline;font-weight:700;}
+.link-preview{margin-top:5px;max-width:260px;}
+.lp-link{display:block;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--bg2);text-decoration:none;color:var(--text);transition:all .15s;}
+.lp-link:hover{border-color:var(--border2);box-shadow:0 6px 18px var(--glow);}
+.lp-img{width:100%;height:130px;background-size:cover;background-position:center;background-color:var(--surface2);}
+.lp-body{padding:9px 11px;}
+.lp-title{font-size:13px;font-weight:800;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.lp-desc{font-size:11px;color:var(--text2);margin-top:3px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.lp-site{font-size:10px;color:var(--text3);margin-top:5px;font-weight:700;}
 .mg.out .bubble{background:var(--out-bubble);color:#fff;border-bottom-right-radius:5px;box-shadow:0 2px 10px rgba(124,58,237,.25);}
 .mg:not(.out) .bubble{background:var(--in-bubble);color:var(--text);border-bottom-left-radius:5px;border:1px solid var(--border);}
 .bubble a{color:var(--green);}
@@ -1281,6 +1290,25 @@ function renderMessages(msgs){
     el.appendChild(buildMsg(m,msgs[i-1]));
   });
   if(wasAtBottom)scrollToBottom();
+  loadLinkPreviews();
+}
+const _ogCache={};
+function extractFirstUrl(text){
+  const m=String(text||'').match(/(https?:\/\/[^\s<]+|www\.[^\s<]+|[a-zA-Z0-9가-힣][a-zA-Z0-9가-힣-]*\.(?:com|net|org|kr|io|app|co\.kr|온종일\.com)(?:\/[^\s<]*)?)/);
+  if(!m)return '';
+  let u=m[0];if(!/^https?:\/\//i.test(u))u='https://'+u;return u;
+}
+async function loadLinkPreviews(){
+  document.querySelectorAll('.link-preview:not([data-done])').forEach(async box=>{
+    box.setAttribute('data-done','1');
+    const url=box.getAttribute('data-url');if(!url)return;
+    try{
+      let og=_ogCache[url];
+      if(!og){const r=await fetch('/api/og?url='+encodeURIComponent(url));og=await r.json();_ogCache[url]=og;}
+      if(!og||!og.ok||(!og.title&&!og.image)){box.style.display='none';return;}
+      box.innerHTML=`<a href="${esc(url)}" target="_blank" rel="noopener" class="lp-link">${og.image?`<div class="lp-img" style="background-image:url('${esc(og.image)}')"></div>`:''}<div class="lp-body"><div class="lp-title">${esc(og.title||url)}</div>${og.description?`<div class="lp-desc">${esc(og.description)}</div>`:''}<div class="lp-site">🔗 ${esc(og.siteName||new URL(url).hostname)}</div></div></a>`;
+    }catch(e){box.style.display='none';}
+  });
 }
 function buildMsg(m,prev){
   const mine=sess&&m.uid===sess.uid;
@@ -1302,7 +1330,7 @@ function buildMsg(m,prev){
   else if(m.type==='document'){const icons={pdf:'📄',doc:'📝',docx:'📝',ppt:'📊',pptx:'📊',xls:'📗',xlsx:'📗',zip:'🗜️',hwp:'📄',txt:'📃'};const ext=(m.fileName||'').split('.').pop().toLowerCase();content=`<div class="file-card"><div class="file-card-body"><div class="file-icon">${icons[ext]||'📎'}</div><div class="file-info"><div class="file-name">${esc(m.fileName||'파일')}</div><div class="file-size">${m.fileSize||''}</div></div><a class="file-dl" href="${esc(m.data)}" download="${m.fileName||'file'}">받기</a></div>${mediaNote}</div>`;}
   else if(m.type==='video'){content=`<div class="file-card"><video controls src="${esc(m.data)}" style="max-height:200px;width:100%;"></video><div class="file-card-body"><div class="file-icon">🎥</div><div class="file-info"><div class="file-name">${esc(m.fileName||'영상')}</div><div class="file-size">${m.fileSize||''}</div></div><a class="file-dl" href="${esc(m.data)}" download="${esc(m.fileName||'video.mp4')}" onclick="event.stopPropagation()">받기</a></div>${mediaNote}</div>`;}
   else if(m.type==='schedule'){const ds=new Date(m.scheduleDate).toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});content=`<div class="schedule-card" onclick="openScheduleView('${m.id}')" style="cursor:pointer;"><div class="sch-head"><div class="sch-date">📅 ${ds}${m.scheduleTime?' · '+m.scheduleTime:''}</div><div class="sch-title">${esc(m.scheduleTitle)}</div></div><div class="sch-body">${m.schedulePlace?`<div class="sch-row"><span>📍</span><span>${esc(m.schedulePlace)}</span></div>`:''}${m.scheduleMemo?`<div class="sch-row"><span>📝</span><span>${esc(m.scheduleMemo)}</span></div>`:''}<div class="sch-more">탭하여 크게 보기 →</div></div></div>`;}
-  else{const txt=linkify(esc(m.text)).replace(/\n/g,'<br>');content=`<div class="bubble">${txt}</div>`;}
+  else{const txt=linkify(esc(m.text)).replace(/\n/g,'<br>');const firstUrl=extractFirstUrl(m.text||'');content=`<div class="bubble">${txt}</div>${firstUrl?`<div class="link-preview" data-url="${esc(firstUrl)}"></div>`:''}`;}
   const reactions=m.reactions?Object.entries(m.reactions).reduce((acc,[emoji,users])=>{const uids=Object.keys(users||{});if(uids.length)acc.push({emoji,count:uids.length,mine:sess&&uids.includes(sess.uid)});return acc;},[]):[];
   const reactionsHtml=reactions.length?`<div class="reactions">${reactions.map(r=>`<div class="reaction${r.mine?' mine':''}" onclick="toggleReaction('${m.id}','${r.emoji}')"><span>${r.emoji}</span><span class="cnt">${r.count}</span></div>`).join('')}</div>`:'';
   const replyHtml=m.replyTo?`<div class="reply-preview"><strong>${esc(m.replyTo.name)}</strong>${esc((m.replyTo.text||'미디어').substring(0,40))}</div>`:'';
