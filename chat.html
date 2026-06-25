@@ -522,6 +522,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
   <div id="sp-chat" style="display:flex;flex-direction:column;flex:1;min-height:0;">
     <button class="new-btn" id="new-btn" onclick="openModal()">✏️ 새로운 채팅 시작</button>
     <div class="how-to-banner" onclick="openGuide()">❓ 채팅 사용방법 안내</div>
+    <div class="how-to-banner" id="notify-banner" onclick="openNotifyGuide()" style="background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;border:none;">🔔 <span id="notify-banner-txt">알림 켜기</span></div>
     <div class="sb-search"><input type="text" placeholder="채팅방 검색..." oninput="filterRooms(this.value)" id="search-inp"></div>
     <div class="sb-tabs"><div class="sbt on" id="tab-g" onclick="setTab('group')">단체채팅</div><div class="sbt" id="tab-d" onclick="setTab('dm')">1대1 채팅</div></div>
     <div class="room-list" id="room-list"></div>
@@ -645,6 +646,26 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
   <div class="rp-emoji" onclick="addReaction('👍')">👍</div><div class="rp-emoji" onclick="addReaction('❤️')">❤️</div><div class="rp-emoji" onclick="addReaction('😂')">😂</div><div class="rp-emoji" onclick="addReaction('😮')">😮</div><div class="rp-emoji" onclick="addReaction('😢')">😢</div><div class="rp-emoji" onclick="addReaction('🔥')">🔥</div><div class="rp-emoji" onclick="addReaction('🎉')">🎉</div>
 </div>
 <div class="msg-menu" id="msg-menu"></div>
+<div class="popup-overlay" id="notify-overlay" onclick="if(event.target.id==='notify-overlay')closeNotifyGuide()">
+  <div class="popup-card" style="max-width:380px;">
+    <div class="popup-head"><div class="popup-ico">🔔</div><div class="popup-title">알림 켜기 (카톡처럼 받기)</div></div>
+    <div class="popup-body" style="font-size:13px;line-height:1.7;">
+      <div id="notify-status" style="font-weight:800;margin-bottom:12px;padding:9px 12px;border-radius:10px;background:var(--surface);"></div>
+      <b style="color:var(--green)">📱 갤럭시(안드로이드) 설정 — 꼭 필요</b><br>
+      ① 삼성인터넷/크롬 우측 <b>메뉴(⋮)</b> → <b>"홈 화면에 추가"</b><br>
+      ② 홈 화면의 <b>온메신저 앱 아이콘</b>으로 열기 (브라우저 탭❌)<br>
+      ③ 로그인 후 <b>"알림 허용"</b> 누르기<br>
+      ④ 폰 <b>설정 → 앱 → 온메신저 → 배터리 → "제한 없음"</b><br>
+      <span style="color:var(--text3)">(④를 안 하면 갤럭시 절전이 알림을 늦추거나 막아요)</span><br><br>
+      <b style="color:var(--green)">💻 PC(맥/크롬)</b><br>
+      아래 버튼 누르고 <b>"허용"</b> → 브라우저 탭 열려있을 때 알림+소리<br>
+    </div>
+    <div class="popup-foot" style="flex-direction:column;gap:8px;">
+      <button class="popup-close" style="width:100%;" onclick="requestNotifyPermission()">🔔 이 기기에서 알림 켜기</button>
+      <button class="popup-close" style="width:100%;background:var(--surface);color:var(--text2);" onclick="closeNotifyGuide()">닫기</button>
+    </div>
+  </div>
+</div>
 <div class="popup-overlay" id="usercard-overlay" onclick="if(event.target.id==='usercard-overlay')closeUserCard()">
   <div class="popup-card" style="max-width:330px;text-align:center;">
     <div style="padding:26px 22px 8px;">
@@ -846,6 +867,7 @@ async function ensureUserProfile(user,profile){
 }
 function initUI(){
   document.getElementById('loading-overlay').classList.add('hide');
+  try{updateNotifyBanner();}catch(e){}
   if(sess){
     const av=document.getElementById('uc-av');av.textContent=sess.name[0].toUpperCase();av.style.background=sess.color;
     document.getElementById('uc-name').textContent=sess.name;
@@ -1023,6 +1045,32 @@ function playNotifySound(){
       o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+0.08);
     });
   }catch(e){}
+}
+window.openNotifyGuide=function(){
+  const st=document.getElementById('notify-status');
+  const perm=('Notification'in window)?Notification.permission:'unsupported';
+  if(perm==='granted')st.innerHTML='✅ 이 기기는 알림이 <b>켜져 있어요</b>.';
+  else if(perm==='denied')st.innerHTML='⛔ 알림이 <b>차단</b>됨. 브라우저 주소창 자물쇠 → 알림 → 허용으로 바꿔주세요.';
+  else if(perm==='unsupported')st.innerHTML='⚠️ 이 브라우저는 알림 미지원. 크롬/삼성인터넷을 쓰세요.';
+  else st.innerHTML='🔔 아직 알림이 꺼져 있어요. 아래 버튼을 눌러 켜세요.';
+  document.getElementById('notify-overlay').classList.add('show');
+};
+window.closeNotifyGuide=function(){document.getElementById('notify-overlay').classList.remove('show');};
+window.requestNotifyPermission=async function(){
+  if(!('Notification'in window)){showToast('이 브라우저는 알림을 지원하지 않아요','warn');return;}
+  try{
+    const p=await Notification.requestPermission();
+    if(p==='granted'){showToast('🔔 알림이 켜졌어요!','ok');pushReady=false;await initPushNotifications();updateNotifyBanner();closeNotifyGuide();}
+    else if(p==='denied')showToast('알림이 차단됐어요. 브라우저 설정에서 허용해주세요','warn');
+    else showToast('알림을 켜려면 허용을 눌러주세요','info');
+  }catch(e){showToast('알림 설정 실패: '+e.message,'warn');}
+};
+function updateNotifyBanner(){
+  const b=document.getElementById('notify-banner'),t=document.getElementById('notify-banner-txt');
+  if(!b||!t)return;
+  const perm=('Notification'in window)?Notification.permission:'unsupported';
+  if(perm==='granted'){t.textContent='알림 켜짐 ✓';b.style.opacity='.75';}
+  else{t.textContent='알림 켜기';b.style.opacity='1';}
 }
 async function initPushNotifications(){
   if(pushReady||!sess||isGuest)return;
