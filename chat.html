@@ -955,6 +955,21 @@ function roomTitle(room){
   if(peer?.profile?.displayName)return peer.profile.displayName;
   return '1대1 채팅';
 }
+let _audioCtx=null;
+function playNotifySound(){
+  try{
+    _audioCtx=_audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+    const ctx=_audioCtx;if(ctx.state==='suspended')ctx.resume();
+    const now=ctx.currentTime;
+    [880,1175].forEach((freq,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.type='sine';o.frequency.value=freq;
+      const t=now+i*0.13;
+      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.18,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+0.18);
+      o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+0.2);
+    });
+  }catch(e){}
+}
 async function initPushNotifications(){
   if(pushReady||!sess||isGuest)return;
   if(!('Notification'in window)||!('serviceWorker'in navigator))return;
@@ -973,6 +988,14 @@ async function initPushNotifications(){
       const title=n.title||payload.data?.title||'새 알림';
       const body=n.body||payload.data?.body||'온메신저 알림이 도착했습니다';
       showToast(`${title} · ${body}`,'info');
+      playNotifySound();
+      // PC/웹 열려있을 때도 데스크탑 알림 표시
+      try{
+        const url=payload.data?.url||payload.fcmOptions?.link||'chat.html';
+        if(document.visibilityState!=='visible'&&Notification.permission==='granted'){
+          new Notification(title,{body,icon:'/icon-192.png',badge:'/icon-192.png'}).onclick=()=>{window.focus();if(url)location.href=url;};
+        }
+      }catch(e){}
     });
     pushReady=true;
   }

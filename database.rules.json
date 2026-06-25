@@ -53,8 +53,8 @@
         /* 방 읽기: 멤버이거나 관리자 */
         ".read": "auth != null && (data.child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')",
 
-        /* 방 생성: 로그인한 사용자 */
-        ".write": "auth != null",
+        /* 방 생성은 로그인 사용자, 방 전체 삭제는 방장/관리자 */
+        ".write": "auth != null && ((!data.exists() && newData.exists()) || (!newData.exists() && (data.child('createdBy').val() === auth.uid || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')))",
 
         /* 멤버 관리 */
         "members": {
@@ -69,6 +69,11 @@
           "$uid": {
             ".write": "auth != null"
           }
+        },
+
+        /* 고정 공지: 방장 또는 관리자만 */
+        "pinned": {
+          ".write": "auth != null && (root.child('rooms').child($roomId).child('createdBy').val() === auth.uid || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')"
         },
 
         /* lastMsg, lastAt: 멤버 모두 가능 */
