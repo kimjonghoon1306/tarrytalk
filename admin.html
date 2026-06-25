@@ -371,7 +371,10 @@ tr:hover td{background:rgba(124,58,237,.04);}
     <div class="card">
       <div class="card-head">
         <div class="card-title">전체 회원 목록</div>
-        <span class="card-action" onclick="openAddModal()">+ 사용자 추가</span>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span class="card-action" onclick="openAddModal()">+ 사용자 추가</span>
+          <button class="small-btn on" onclick="openCreateGroup()">＋ 단톡방 만들기</button>
+        </div>
       </div>
       <div class="tbl-wrap"><table>
         <thead><tr><th>회원</th><th>가입일</th><th>구분</th><th>관리</th></tr></thead>
@@ -385,10 +388,7 @@ tr:hover td{background:rgba(124,58,237,.04);}
     <div class="card">
       <div class="card-head">
         <div class="card-title">전체 채팅방</div>
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-          <span class="card-action" id="room-count-lbl">0개</span>
-          <button class="small-btn on" onclick="openCreateGroup()">＋ 단톡방 만들기</button>
-        </div>
+        <span class="card-action" id="room-count-lbl">0개</span>
       </div>
       <div id="rooms-list-el"><div class="empty-tbl">채팅방이 없습니다</div></div>
     </div>
