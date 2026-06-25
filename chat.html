@@ -150,8 +150,8 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;}input,textar
 .chk-read{color:var(--blue);}
 .mg-actions{position:absolute;display:none;gap:3px;z-index:10;}
 .mg:hover .mg-actions{display:flex;}
-.mg:not(.out) .mg-actions{right:-76px;bottom:4px;}
-.mg.out .mg-actions{left:-76px;bottom:4px;}
+.mg:not(.out) .mg-actions{right:-108px;bottom:4px;}
+.mg.out .mg-actions{left:-108px;bottom:4px;}
 .ma-btn{width:26px;height:26px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;transition:all .15s;}
 .ma-btn:hover{background:var(--surface);border-color:var(--border2);}
 .img-bub{max-width:220px;border-radius:14px;overflow:hidden;border:1px solid var(--border);cursor:pointer;background:var(--surface);}
@@ -177,6 +177,8 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;}input,textar
 .sch-row{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2);}
 .typing-bar{padding:6px 14px;font-size:11px;color:var(--text3);display:none;align-items:center;gap:8px;min-height:26px;}
 .typing-bar.show{display:flex;}
+.secret-badge{display:none;margin-top:4px;width:max-content;max-width:100%;padding:3px 9px;border-radius:50px;background:rgba(124,58,237,.12);border:1px solid var(--border2);color:var(--green);font-size:10px;font-weight:900;white-space:nowrap;}
+.secret-badge.show{display:block;}
 .typing-dots{display:flex;gap:3px;align-items:center;}
 .typing-dots span{width:5px;height:5px;border-radius:50%;background:var(--text3);animation:typingPulse 1.2s ease-in-out infinite;}
 .typing-dots span:nth-child(2){animation-delay:.2s;}
@@ -195,6 +197,8 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;}input,textar
 
 /* INPUT */
 .input-wrap{border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0;}
+.mute-notice{display:none;margin:8px 12px 0;padding:9px 12px;border-radius:12px;border:1px solid rgba(255,79,106,.22);background:var(--red-bg);color:var(--red);font-size:12px;font-weight:800;line-height:1.5;}
+.mute-notice.show{display:block;}
 .reply-bar{display:none;align-items:center;gap:8px;padding:7px 14px;background:var(--surface);border-bottom:1px solid var(--border);}
 .reply-bar.show{display:flex;}
 .reply-bar-txt{flex:1;font-size:12px;color:var(--text2);}
@@ -336,6 +340,14 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;}input,textar
 .ex-btns{display:flex;gap:8px;margin-top:18px;}
 .ex-go{flex:1;padding:11px;background:linear-gradient(135deg,var(--green),var(--green2));border:none;border-radius:11px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;}
 .ex-no{flex:1;padding:11px;background:var(--surface);border:1px solid var(--border);border-radius:11px;color:var(--text2);font-size:13px;font-weight:700;cursor:pointer;}
+.sanction-modal{background:var(--bg3);border:1px solid var(--border);border-radius:22px;width:340px;max-width:92vw;padding:22px;animation:shUp .3s cubic-bezier(.16,1,.3,1);}
+.sanction-title{font-size:17px;font-weight:900;margin-bottom:6px;}
+.sanction-sub{font-size:12px;color:var(--text3);line-height:1.6;margin-bottom:16px;}
+.sanction-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.sanction-btn{padding:12px 10px;border-radius:12px;background:var(--surface);border:1px solid var(--border);color:var(--text2);font-size:13px;font-weight:800;cursor:pointer;transition:all .15s;}
+.sanction-btn:hover{border-color:var(--border2);color:var(--green);}
+.sanction-btn.danger{color:var(--red);background:var(--red-bg);border-color:rgba(255,79,106,.22);}
+.sanction-btn.full{grid-column:1/-1;}
 .loading-overlay{position:fixed;inset:0;background:rgba(26,22,34,.96);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;}
 .loading-overlay.hide{display:none;}
 .spinner{width:32px;height:32px;border:3px solid rgba(124,58,237,.15);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;}
@@ -398,7 +410,7 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;}input,textar
   <div class="topbar">
     <button class="menu-btn" onclick="openSb()">☰</button>
     <div class="tb-av" id="tb-av" style="display:none">💬</div>
-    <div style="flex:1;min-width:0;display:none;" id="tb-info"><div class="tb-name" id="tb-name"></div><div class="tb-sub" id="tb-sub"></div></div>
+    <div style="flex:1;min-width:0;display:none;" id="tb-info"><div class="tb-name" id="tb-name"></div><div class="tb-sub" id="tb-sub"></div><div class="secret-badge" id="secret-badge">🔒 시크릿 모드 · 멤버에게 보이지 않음</div></div>
     <div id="tb-logo" style="flex:1;font-size:15px;font-weight:900;background:linear-gradient(135deg,var(--green),var(--green2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">💬 온메신저</div>
     <div class="tb-acts">
       <div class="ib" id="tb-onbot-close" style="display:none" onclick="closeOnbot()" title="온봇 닫기">✕</div>
@@ -435,6 +447,7 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;}input,textar
     <div class="guest-wall" id="guest-wall" style="display:none;"><div class="gw-box"><div style="font-size:40px;margin-bottom:12px;">🔒</div><h3>로그인이 필요합니다</h3><p>채팅 내용을 보고 참여하려면<br>로그인하거나 회원가입하세요</p><button class="gw-login" onclick="location.href='index.html'">로그인 / 회원가입</button></div></div>
   </div>
   <div class="input-wrap" id="input-wrap" style="display:none;">
+    <div class="mute-notice" id="mute-notice"></div>
     <div class="reply-bar" id="reply-bar"><div style="font-size:14px;color:var(--green);">↩</div><div class="reply-bar-txt"><strong id="reply-sender"></strong><span id="reply-text"></span></div><button class="reply-bar-x" onclick="clearReply()">✕</button></div>
     <div class="emoji-row">
       <div class="ep" onclick="addEmoji('😄')">😄</div><div class="ep" onclick="addEmoji('👍')">👍</div><div class="ep" onclick="addEmoji('🎉')">🎉</div><div class="ep" onclick="addEmoji('🔥')">🔥</div><div class="ep" onclick="addEmoji('❤️')">❤️</div><div class="ep" onclick="addEmoji('😂')">😂</div><div class="ep" onclick="addEmoji('🙏')">🙏</div><div class="ep" onclick="addEmoji('✅')">✅</div><div class="ep" onclick="addEmoji('💡')">💡</div><div class="ep" onclick="addEmoji('🚀')">🚀</div><div class="ep" onclick="addEmoji('😎')">😎</div><div class="ep" onclick="addEmoji('👏')">👏</div>
@@ -481,6 +494,24 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;}input,textar
 
 <!-- 중복방 -->
 <div class="overlay" id="exist-ov"><div class="exist-modal"><div style="font-size:38px;margin-bottom:10px;">💬</div><div style="font-size:16px;font-weight:800;margin-bottom:7px;">이미 채팅방이 있어요!</div><div style="font-size:13px;color:var(--text2);line-height:1.6;" id="ex-desc"></div><div class="ex-btns"><button class="ex-go" onclick="goExist()">바로 이동</button><button class="ex-no" onclick="closeExist()">닫기</button></div></div></div>
+
+<!-- 제재 모달 -->
+<div class="overlay" id="sanction-overlay" onclick="if(event.target.id==='sanction-overlay')closeSanction()">
+  <div class="sanction-modal">
+    <div class="sanction-title" id="sanction-title">회원 제재</div>
+    <div class="sanction-sub" id="sanction-sub"></div>
+    <div class="sanction-grid">
+      <button class="sanction-btn" onclick="warnMember()">⚠️ 경고</button>
+      <button class="sanction-btn" onclick="muteMember(1)">🔇 1일 정지</button>
+      <button class="sanction-btn" onclick="muteMember(3)">🔇 3일 정지</button>
+      <button class="sanction-btn" onclick="muteMember(7)">🔇 7일 정지</button>
+      <button class="sanction-btn" onclick="unmuteMember()">▶️ 정지해제</button>
+      <button class="sanction-btn danger" onclick="disableMemberFromSanction()">⛔ 비활성화</button>
+      <button class="sanction-btn danger full" onclick="closeRoomByModeration()">🚫 현재 방 폐쇄</button>
+      <button class="sanction-btn full" onclick="closeSanction()">닫기</button>
+    </div>
+  </div>
+</div>
 
 <!-- 방 설정 -->
 <div class="rs-overlay" id="rs-overlay" onclick="rsOutside(event)">
@@ -550,17 +581,18 @@ import{getAuth,onAuthStateChanged,signOut}from"https://www.gstatic.com/firebasej
 import{getDatabase,ref,onValue,push,set,update,remove,get,serverTimestamp,query,orderByChild,limitToLast,onDisconnect}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 const FC={apiKey:"AIzaSyDC9qSmH-1z778oiI7QbDY_JrKis95z_C4",authDomain:"tarrytalk.firebaseapp.com",databaseURL:"https://tarrytalk-default-rtdb.firebaseio.com",projectId:"tarrytalk",storageBucket:"tarrytalk.firebasestorage.app",messagingSenderId:"322779846377",appId:"1:322779846377:web:12253ee2f2330dd1a04278"};
 const app=initializeApp(FC),auth=getAuth(app),db=getDatabase(app),ADMIN_EMAIL='tarry9653@daum.net';
-let sess=null,isGuest=false,curRoom=null,curTab='group',selType='dm',selUsers=[],existId=null;
+let sess=null,isGuest=false,curRoom=null,curTab='group',selType='dm',selUsers=[],existId=null,sanctionTarget=null;
 let allUsers={},replyTo=null,reactionTarget=null,typingTimer=null,isAtBottom=true,newMsgCount=0;
 let _msgUnsub=null,_typingUnsub=null;
 let activeAds=[],adIndex=0,adTimer=null,popupNotice=null,introIndex=0;
 const COLORS=['#00a84a','#0087d4','#a855f7','#e85d04','#d62828','#2ec4b6'];
 const ONBOT_SVG=`<span class="onbot-avatar" aria-hidden="true"><svg viewBox="0 0 64 64" role="img" focusable="false"><defs><linearGradient id="onbotG" x1="12" y1="8" x2="52" y2="56" gradientUnits="userSpaceOnUse"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs><path d="M32 9v7" fill="none" stroke="#a855f7" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="7" r="4" fill="#c084fc"/><path d="M13 22c0-5 4-9 9-9h20c5 0 9 4 9 9v17c0 5-4 9-9 9H30l-9 7c-2 1.5-4.5-.2-4-2.7l1.2-5.8C15.1 45 13 42.1 13 39V22z" fill="url(#onbotG)"/><circle cx="25" cy="30" r="5" fill="#fff"/><circle cx="39" cy="30" r="5" fill="#fff"/><circle cx="26.5" cy="31" r="1.8" fill="#5b21b6"/><circle cx="37.5" cy="31" r="1.8" fill="#5b21b6"/><path d="M25 39c3.5 3 10.5 3 14 0" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg></span>`;
-const BOT_CHIPS=['채팅 시작하기','회원 초대','단톡방 만들기','일정 공유','사진·파일 보내기','📅 미디어 보관기간','이모지·답장·수정','공지·광고란?','관리자 기능','전체 기능 보기'];
+const BOT_CHIPS=['채팅 시작하기','회원 초대','단톡방 만들기','일정 공유','사진·파일 보내기','📅 미디어 보관기간','🛡️ 이용규칙/제재','이모지·답장·수정','공지·광고란?','관리자 기능','전체 기능 보기'];
 let onbotMessages=[];
 const isAdminUser=()=>sess?.isAdmin===true;
 const MEDIA_TTL=14*24*60*60*1000;
 const MEDIA_TYPES=new Set(['image','video','document']);
+const DAY=24*60*60*1000;
 const savedTheme=localStorage.getItem('tt_theme')||'dark';
 document.documentElement.dataset.theme=savedTheme;
 document.getElementById('theme-btn').textContent=savedTheme==='dark'?'🌙':'☀️';
@@ -574,7 +606,7 @@ onAuthStateChanged(auth,async user=>{
     isGuest=false;sessionStorage.removeItem('tt_guest');
     const snap=await get(ref(db,`users/${user.uid}`));const profile=snap.val()||{};
     if(profile.disabled){await signOut(auth);location.href='index.html';return;}
-    sess={uid:user.uid,name:profile.displayName||user.displayName||'사용자',email:user.email,isAdmin:user.email===ADMIN_EMAIL||profile.isAdmin===true,color:profile.avatarColor||avatarColor(profile.displayName||user.displayName||'?')};
+    sess={uid:user.uid,name:profile.displayName||user.displayName||'사용자',email:user.email,isAdmin:user.email===ADMIN_EMAIL||profile.isAdmin===true,color:profile.avatarColor||avatarColor(profile.displayName||user.displayName||'?'),warnings:profile.warnings||0,mutedUntil:profile.mutedUntil||0};
     await set(ref(db,`users/${user.uid}/online`),true);
     onDisconnect(ref(db,`users/${user.uid}/online`)).set(false);
     onDisconnect(ref(db,`users/${user.uid}/lastSeen`)).set(serverTimestamp());
@@ -588,7 +620,7 @@ function initUI(){
     document.getElementById('uc-name').textContent=sess.name;
     document.getElementById('uc-role').textContent=sess.isAdmin?'⚙️ 관리자':'● 온라인';
     if(sess.isAdmin)document.getElementById('admin-link').style.display='flex';
-    onValue(ref(db,'users'),snap=>{allUsers=snap.val()||{};renderRooms(document.getElementById('search-inp')?.value||'');refreshRoomHeader();});
+    onValue(ref(db,'users'),snap=>{allUsers=snap.val()||{};const me=allUsers[sess.uid]||{};sess.warnings=me.warnings||0;sess.mutedUntil=me.mutedUntil||0;updateMuteNotice();renderRooms(document.getElementById('search-inp')?.value||'');refreshRoomHeader();});
     listenAds();
     listenPopupNotice();
   }else{document.getElementById('uc-name').textContent='게스트';document.getElementById('uc-role').textContent='👀 둘러보기';document.getElementById('new-btn').style.display='none';}
@@ -676,6 +708,23 @@ function refreshRoomHeader(){
   if(!room)return;
   document.getElementById('tb-name').textContent=roomTitle(room);
   document.getElementById('tb-av').textContent=roomEmoji(room);
+  document.getElementById('secret-badge').classList.toggle('show',isSecretWatch(room));
+}
+function isRoomMember(room){return !!(sess&&room?.members?.[sess.uid]);}
+function isSecretWatch(room){return !!(sess?.isAdmin&&room&&!isRoomMember(room));}
+function mutedUntilText(){return sess?.mutedUntil?new Date(sess.mutedUntil).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}):'';}
+function isMuted(){return !!(sess&&!sess.isAdmin&&sess.mutedUntil&&sess.mutedUntil>Date.now());}
+function updateMuteNotice(){
+  const el=document.getElementById('mute-notice');
+  if(!el||!sess)return;
+  if(isMuted()){el.textContent=`🔇 채팅이 정지되었습니다 (${mutedUntilText()}까지)`;el.classList.add('show');}
+  else el.classList.remove('show');
+}
+function blockIfMuted(){
+  if(!isMuted())return false;
+  showToast(`채팅이 정지되었습니다 (${mutedUntilText()}까지)`,'warn');
+  updateMuteNotice();
+  return true;
 }
 function renderRooms(filter=''){
   const list=document.getElementById('room-list');
@@ -706,10 +755,12 @@ window.setSpaceTab=function(t){['chat','storage','schedule'].forEach(s=>{documen
 window.openRoom=async function(id){
   curRoom=id;const room=(window._rooms||[]).find(r=>r.id===id);if(!room)return;
   if(_msgUnsub)_msgUnsub();if(_typingUnsub)_typingUnsub();
-  if(sess)await set(ref(db,`rooms/${id}/unread/${sess.uid}`),0);
+  const secret=isSecretWatch(room);
+  if(sess&&!secret)await set(ref(db,`rooms/${id}/unread/${sess.uid}`),0);
   document.getElementById('tb-av').style.display='flex';document.getElementById('tb-av').textContent=roomEmoji(room);
   document.getElementById('tb-info').style.display='block';document.getElementById('tb-name').textContent=roomTitle(room);
   document.getElementById('tb-sub').textContent=room.type==='group'?`● 멤버 ${Object.keys(room.members||{}).length}명`:'● 1대1 채팅';
+  document.getElementById('secret-badge').classList.toggle('show',secret);
   document.getElementById('tb-logo').style.display='none';
   const isCreator=sess&&(room.createdBy===sess.uid||sess.isAdmin);
   document.getElementById('tb-onbot-close').style.display='none';
@@ -720,7 +771,7 @@ window.openRoom=async function(id){
   document.getElementById('emoji-row')?.style?.removeProperty?.('display');
   clearReply();
   if(isGuest){document.getElementById('messages').style.filter='blur(7px)';document.getElementById('guest-wall').style.display='flex';document.getElementById('input-wrap').style.display='none';}
-  else{document.getElementById('messages').style.filter='';document.getElementById('guest-wall').style.display='none';document.getElementById('input-wrap').style.display='block';loadMessages(id);listenTyping(id);}
+  else{document.getElementById('messages').style.filter='';document.getElementById('guest-wall').style.display='none';document.getElementById('input-wrap').style.display=secret?'none':'block';loadMessages(id);if(!secret)listenTyping(id);else document.getElementById('typing-bar').classList.remove('show');updateMuteNotice();}
   renderRooms();closeSb();
 };
 function loadMessages(roomId){
@@ -735,6 +786,8 @@ function loadMessages(roomId){
 }
 function cleanupExpiredMedia(roomId,msgs){
   if(!sess||isGuest)return;
+  const room=(window._rooms||[]).find(r=>r.id===roomId);
+  if(isSecretWatch(room))return;
   const now=Date.now();
   msgs.forEach(m=>{
     if(!m?.id||m.expired||!MEDIA_TYPES.has(m.type)||!m.at||now-m.at<=MEDIA_TTL)return;
@@ -786,11 +839,13 @@ function buildMsg(m,prev){
   const safeText=(m.text||'미디어').replace(/\\/g,'\\\\').replace(/'/g,"\\'").substring(0,60);
   const canEdit = !m.local && mine && m.type === 'text' && (Date.now() - m.at < 10 * 60 * 1000); // 10분 이내 수정
   const canDelete = !m.local && (mine || (sess && sess.isAdmin));
+  const canSanction = !m.local && sess?.isAdmin && m.uid && m.uid!=='system' && m.uid!==sess.uid;
   const actions=m.local?'':`<div class="mg-actions">
     <div class="ma-btn" onclick="showReactionPicker(event,'${m.id}')" title="반응">😊</div>
     <div class="ma-btn" onclick="replyToMsg('${m.id}','${safeName}','${safeText}')" title="답장">↩</div>
     ${canEdit ? `<div class="ma-btn" onclick="editMsg('${m.id}','${safeText}')" title="수정">✏️</div>` : ''}
     ${canDelete ? `<div class="ma-btn" onclick="deleteMsg('${m.id}')" title="삭제" style="color:var(--red)">🗑</div>` : ''}
+    ${canSanction ? `<div class="ma-btn" onclick="openSanction('${m.uid}','${safeName}')" title="제재">🛡️</div>` : ''}
   </div>`;
   const avatar=isBot?`<div class="mg-av onbot" style="${sameUser?'visibility:hidden':''}">${ONBOT_SVG}</div>`:`<div class="mg-av" style="background:${color};${sameUser?'visibility:hidden':''}">${name[0].toUpperCase()}</div>`;
   el.innerHTML=`${avatar}<div class="mg-body">${!mine&&!sameUser?`<div class="mg-sender">${esc(name)}</div>`:''}${replyHtml}${content}${reactionsHtml}<div class="mg-meta"><span>${fmtTime(m.at)}</span>${m.editedAt?`<span style="opacity:.5;font-style:italic;font-size:10px;">(수정됨)</span>`:''} ${mine?`<span class="${m.readBy&&Object.keys(m.readBy).length>1?'chk chk-read':'chk'}">✓✓</span>`:''}</div></div>${actions}`;
@@ -843,6 +898,7 @@ window.closeOnbot=function(){
   document.getElementById('tb-logo').style.display='';
   document.getElementById('tb-av').style.display='none';
   document.getElementById('tb-info').style.display='none';
+  document.getElementById('secret-badge').classList.remove('show');
   document.getElementById('tb-onbot-close').style.display='none';
   document.getElementById('tb-settings').style.display='none';
   document.getElementById('tb-search-btn').style.display='none';
@@ -856,6 +912,7 @@ function onbotAnswer(q){
   if(has('전체','도움말','온봇'))return admin
     ? '온메신저 주요 기능은 실시간 채팅, 1:1/단톡방, 초대 링크, 대화 중 멤버 초대와 내보내기, 사진·파일·영상 전송, 일정 카드, 이모지 반응, 답장, 10분 내 수정, 삭제, 메시지 검색, 읽음표시, 안읽음 배지, 입력중 표시, 프로필 변경, 테마 전환, 관리자 패널, 광고 배너 등록, 접속 공지 팝업 관리까지예요. 온봇은 이 기능들을 로컬에서 안내하는 도우미라 대화가 서버에 저장되지 않아요.'
     : '온메신저 주요 기능은 실시간 채팅, 1:1/단톡방, 초대 링크, 대화 중 멤버 초대, 사진·파일·영상 전송, 일정 카드, 이모지 반응, 답장, 10분 내 수정, 삭제, 메시지 검색, 읽음표시, 안읽음 배지, 입력중 표시, 프로필 변경, 테마 전환이에요. 관리자가 등록한 광고 배너나 접속 공지 팝업은 회원 화면에 표시될 수 있어요. 온봇 대화는 서버에 저장되지 않습니다.';
+  if(has('규칙','이용규칙','제재','금지','욕설','신고','차단','정지'))return '온메신저에서는 욕설·비방, 사기성 내용, 외부 유인 행위, 위험하거나 부적절한 내용을 금지하고 있어요. 위반하면 경고, 1~7일 채팅 정지, 영구 차단(비활성화) 조치가 될 수 있고 문제가 된 채팅방은 삭제될 수 있습니다. 특히 욕설이나 심각한 위반은 정지 및 영구차단 대상이에요. 관리자는 안전한 운영을 위해 필요한 관리와 조치를 할 수 있습니다.';
   if(has('보관','저장기간','며칠','얼마나','사라','자동삭제','삭제 기간','기간'))return "온메신저는 대화 내용(글)과 일정은 계속 보관돼요. 다만 사진·영상·파일은 올린 지 2주(14일)가 지나면 용량 관리를 위해 자동으로 삭제돼요. 중요한 미디어는 받은 즉시 다운로드 버튼으로 저장해 두시는 걸 권장해요. 삭제된 자리에는 '2주가 지나 자동 삭제됨' 안내가 남아요.";
   if(has('채팅 시작','메시지','전송','enter','엔터'))return '메시지는 채팅방을 선택한 뒤 입력창에 쓰고 Enter로 보내요. 줄을 바꾸려면 Shift+Enter를 누르면 됩니다. 전송된 메시지는 실시간으로 상대에게 보이고, 내가 보낸 메시지에는 ✓✓ 읽음표시가 붙어요.';
   if(has('초대','링크','회원'))return '회원 초대는 하단 👋 버튼에서 내 초대 링크를 복사하거나 공유하면 됩니다. 그 링크로 가입한 회원은 내 목록에 보이고, 이름·이메일 검색으로 1:1이나 단톡방에 초대할 수 있어요. 단톡방 안에서는 방장이나 관리자가 설정에서 + 멤버 초대를 할 수 있습니다.';
@@ -893,10 +950,13 @@ function listenTyping(roomId){
     else bar.classList.remove('show');
   });
 }
-function sendTypingSignal(active){if(!curRoom||!sess)return;set(ref(db,`typing/${curRoom}/${sess.uid}`),active?{active:true,at:Date.now()}:null);}
-window.handleInput=function(el){autoResize(el);if(curRoom==='onbot'||!curRoom||!sess)return;clearTimeout(typingTimer);sendTypingSignal(true);typingTimer=setTimeout(()=>sendTypingSignal(false),3000);};
+function currentRoom(){return(window._rooms||[]).find(r=>r.id===curRoom);}
+function sendTypingSignal(active){if(!curRoom||!sess||isSecretWatch(currentRoom()))return;set(ref(db,`typing/${curRoom}/${sess.uid}`),active?{active:true,at:Date.now()}:null);}
+window.handleInput=function(el){autoResize(el);if(curRoom==='onbot'||!curRoom||!sess||isSecretWatch(currentRoom()))return;clearTimeout(typingTimer);sendTypingSignal(true);typingTimer=setTimeout(()=>sendTypingSignal(false),3000);};
 window.sendMsg=async function(){
   if(curRoom==='onbot'){sendOnbotMessage();return;}
+  if(isSecretWatch(currentRoom())){showToast('시크릿 관전 중에는 메시지를 보낼 수 없습니다','warn');return;}
+  if(blockIfMuted())return;
   if(!curRoom||!sess||isGuest)return;const inp=document.getElementById('m-inp');const text=inp.value.trim();if(!text)return;
   inp.value='';inp.style.height='auto';sendTypingSignal(false);clearTimeout(typingTimer);
   const btn=document.getElementById('send-btn');btn.disabled=true;
@@ -914,10 +974,10 @@ window.sendMsg=async function(){
     clearReply();if(!isAtBottom){newMsgCount++;const sb=document.getElementById('scroll-badge');sb.textContent=newMsgCount;sb.classList.add('show');}else scrollToBottom();
   }finally{btn.disabled=false;inp.focus();}
 };
-window.sendImg=async function(){if(!curRoom||!sess)return;const url=document.getElementById('l-inp').value.trim();if(!url)return;const isImg=/\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i.test(url);const rr=push(ref(db,`messages/${curRoom}`));await set(rr,{uid:sess.uid,displayName:sess.name,type:isImg?'image':'text',text:isImg?'':url,url:isImg?url:'',fileName:'이미지',...(isImg?{mediaKind:'image'}:{}),at:Date.now()});await update(ref(db),{[`rooms/${curRoom}/lastMsg`]:isImg?'📷 이미지':url,[`rooms/${curRoom}/lastAt`]:Date.now()});document.getElementById('l-inp').value='';document.getElementById('link-row').classList.remove('show');if(isImg)showToast('사진은 2주 후 자동 삭제됩니다. 중요하면 다운로드해 두세요.','info');};
+window.sendImg=async function(){if(!curRoom||!sess)return;if(isSecretWatch(currentRoom())){showToast('시크릿 관전 중에는 메시지를 보낼 수 없습니다','warn');return;}if(blockIfMuted())return;const url=document.getElementById('l-inp').value.trim();if(!url)return;const isImg=/\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i.test(url);const rr=push(ref(db,`messages/${curRoom}`));await set(rr,{uid:sess.uid,displayName:sess.name,type:isImg?'image':'text',text:isImg?'':url,url:isImg?url:'',fileName:'이미지',...(isImg?{mediaKind:'image'}:{}),at:Date.now()});await update(ref(db),{[`rooms/${curRoom}/lastMsg`]:isImg?'📷 이미지':url,[`rooms/${curRoom}/lastAt`]:Date.now()});document.getElementById('l-inp').value='';document.getElementById('link-row').classList.remove('show');if(isImg)showToast('사진은 2주 후 자동 삭제됩니다. 중요하면 다운로드해 두세요.','info');};
 window.pickImage=()=>document.getElementById('pick-img').click();window.pickFile=()=>document.getElementById('pick-file').click();window.pickVideo=()=>document.getElementById('pick-video').click();
 function fmtSize(b){if(b<1024)return b+'B';if(b<1048576)return(b/1024).toFixed(1)+'KB';return(b/1048576).toFixed(1)+'MB';}
-window.onFileSelected=async function(e,type){if(!curRoom||!sess)return;const file=e.target.files[0];if(!file)return;e.target.value='';const MAX=type==='video'?50*1024*1024:8*1024*1024;if(file.size>MAX){showToast(`최대 ${type==='video'?'50MB':'8MB'}까지 가능합니다`,'warn');return;}showToast('📤 업로드 중...','info');const reader=new FileReader();reader.onload=async ev=>{const rr=push(ref(db,`messages/${curRoom}`));await set(rr,{uid:sess.uid,displayName:sess.name,type,data:ev.target.result,fileName:file.name,fileSize:fmtSize(file.size),mediaKind:type,at:Date.now()});await update(ref(db),{[`rooms/${curRoom}/lastMsg`]:type==='image'?'📷 이미지':type==='video'?'🎥 영상':'📎 '+file.name,[`rooms/${curRoom}/lastAt`]:Date.now()});showToast('사진·영상·파일은 2주 후 자동 삭제됩니다. 중요하면 다운로드해 두세요.','ok');scrollToBottom();};reader.onerror=()=>showToast('파일 읽기 실패','warn');reader.readAsDataURL(file);};
+window.onFileSelected=async function(e,type){if(!curRoom||!sess)return;if(isSecretWatch(currentRoom())){e.target.value='';showToast('시크릿 관전 중에는 파일을 보낼 수 없습니다','warn');return;}if(blockIfMuted()){e.target.value='';return;}const file=e.target.files[0];if(!file)return;e.target.value='';const MAX=type==='video'?50*1024*1024:8*1024*1024;if(file.size>MAX){showToast(`최대 ${type==='video'?'50MB':'8MB'}까지 가능합니다`,'warn');return;}showToast('📤 업로드 중...','info');const reader=new FileReader();reader.onload=async ev=>{const rr=push(ref(db,`messages/${curRoom}`));await set(rr,{uid:sess.uid,displayName:sess.name,type,data:ev.target.result,fileName:file.name,fileSize:fmtSize(file.size),mediaKind:type,at:Date.now()});await update(ref(db),{[`rooms/${curRoom}/lastMsg`]:type==='image'?'📷 이미지':type==='video'?'🎥 영상':'📎 '+file.name,[`rooms/${curRoom}/lastAt`]:Date.now()});showToast('사진·영상·파일은 2주 후 자동 삭제됩니다. 중요하면 다운로드해 두세요.','ok');scrollToBottom();};reader.onerror=()=>showToast('파일 읽기 실패','warn');reader.readAsDataURL(file);};
 window.showReactionPicker=function(e,msgId){e.stopPropagation();reactionTarget=msgId;const picker=document.getElementById('reaction-picker');picker.classList.add('show');const rect=e.target.getBoundingClientRect();picker.style.left=Math.max(10,Math.min(rect.left,window.innerWidth-290))+'px';picker.style.top=Math.max(10,rect.top-54)+'px';};
 window.addReaction=async function(emoji){if(!reactionTarget||!sess||!curRoom)return;document.getElementById('reaction-picker').classList.remove('show');const path=`messages/${curRoom}/${reactionTarget}/reactions/${encodeURIComponent(emoji)}/${sess.uid}`;const snap=await get(ref(db,path));if(snap.exists())await remove(ref(db,path));else await set(ref(db,path),true);reactionTarget=null;};
 window.toggleReaction=async function(msgId,emoji){if(!sess||!curRoom)return;const path=`messages/${curRoom}/${msgId}/reactions/${encodeURIComponent(emoji)}/${sess.uid}`;const snap=await get(ref(db,path));if(snap.exists())await remove(ref(db,path));else await set(ref(db,path),true);};
@@ -934,6 +994,71 @@ window.deleteMsg=async function(msgId){
     deletedAt:Date.now(),
     deletedBy:sess.uid
   });
+};
+
+async function addSystemMessage(text){
+  if(!curRoom)return;
+  await set(push(ref(db,`messages/${curRoom}`)),{uid:'system',displayName:'system',text,type:'system',at:Date.now()});
+  await update(ref(db),{[`rooms/${curRoom}/lastMsg`]:text,[`rooms/${curRoom}/lastAt`]:Date.now()});
+}
+window.openSanction=function(uid,name){
+  if(!sess?.isAdmin||!uid||uid==='system'||uid===sess.uid)return;
+  const u=allUsers[uid]||{};
+  sanctionTarget={uid,name:name||u.displayName||uid};
+  const warnings=u.warnings||0;
+  const muted=u.mutedUntil&&u.mutedUntil>Date.now()?` · 정지중 ${new Date(u.mutedUntil).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}까지`:'';
+  document.getElementById('sanction-title').textContent=`🛡️ ${sanctionTarget.name} 제재`;
+  document.getElementById('sanction-sub').textContent=`누적 경고 ${warnings}회${muted}`;
+  document.getElementById('sanction-overlay').classList.add('show');
+};
+window.closeSanction=function(){document.getElementById('sanction-overlay').classList.remove('show');sanctionTarget=null;};
+window.warnMember=async function(){
+  if(!sess?.isAdmin||!sanctionTarget)return;
+  const cur=allUsers[sanctionTarget.uid]?.warnings||0;
+  const next=cur+1;
+  await update(ref(db,`users/${sanctionTarget.uid}`),{warnings:next});
+  await addSystemMessage(`⚠️ ${sanctionTarget.name}님에게 경고가 부여되었습니다 (누적 ${next}회)`);
+  closeSanction();showToast('경고를 부여했습니다','ok');
+};
+window.muteMember=async function(days){
+  if(!sess?.isAdmin||!sanctionTarget)return;
+  const until=Date.now()+days*DAY;
+  await update(ref(db,`users/${sanctionTarget.uid}`),{mutedUntil:until});
+  await addSystemMessage(`🔇 ${sanctionTarget.name}님이 ${days}일간 채팅 정지되었습니다`);
+  closeSanction();showToast(`${days}일 채팅 정지했습니다`,'ok');
+};
+window.unmuteMember=async function(){
+  if(!sess?.isAdmin||!sanctionTarget)return;
+  await update(ref(db,`users/${sanctionTarget.uid}`),{mutedUntil:null});
+  await addSystemMessage(`▶️ ${sanctionTarget.name}님의 채팅 정지가 해제되었습니다`);
+  closeSanction();showToast('채팅 정지를 해제했습니다','ok');
+};
+window.disableMemberFromSanction=async function(){
+  if(!sess?.isAdmin||!sanctionTarget)return;
+  await update(ref(db,`users/${sanctionTarget.uid}`),{disabled:true});
+  await addSystemMessage(`⛔ ${sanctionTarget.name}님이 비활성화되었습니다`);
+  closeSanction();showToast('회원이 비활성화되었습니다','ok');
+};
+window.closeRoomByModeration=async function(){
+  if(!sess?.isAdmin||!curRoom)return;
+  if(!confirm('현재 채팅방을 폐쇄하고 모든 대화 내용을 삭제할까요?'))return;
+  const id=curRoom;
+  await remove(ref(db,`rooms/${id}`));
+  await remove(ref(db,`messages/${id}`));
+  await remove(ref(db,`typing/${id}`));
+  closeSanction();
+  curRoom=null;
+  document.getElementById('messages').style.display='none';
+  document.getElementById('input-wrap').style.display='none';
+  document.getElementById('chat-empty').style.display='flex';
+  document.getElementById('tb-logo').style.display='';
+  document.getElementById('tb-av').style.display='none';
+  document.getElementById('tb-info').style.display='none';
+  document.getElementById('secret-badge').classList.remove('show');
+  document.getElementById('tb-settings').style.display='none';
+  document.getElementById('tb-search-btn').style.display='none';
+  renderRooms();
+  showToast('🚫 채팅방을 폐쇄했습니다','ok');
 };
 
 /* ── 메시지 수정 ── */
@@ -1052,6 +1177,7 @@ function renderGuide(){
     ['🌓','테마 전환','사이드바 또는 상단 버튼으로 다크/라이트 모드를 전환합니다.'],
     ['🏷️','광고 배너','활성 광고가 있으면 채팅 화면 상단에 순환 표시될 수 있습니다.'],
     ['📢','접속 공지 팝업','접속 공지가 있으면 로그인 시 팝업으로 표시될 수 있습니다.'],
+    ['🛡️','커뮤니티 이용규칙','욕설·비방, 사기성 내용, 외부 유인, 위험하거나 부적절한 내용은 금지됩니다. 위반 시 경고, 1~7일 채팅 정지, 영구 차단 또는 채팅방 폐쇄가 될 수 있습니다. 관리자는 안전한 운영을 위해 필요한 관리와 조치를 할 수 있습니다.'],
     ['🤖','온봇 도우미','온봇에게 기능을 물어보면 로컬 규칙 기반으로 바로 안내합니다.']
   ];
   gc.innerHTML=`
@@ -1104,17 +1230,35 @@ window.doCreate=async function(){
 };
 window.goExist=()=>{document.getElementById('exist-ov').classList.remove('show');if(existId)openRoom(existId);};
 window.closeExist=()=>document.getElementById('exist-ov').classList.remove('show');
-window.openRoomSettings=function(){if(!curRoom)return;const room=(window._rooms||[]).find(r=>r.id===curRoom);if(!room)return;document.getElementById('rs-title').textContent=roomTitle(room)+' 설정';const members=Object.keys(room.members||{});document.getElementById('rs-members').innerHTML=members.map((uid,i)=>{const u=allUsers[uid];const name=u?.displayName||uid;const isMe=uid===sess?.uid;const isOwner=room.createdBy===uid;const canKick=!isMe&&(sess?.isAdmin||(!isOwner&&room.createdBy===sess?.uid));return`<div class="rs-member"><div class="rs-m-av" style="background:${u?.avatarColor||COLORS[i%COLORS.length]}">${name[0].toUpperCase()}</div><div style="flex:1;min-width:0;"><div class="rs-m-name">${esc(name)}${isOwner?'<span style="font-size:10px;background:rgba(124,58,237,.12);color:var(--green);padding:2px 7px;border-radius:50px;margin-left:6px;font-weight:800;">방장</span>':''}</div><div class="rs-m-role">${u?.online?'● 온라인':'○ 오프라인'}</div></div>${canKick?`<button class="kick-btn" onclick="kickMember('${uid}','${name.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">내보내기</button>`:''}</div>`;}).join('');const canInvite=room.type==='group'&&sess&&(sess.isAdmin||room.createdBy===sess.uid);document.getElementById('rs-invite-sec').style.display=canInvite?'block':'none';document.getElementById('rs-invite-box').style.display='none';document.getElementById('rs-invite-search').value='';document.getElementById('rs-invite-list').innerHTML='';document.getElementById('rs-overlay').classList.add('show');};
+window.openRoomSettings=function(){
+  if(!curRoom)return;
+  const room=(window._rooms||[]).find(r=>r.id===curRoom);if(!room)return;
+  document.getElementById('rs-title').textContent=roomTitle(room)+' 설정';
+  const members=Object.keys(room.members||{});
+  document.getElementById('rs-members').innerHTML=members.map((uid,i)=>{
+    const u=allUsers[uid];const name=u?.displayName||uid;const safe=name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const isMe=uid===sess?.uid;const isOwner=room.createdBy===uid;
+    const canKick=!isMe&&(sess?.isAdmin||(!isOwner&&room.createdBy===sess?.uid));
+    const canSanction=sess?.isAdmin&&!isMe;
+    return`<div class="rs-member"><div class="rs-m-av" style="background:${u?.avatarColor||COLORS[i%COLORS.length]}">${name[0].toUpperCase()}</div><div style="flex:1;min-width:0;"><div class="rs-m-name">${esc(name)}${isOwner?'<span style="font-size:10px;background:rgba(124,58,237,.12);color:var(--green);padding:2px 7px;border-radius:50px;margin-left:6px;font-weight:800;">방장</span>':''}</div><div class="rs-m-role">${u?.mutedUntil&&u.mutedUntil>Date.now()?'🔇 정지중':u?.online?'● 온라인':'○ 오프라인'}</div></div>${canSanction?`<button class="kick-btn" onclick="openSanction('${uid}','${safe}')">제재</button>`:''}${canKick?`<button class="kick-btn" onclick="kickMember('${uid}','${safe}')">내보내기</button>`:''}</div>`;
+  }).join('');
+  const canInvite=room.type==='group'&&sess&&(sess.isAdmin||room.createdBy===sess.uid);
+  document.getElementById('rs-invite-sec').style.display=canInvite?'block':'none';
+  document.getElementById('rs-invite-box').style.display='none';
+  document.getElementById('rs-invite-search').value='';
+  document.getElementById('rs-invite-list').innerHTML='';
+  document.getElementById('rs-overlay').classList.add('show');
+};
 window.closeRoomSettings=()=>document.getElementById('rs-overlay').classList.remove('show');
 window.rsOutside=e=>{if(e.target.classList.contains('rs-overlay'))closeRoomSettings();};
 window.toggleInviteMembers=function(){const box=document.getElementById('rs-invite-box');const show=box.style.display==='none';box.style.display=show?'block':'none';if(show){document.getElementById('rs-invite-search').focus();renderInviteMembers('');}};
 window.renderInviteMembers=function(filter=''){const room=(window._rooms||[]).find(r=>r.id===curRoom);const list=document.getElementById('rs-invite-list');if(!room||!list)return;const memberSet=new Set(Object.keys(room.members||{}));let users=Object.entries(allUsers).filter(([uid,u])=>!memberSet.has(uid)&&!u.disabled).map(([uid,u])=>({uid,name:u.displayName||uid,email:u.email||'',online:u.online||false,color:u.avatarColor||avatarColor(u.displayName||uid),invitedBy:u.invitedBy||''}));if(!sess?.isAdmin&&!filter)users=users.filter(u=>u.invitedBy===sess?.uid);if(filter){const q=filter.toLowerCase();users=users.filter(u=>u.name.toLowerCase().includes(q)||u.email.toLowerCase().includes(q));}if(!users.length){list.innerHTML='<div class="no-m">초대할 수 있는 회원이 없습니다</div>';return;}list.innerHTML=users.map(u=>`<div class="m-item" onclick="inviteMember('${u.uid}')"><div class="m-av" style="background:${u.color}">${u.name[0].toUpperCase()}</div><div style="flex:1;min-width:0;"><div class="m-nm">${esc(u.name)}</div><div class="m-em">${esc(u.email)}</div></div>${u.online?'<div class="m-online"></div>':''}<div class="m-check">＋</div></div>`).join('');};
 window.inviteMember=async function(uid){if(!curRoom||!sess)return;const room=(window._rooms||[]).find(r=>r.id===curRoom);if(!room||room.type!=='group')return;if(!(sess.isAdmin||room.createdBy===sess.uid)){showToast('초대 권한이 없습니다','warn');return;}const u=allUsers[uid];const name=u?.displayName||uid;await set(ref(db,`rooms/${curRoom}/members/${uid}`),true);room.members={...(room.members||{}),[uid]:true};await set(push(ref(db,`messages/${curRoom}`)),{uid:'system',displayName:'system',text:`${name}님이 초대되었습니다`,type:'system',at:Date.now()});await update(ref(db),{[`rooms/${curRoom}/lastMsg`]:`${name}님이 초대되었습니다`,[`rooms/${curRoom}/lastAt`]:Date.now()});showToast(`＋ ${name}님을 초대했습니다`,'ok');renderInviteMembers(document.getElementById('rs-invite-search').value);};
 window.kickMember=async function(uid,name){if(!curRoom||!sess)return;await remove(ref(db,`rooms/${curRoom}/members/${uid}`));await set(push(ref(db,`messages/${curRoom}`)),{uid:'system',displayName:'system',text:`${name}님이 내보내졌습니다`,type:'system',at:Date.now()});closeRoomSettings();openRoom(curRoom);showToast(`👋 ${name}님을 내보냈습니다`,'ok');};
-window.doDeleteRoom=async function(){if(!curRoom||!sess)return;await remove(ref(db,`rooms/${curRoom}`));await remove(ref(db,`messages/${curRoom}`));await remove(ref(db,`typing/${curRoom}`));curRoom=null;closeRoomSettings();document.getElementById('messages').style.display='none';document.getElementById('input-wrap').style.display='none';document.getElementById('chat-empty').style.display='flex';document.getElementById('tb-logo').style.display='';document.getElementById('tb-av').style.display='none';document.getElementById('tb-info').style.display='none';document.getElementById('tb-onbot-close').style.display='none';document.getElementById('tb-settings').style.display='none';document.getElementById('tb-search-btn').style.display='none';renderRooms();showToast('🗑️ 채팅방이 삭제됐습니다','ok');};
+window.doDeleteRoom=async function(){if(!curRoom||!sess)return;await remove(ref(db,`rooms/${curRoom}`));await remove(ref(db,`messages/${curRoom}`));await remove(ref(db,`typing/${curRoom}`));curRoom=null;closeRoomSettings();document.getElementById('messages').style.display='none';document.getElementById('input-wrap').style.display='none';document.getElementById('chat-empty').style.display='flex';document.getElementById('tb-logo').style.display='';document.getElementById('tb-av').style.display='none';document.getElementById('tb-info').style.display='none';document.getElementById('secret-badge').classList.remove('show');document.getElementById('tb-onbot-close').style.display='none';document.getElementById('tb-settings').style.display='none';document.getElementById('tb-search-btn').style.display='none';renderRooms();showToast('🗑️ 채팅방이 삭제됐습니다','ok');};
 window.openSchedule=function(){if(!curRoom||!sess){showToast('채팅방을 먼저 선택하세요','warn');return;}document.getElementById('sch-date').value=new Date().toISOString().split('T')[0];['sch-title','sch-time','sch-place','sch-memo'].forEach(id=>document.getElementById(id).value='');document.getElementById('sch-overlay').classList.add('show');};
 window.closeSchedule=()=>document.getElementById('sch-overlay').classList.remove('show');
-window.sendSchedule=async function(){const title=document.getElementById('sch-title').value.trim(),date=document.getElementById('sch-date').value;if(!title){showToast('일정 제목을 입력하세요','warn');return;}if(!date){showToast('날짜를 선택하세요','warn');return;}await set(push(ref(db,`messages/${curRoom}`)),{uid:sess.uid,displayName:sess.name,type:'schedule',scheduleTitle:title,scheduleDate:date,scheduleTime:document.getElementById('sch-time').value,schedulePlace:document.getElementById('sch-place').value.trim(),scheduleMemo:document.getElementById('sch-memo').value.trim(),at:Date.now()});await update(ref(db),{[`rooms/${curRoom}/lastMsg`]:'📅 '+title,[`rooms/${curRoom}/lastAt`]:Date.now()});closeSchedule();showToast('📅 일정이 공유됐습니다','ok');};
+window.sendSchedule=async function(){if(isSecretWatch(currentRoom())){showToast('시크릿 관전 중에는 일정을 보낼 수 없습니다','warn');return;}if(blockIfMuted())return;const title=document.getElementById('sch-title').value.trim(),date=document.getElementById('sch-date').value;if(!title){showToast('일정 제목을 입력하세요','warn');return;}if(!date){showToast('날짜를 선택하세요','warn');return;}await set(push(ref(db,`messages/${curRoom}`)),{uid:sess.uid,displayName:sess.name,type:'schedule',scheduleTitle:title,scheduleDate:date,scheduleTime:document.getElementById('sch-time').value,schedulePlace:document.getElementById('sch-place').value.trim(),scheduleMemo:document.getElementById('sch-memo').value.trim(),at:Date.now()});await update(ref(db),{[`rooms/${curRoom}/lastMsg`]:'📅 '+title,[`rooms/${curRoom}/lastAt`]:Date.now()});closeSchedule();showToast('📅 일정이 공유됐습니다','ok');};
 let invLink='';
 window.openInvite=function(){const base=location.origin+(location.pathname.replace(/chat\.html.*/,''))+'index.html';invLink=sess?base+'?ref='+sess.uid:base;document.getElementById('inv-link-txt').textContent=invLink;document.getElementById('inv-overlay').classList.add('show');};
 window.closeInvite=()=>document.getElementById('inv-overlay').classList.remove('show');

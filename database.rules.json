@@ -28,6 +28,12 @@
         "disabled": {
           /* disabled true(차단)는 관리자만 */
           ".validate": "newData.val() === false || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net'"
+        },
+        "mutedUntil": {
+          ".validate": "auth.token.email === 'tarry9653@daum.net' || root.child('users').child(auth.uid).child('isAdmin').val() === true"
+        },
+        "warnings": {
+          ".validate": "auth.token.email === 'tarry9653@daum.net' || root.child('users').child(auth.uid).child('isAdmin').val() === true"
         }
       }
     },
