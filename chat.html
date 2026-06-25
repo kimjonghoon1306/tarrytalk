@@ -1186,7 +1186,7 @@ function renderMessages(msgs){
 function buildMsg(m,prev){
   const mine=sess&&m.uid===sess.uid;
   if(m.type==='system'){const d=document.createElement('div');d.className='sys-msg';d.textContent=m.text;return d;}
-  if(m.type==='deleted'){const d=document.createElement('div');d.className='mg'+(mine?' out':'');d.innerHTML=`<div class="mg-av" style="background:var(--surface2);visibility:hidden">?</div><div class="mg-body"><div class="bubble" style="opacity:.45;font-style:italic;font-size:13px;">🗑 삭제된 메시지입니다</div></div>`;return d;}
+  if(m.deleted||m.type==='deleted'){const d=document.createElement('div');d.className='mg'+(mine?' out':'');d.innerHTML=`<div class="mg-av" style="background:var(--surface2);visibility:hidden">?</div><div class="mg-body"><div class="bubble" style="opacity:.45;font-style:italic;font-size:13px;">🗑 삭제된 메시지입니다</div></div>`;return d;}
   const name=m.displayName||'알 수 없음';
   const isBot=m.uid==='onbot';
   const color=allUsers[m.uid]?.avatarColor||avatarColor(name);
@@ -1557,7 +1557,7 @@ window.deleteMsg=async function(msgId){
   // 확인 없이 바로 삭제 (UX 빠르게)
   await update(ref(db,`messages/${curRoom}/${msgId}`),{
     text:'삭제된 메시지입니다',
-    type:'deleted',
+    deleted:true,
     deletedAt:Date.now(),
     deletedBy:sess.uid
   });
