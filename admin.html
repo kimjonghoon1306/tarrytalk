@@ -184,6 +184,8 @@ tr:hover td{background:rgba(124,58,237,.04);}
 .rc-name{font-size:13px;font-weight:700;}
 .rc-sub{font-size:11px;color:var(--text3);margin-top:2px;}
 .rc-del{padding:5px 10px;border-radius:8px;background:var(--red-bg);color:var(--red);border:1px solid rgba(255,79,106,.2);font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;transition:all .2s;}
+.rc-watch{padding:5px 10px;border-radius:8px;background:rgba(124,58,237,.1);color:var(--green);border:1px solid var(--border2);font-size:11px;font-weight:800;cursor:pointer;flex-shrink:0;transition:all .2s;margin-right:6px;}
+.rc-watch:hover{background:var(--green);color:#fff;}
 .rc-del:hover{background:var(--red);color:#fff;}
 
 /* 공지 입력 */
@@ -756,6 +758,7 @@ function renderRooms() {
         <div class="rc-name">${esc(r.name)}</div>
         <div class="rc-sub">${r.type==='group'?'단체채팅':'1대1'} · 멤버 ${memCount}명 · 메시지 ${msgCount}개</div>
       </div>
+      <button class="rc-watch" onclick="watchRoom('${r.id}')">👁 모니터링</button>
       <button class="rc-del" onclick="confirmDeleteRoom('${r.id}','${esc(r.name)}')">삭제</button>
     </div>`;
   }).join('');
@@ -1124,6 +1127,10 @@ window.toggleManager = function(uid, name, enable) {
 };
 
 /* ── 채팅방 삭제 ── */
+window.watchRoom = function(id){
+  // 관리자 시크릿 모니터링: 해당 방을 채팅화면에서 흔적없이 관전 + 제재 가능
+  location.href = 'chat.html?room=' + encodeURIComponent(id);
+};
 window.confirmDeleteRoom = function(id, name) {
   pendingAction = async () => {
     await remove(ref(db,`rooms/${id}`));

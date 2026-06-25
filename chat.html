@@ -1257,7 +1257,7 @@ window.openRoom=async function(id){
   const isCreator=sess&&(room.createdBy===sess.uid||sess.isAdmin);
   document.getElementById('tb-onbot-close').style.display='none';
   document.getElementById('tb-home').style.display='flex';
-  document.getElementById('tb-settings').style.display=(sess&&(isCreator||room.members?.[sess.uid]))?'flex':'none';
+  document.getElementById('tb-settings').style.display=(sess&&(isCreator||room.members?.[sess.uid]||sess.isAdmin))?'flex':'none';
   document.getElementById('tb-search-btn').style.display=sess?'flex':'none';
   document.getElementById('readonly-note').classList.remove('show');
   document.getElementById('chat-empty').style.display='none';document.getElementById('messages').style.display='flex';
