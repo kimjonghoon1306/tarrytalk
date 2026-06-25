@@ -1009,7 +1009,6 @@ window.setType=function(t){
   updateChips();renderMembers('');updateBtn();
 };
 function renderGuide(){
-  const isAdmin=isAdminUser();
   const gc=document.getElementById('guide-content');
   const cards=[
     ['💬','실시간 채팅','Enter로 전송하고 Shift+Enter로 줄바꿈합니다. 메시지는 실시간으로 반영됩니다.'],
@@ -1031,20 +1030,9 @@ function renderGuide(){
   gc.innerHTML=`
     <div class="guide-hero">
       <h3>온메신저 사용방법</h3>
-      <p>${isAdmin?'자주 쓰는 채팅 기능부터 관리자 기능까지 한눈에 확인하세요.':'채팅, 초대, 단톡방, 일정, 파일 전송 같은 주요 기능을 한눈에 확인하세요.'} 더 자세히 알고 싶으면 온봇에게 바로 물어볼 수 있습니다.</p>
+      <p>채팅, 초대, 단톡방, 일정, 파일 전송 같은 주요 기능을 한눈에 확인하세요. 더 자세히 알고 싶으면 온봇에게 바로 물어볼 수 있습니다.</p>
       <button class="guide-ask" onclick="openOnbot();closeModal()">🤖 온봇에게 물어보기</button>
     </div>
-    ${isAdmin?`
-    <div class="guide-block">
-      <div class="guide-badge adm">⚙️ 관리자 권한</div>
-      <div class="guide-grid">
-        <div class="guide-card"><div class="gi">📊</div><div><b>관리자 패널</b><span>회원 관리, 방 관리, 통계, 전체 공지 발송을 한 곳에서 처리합니다.</span></div></div>
-        <div class="guide-card"><div class="gi">💬</div><div><b>회원에게 1:1 걸기</b><span>전체회원 목록에서 바로 1:1 방을 만들거나 기존 방으로 이동합니다.</span></div></div>
-        <div class="guide-card"><div class="gi">🏷️</div><div><b>광고 등록</b><span>문구와 링크를 저장하고 활성 광고를 상단 배너로 노출합니다.</span></div></div>
-        <div class="guide-card"><div class="gi">📢</div><div><b>공지 팝업 등록</b><span>접속 시 뜨는 단일 공지 팝업을 저장하고 활성화합니다.</span></div></div>
-      </div>
-    </div>
-    <hr class="guide-divider">` : ''}
     <div class="guide-block">
       <div class="guide-badge mem">👤 회원 기능</div>
       <div class="guide-grid">
