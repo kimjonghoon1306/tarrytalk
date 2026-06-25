@@ -22,8 +22,8 @@
           ".validate": "newData.isString()"
         },
         "isAdmin": {
-          /* isAdmin은 false로만 자유롭게(가입시), true 승격은 관리자만 (자가승격 차단) */
-          ".validate": "newData.val() === false || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net'"
+          /* 매니저 임명(true)은 최고관리자만, false는 자유(가입/해제). 매니저는 임명 불가 */
+          ".validate": "newData.val() === false || auth.token.email === 'tarry9653@daum.net'"
         },
         "disabled": {
           /* disabled true(차단)는 관리자만 */
