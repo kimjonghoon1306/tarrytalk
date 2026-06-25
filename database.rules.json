@@ -47,7 +47,7 @@
         "members": {
           "$uid": {
             /* 방장이나 관리자만 멤버 추가/제거 */
-            ".write": "auth != null && (auth.uid === $uid || parent().parent().child('createdBy').val() === auth.uid || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')"
+            ".write": "auth != null && (auth.uid === $uid || root.child('rooms').child($roomId).child('createdBy').val() === auth.uid || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')"
           }
         },
 
@@ -59,8 +59,8 @@
         },
 
         /* lastMsg, lastAt: 멤버 모두 가능 */
-        "lastMsg": { ".write": "auth != null && (data.parent().child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')" },
-        "lastAt":  { ".write": "auth != null && (data.parent().child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')" }
+        "lastMsg": { ".write": "auth != null && (root.child('rooms').child($roomId).child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')" },
+        "lastAt":  { ".write": "auth != null && (root.child('rooms').child($roomId).child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')" }
       }
     },
 
