@@ -197,8 +197,11 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .reply-preview{background:var(--surface2);border-left:2px solid var(--green);border-radius:8px 8px 0 0;padding:6px 10px;font-size:11px;color:var(--text3);margin-bottom:-4px;}
 .reply-preview strong{color:var(--green);font-size:11px;display:block;margin-bottom:1px;}
 .bubble{padding:10px 13px;border-radius:18px;font-size:14px;line-height:1.65;word-break:break-word;}
-.bubble a{color:inherit;text-decoration:underline;font-weight:700;}
 .link-preview{margin-top:5px;max-width:260px;}
+.uc-act{padding:12px;border-radius:13px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;font-weight:800;cursor:pointer;transition:all .15s;}
+.uc-act:hover{transform:translateY(-1px);box-shadow:0 6px 16px var(--glow);}
+.uc-act.primary{background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;border:none;}
+.uc-act.danger{color:var(--red);border-color:var(--red);}
 .lp-link{display:block;border:1px solid rgba(0,0,0,.08);border-radius:14px;overflow:hidden;background:#fff;text-decoration:none;color:#21172f;transition:all .15s;}
 .lp-link:hover{box-shadow:0 6px 18px rgba(0,0,0,.18);}
 .lp-img{width:100%;height:130px;background-size:cover;background-position:center;background-color:#ece7f5;}
@@ -208,7 +211,8 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .lp-site{font-size:10px;color:#9686b3;margin-top:5px;font-weight:700;}
 .mg.out .bubble{background:var(--out-bubble);color:#fff;border-bottom-right-radius:5px;box-shadow:0 2px 10px rgba(124,58,237,.25);}
 .mg:not(.out) .bubble{background:var(--in-bubble);color:var(--text);border-bottom-left-radius:5px;border:1px solid var(--border);}
-.bubble a{color:var(--green);}
+.mg.out .bubble a{color:#fff;text-decoration:underline;font-weight:800;}
+.mg:not(.out) .bubble a{color:var(--green);text-decoration:underline;font-weight:800;}
 .reactions{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
 .reaction{display:flex;align-items:center;gap:3px;padding:3px 8px;border-radius:50px;background:var(--surface2);border:1px solid var(--border);cursor:pointer;font-size:12px;font-weight:700;transition:all .15s;animation:popTap .2s ease both;}
 .reaction:hover{border-color:var(--border2);transform:translateY(-1px) scale(1.04);}
@@ -639,6 +643,17 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
   <div class="rp-emoji" onclick="addReaction('👍')">👍</div><div class="rp-emoji" onclick="addReaction('❤️')">❤️</div><div class="rp-emoji" onclick="addReaction('😂')">😂</div><div class="rp-emoji" onclick="addReaction('😮')">😮</div><div class="rp-emoji" onclick="addReaction('😢')">😢</div><div class="rp-emoji" onclick="addReaction('🔥')">🔥</div><div class="rp-emoji" onclick="addReaction('🎉')">🎉</div>
 </div>
 <div class="msg-menu" id="msg-menu"></div>
+<div class="popup-overlay" id="usercard-overlay" onclick="if(event.target.id==='usercard-overlay')closeUserCard()">
+  <div class="popup-card" style="max-width:330px;text-align:center;">
+    <div style="padding:26px 22px 8px;">
+      <div id="uc-card-av" style="width:74px;height:74px;border-radius:24px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:30px;font-weight:900;"></div>
+      <div id="uc-card-name" style="font-size:19px;font-weight:900;"></div>
+      <div id="uc-card-email" style="font-size:13px;color:var(--text3);margin-top:4px;"></div>
+      <div id="uc-card-status" style="font-size:12px;color:var(--green);font-weight:800;margin-top:6px;"></div>
+    </div>
+    <div id="uc-card-actions" style="display:flex;flex-direction:column;gap:8px;padding:10px 22px 22px;"></div>
+  </div>
+</div>
 
 <!-- 전달 모달 -->
 <div class="overlay" id="forward-overlay" onclick="if(event.target.id==='forward-overlay')closeForwardModal()">
@@ -778,7 +793,7 @@ let _msgUnsub=null,_typingUnsub=null;
 let activeAds=[],adIndex=0,adTimer=null,heroAdIndex=0,heroAdTimer=null,popupNotice=null,welcomeData=null,introIndex=0;
 let announcements=[];
 let pushReady=false;
-let currentMessages=[],contextMsgId=null,forwardMsgId=null,longPressTimer=null,longPressFired=false,lastContextPoint={x:0,y:0};
+let currentMessages=[],contextMsgId=null,forwardMsgId=null,longPressTimer=null,longPressFired=false,lastContextPoint={x:0,y:0},ucTarget=null;
 const viewedAds=new Set();
 const COLORS=['#00a84a','#0087d4','#a855f7','#e85d04','#d62828','#2ec4b6'];
 const ONBOT_SVG=`<span class="onbot-avatar" aria-hidden="true"><svg viewBox="0 0 64 64" role="img" focusable="false"><defs><linearGradient id="onbotG" x1="12" y1="8" x2="52" y2="56" gradientUnits="userSpaceOnUse"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs><path d="M32 9v7" fill="none" stroke="#a855f7" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="7" r="4" fill="#c084fc"/><path d="M13 22c0-5 4-9 9-9h20c5 0 9 4 9 9v17c0 5-4 9-9 9H30l-9 7c-2 1.5-4.5-.2-4-2.7l1.2-5.8C15.1 45 13 42.1 13 39V22z" fill="url(#onbotG)"/><circle cx="25" cy="30" r="5" fill="#fff"/><circle cx="39" cy="30" r="5" fill="#fff"/><circle cx="26.5" cy="31" r="1.8" fill="#5b21b6"/><circle cx="37.5" cy="31" r="1.8" fill="#5b21b6"/><path d="M25 39c3.5 3 10.5 3 14 0" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg></span>`;
@@ -834,7 +849,7 @@ function initUI(){
     document.getElementById('uc-name').textContent=sess.name;
     document.getElementById('uc-role').textContent=sess.isAdmin?'⚙️ 관리자':'● 온라인';
     if(sess.isAdmin)document.getElementById('admin-link').style.display='flex';
-    onValue(ref(db,'users'),snap=>{allUsers=snap.val()||{};const me=allUsers[sess.uid]||{};sess.warnings=me.warnings||0;sess.mutedUntil=me.mutedUntil||0;updateMuteNotice();renderRooms(document.getElementById('search-inp')?.value||'');refreshRoomHeader();});
+    onValue(ref(db,'users'),snap=>{allUsers=snap.val()||{};const me=allUsers[sess.uid]||{};sess.warnings=me.warnings||0;sess.mutedUntil=me.mutedUntil||0;sess.friends=me.friends||{};updateMuteNotice();renderRooms(document.getElementById('search-inp')?.value||'');refreshRoomHeader();if(document.getElementById('spt-friends')?.classList.contains('on'))renderFriends(document.getElementById('friend-search')?.value||'');});
     listenAnnouncements();
     listenAds();
     listenPopupNotice();
@@ -1055,6 +1070,24 @@ function hidePinnedBanner(){
 function canManageRoom(room){
   return !!(sess&&room&&(room.createdBy===sess.uid||sess.isAdmin));
 }
+function isFriend(uid){return !!(sess&&(sess.friends&&sess.friends[uid]||allUsers[uid]?.invitedBy===sess.uid||uid===sess.invitedBy));}
+window.addFriend=async function(uid){if(!sess||!uid||uid===sess.uid)return;await set(ref(db,`users/${sess.uid}/friends/${uid}`),true);showToast('👥 친구로 추가했습니다','ok');renderUserCard(uid);};
+window.removeFriend=async function(uid){if(!sess||!uid)return;await remove(ref(db,`users/${sess.uid}/friends/${uid}`));showToast('친구에서 삭제했습니다','ok');renderUserCard(uid);};
+window.openUserCard=function(uid){if(!uid||uid==='system'||uid==='onbot'||uid===sess?.uid)return;ucTarget=uid;renderUserCard(uid);document.getElementById('usercard-overlay').classList.add('show');};
+window.closeUserCard=function(){document.getElementById('usercard-overlay').classList.remove('show');ucTarget=null;};
+function renderUserCard(uid){
+  const u=allUsers[uid];if(!u)return;
+  const fr=isFriend(uid);
+  document.getElementById('uc-card-av').textContent=(u.displayName||'?')[0].toUpperCase();
+  document.getElementById('uc-card-av').style.background=u.avatarColor||avatarColor(u.displayName||uid);
+  document.getElementById('uc-card-name').textContent=u.displayName||'알 수 없음';
+  document.getElementById('uc-card-email').textContent=u.email||'';
+  document.getElementById('uc-card-status').textContent=u.online?'● 온라인':'○ 오프라인';
+  document.getElementById('uc-card-actions').innerHTML=
+    `<button class="uc-act" onclick="startChatWithFriend('${uid}','${esc(u.displayName||'').replace(/'/g,"\\'")}');closeUserCard();">💬 1:1 채팅</button>`+
+    (fr?`<button class="uc-act danger" onclick="removeFriend('${uid}')">➖ 친구 삭제</button>`
+       :`<button class="uc-act primary" onclick="addFriend('${uid}')">➕ 친구 추가</button>`);
+}
 function canPinRoom(room){
   // 공지 고정/해제: 채팅방 멤버 누구나(카톡처럼) 또는 관리자
   return !!(sess&&room&&(room.members?.[sess.uid]||sess.isAdmin));
@@ -1138,11 +1171,11 @@ window.setTab=function(t){curTab=t;document.getElementById('tab-g').classList.to
 window.setSpaceTab=function(t){['chat','friends','storage','schedule'].forEach(s=>{document.getElementById('spt-'+s).classList.toggle('on',s===t);const el=document.getElementById('sp-'+s);if(!el)return;el.style.display=s===t?((s==='chat'||s==='friends')?'flex':'block'):'none';if(s==='chat'||s==='friends'){el.style.flexDirection='column';el.style.flex='1';el.style.minHeight='0';}});if(t==='friends')renderFriends(document.getElementById('friend-search')?.value||'');};
 window.renderFriends=function(filter=''){
   const list=document.getElementById('friend-list');if(!list||!sess)return;
-  // 친구 = 내가 초대했거나 나를 초대한 회원 (관리자는 전체)
+  // 친구 = 친구추가했거나 초대로 연결된 회원 (관리자는 전체)
   let friends=Object.entries(allUsers).filter(([uid,v])=>{
     if(uid===sess.uid||!v||v.disabled)return false;
     if(sess.isAdmin)return true;
-    return v.invitedBy===sess.uid||v.uid===sess.invitedBy||uid===sess.invitedBy;
+    return isFriend(uid);
   }).map(([uid,v])=>({uid,name:v.displayName||uid,email:v.email||'',online:v.online||false,color:v.avatarColor||avatarColor(v.displayName||uid)}));
   if(filter){const q=filter.toLowerCase();friends=friends.filter(u=>u.name.toLowerCase().includes(q)||u.email.toLowerCase().includes(q));}
   friends.sort((a,b)=>(b.online-a.online)||a.name.localeCompare(b.name));
@@ -1334,7 +1367,8 @@ function buildMsg(m,prev){
   const reactions=m.reactions?Object.entries(m.reactions).reduce((acc,[emoji,users])=>{const uids=Object.keys(users||{});if(uids.length)acc.push({emoji,count:uids.length,mine:sess&&uids.includes(sess.uid)});return acc;},[]):[];
   const reactionsHtml=reactions.length?`<div class="reactions">${reactions.map(r=>`<div class="reaction${r.mine?' mine':''}" onclick="toggleReaction('${m.id}','${r.emoji}')"><span>${r.emoji}</span><span class="cnt">${r.count}</span></div>`).join('')}</div>`:'';
   const replyHtml=m.replyTo?`<div class="reply-preview"><strong>${esc(m.replyTo.name)}</strong>${esc((m.replyTo.text||'미디어').substring(0,40))}</div>`:'';
-  const avatar=isBot?`<div class="mg-av onbot" style="${sameUser?'visibility:hidden':''}">${ONBOT_SVG}</div>`:`<div class="mg-av" style="background:${color};${sameUser?'visibility:hidden':''}">${name[0].toUpperCase()}</div>`;
+  const avClick=(!isBot&&!mine&&m.uid&&m.uid!=='system')?` onclick="openUserCard('${m.uid}')" style="background:${color};${sameUser?'visibility:hidden':''};cursor:pointer;"`:` style="background:${color};${sameUser?'visibility:hidden':''}"`;
+  const avatar=isBot?`<div class="mg-av onbot" style="${sameUser?'visibility:hidden':''}">${ONBOT_SVG}</div>`:`<div class="mg-av"${avClick}>${name[0].toUpperCase()}</div>`;
   el.innerHTML=`${avatar}<div class="mg-body">${!mine&&!sameUser?`<div class="mg-sender">${esc(name)}</div>`:''}${replyHtml}${content}${reactionsHtml}<div class="mg-meta"><span>${fmtTime(m.at)}</span>${m.editedAt?`<span style="opacity:.5;font-style:italic;font-size:10px;">(수정됨)</span>`:''} ${mine&&m.type!=='system'?(m.readBy&&Object.keys(m.readBy).length>1?`<span class="chk chk-read">✓✓ 읽음</span>`:`<span class="chk">✓ 안읽음</span>`):''}</div></div>`;
   bindMessageContext(el,m);
   return el;
@@ -1442,7 +1476,7 @@ window.openForwardModal=function(msgId){
   const friends=Object.entries(allUsers).filter(([uid,v])=>{
     if(uid===sess.uid||!v||v.disabled)return false;
     if(sess.isAdmin)return true;
-    return v.invitedBy===sess.uid||uid===sess.invitedBy;
+    return isFriend(uid);
   }).map(([uid,v])=>({uid,name:v.displayName||uid,email:v.email||'',color:v.avatarColor||'#7c3aed'}));
   const list=document.getElementById('forward-list');
   let html='';

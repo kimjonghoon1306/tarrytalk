@@ -35,6 +35,7 @@
         "warnings": {
           ".validate": "auth.token.email === 'tarry9653@daum.net' || root.child('users').child(auth.uid).child('isAdmin').val() === true"
         },
+        "friends": { ".write": "auth != null && auth.uid === $uid" },
         "fcmTokens": {
           ".write": "auth != null && auth.uid === $uid",
           "$token": {
