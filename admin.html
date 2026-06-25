@@ -241,6 +241,11 @@ tr:hover td{background:rgba(124,58,237,.04);}
 .preview-box{background:linear-gradient(135deg,rgba(124,58,237,.16),rgba(168,85,247,.08));border:1px solid var(--border2);border-radius:16px;padding:18px;margin-top:12px;}
 .preview-title{font-size:16px;font-weight:900;margin-bottom:7px;color:var(--text);}
 .preview-body{font-size:13px;line-height:1.75;color:var(--text2);white-space:pre-wrap;}
+.ann-row{display:flex;align-items:flex-start;gap:10px;padding:12px;border-radius:13px;background:var(--surface);border:1px solid var(--border);margin-bottom:8px;}
+.ann-ico{width:38px;height:38px;border-radius:12px;background:rgba(124,58,237,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ann-main{flex:1;min-width:0;}
+.ann-text{font-size:13px;font-weight:700;line-height:1.65;white-space:pre-wrap;color:var(--text2);}
+.ann-meta{font-size:11px;color:var(--text3);font-weight:700;margin-top:5px;}
 .group-modal{max-width:560px;}
 .group-search{margin-bottom:10px;}
 .group-member-list{max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:14px;background:var(--surface);margin-top:8px;}
@@ -381,6 +386,13 @@ tr:hover td{background:rgba(124,58,237,.04);}
       <p style="font-size:13px;color:var(--text3);margin-bottom:14px;line-height:1.7;">공지사항을 전체 채팅방에 시스템 메시지로 발송합니다.</p>
       <textarea class="notice-area" id="notice-text" placeholder="공지 내용을 입력하세요..."></textarea>
       <button class="notice-send-btn" onclick="sendNotice()">📢 전체 채팅방에 발송</button>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">📢 공식 공지 피드</div><span class="card-action" id="ann-count-lbl">0개</span></div>
+      <p style="font-size:13px;color:var(--text3);margin-bottom:14px;line-height:1.7;">회원 채팅 화면의 “공식 공지” 채널에 읽기 전용 공지를 쌓아 보여줍니다.</p>
+      <textarea class="notice-area" id="official-ann-text" placeholder="공식 공지 내용을 입력하세요..."></textarea>
+      <button class="notice-send-btn" onclick="saveOfficialAnnouncement()">＋ 공식 공지 등록</button>
+      <div id="ann-list" style="margin-top:14px;"><div class="empty-tbl">등록된 공식 공지가 없습니다</div></div>
     </div>
   </div>
 
@@ -560,7 +572,7 @@ function userRoleLabel(u){
 }
 
 let adminSess = null;
-let allUsers = {}, allRooms = {}, allMsgs = {};
+let allUsers = {}, allRooms = {}, allMsgs = {}, allAnnouncements = {};
 let allAds = {}, popupData = {};
 let pendingAction = null;
 let groupSelected = [];
@@ -608,6 +620,10 @@ function loadData() {
   onValue(ref(db,'popup'), snap => {
     popupData = snap.val()||{};
     renderPopupForm();
+  });
+  onValue(ref(db,'announcements'), snap => {
+    allAnnouncements = snap.val()||{};
+    renderOfficialAnnouncements();
   });
 }
 
@@ -1030,6 +1046,36 @@ window.sendNotice = async function() {
   await Promise.all(promises);
   document.getElementById('notice-text').value='';
   showToast(`📢 ${rooms.length}개 채팅방에 공지를 발송했습니다`,'ok');
+};
+function renderOfficialAnnouncements() {
+  const list = document.getElementById('ann-list');
+  const count = document.getElementById('ann-count-lbl');
+  if(!list||!count)return;
+  const anns = Object.entries(allAnnouncements).map(([id,v])=>({id,...v})).sort((a,b)=>(b.at||0)-(a.at||0));
+  count.textContent = anns.length + '개';
+  if(!anns.length){list.innerHTML='<div class="empty-tbl">등록된 공식 공지가 없습니다</div>';return;}
+  list.innerHTML = anns.map(a=>`
+    <div class="ann-row">
+      <div class="ann-ico">📢</div>
+      <div class="ann-main">
+        <div class="ann-text">${esc(a.text||'')}</div>
+        <div class="ann-meta">${esc(a.by||'운영진')} · ${new Date(a.at||Date.now()).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
+      </div>
+      <button class="small-btn" onclick="deleteOfficialAnnouncement('${a.id}')">삭제</button>
+    </div>
+  `).join('');
+}
+window.saveOfficialAnnouncement = async function() {
+  const text = document.getElementById('official-ann-text').value.trim();
+  if(!text){showToast('공식 공지 내용을 입력하세요','info');return;}
+  await set(push(ref(db,'announcements')),{text,at:Date.now(),by:adminSess?.name||'운영진'});
+  document.getElementById('official-ann-text').value='';
+  showToast('📢 공식 공지를 등록했습니다','ok');
+};
+window.deleteOfficialAnnouncement = async function(id) {
+  if(!id||!confirm('이 공식 공지를 삭제할까요?'))return;
+  await remove(ref(db,`announcements/${id}`));
+  showToast('공식 공지를 삭제했습니다','ok');
 };
 
 /* ── 확인 모달 ── */

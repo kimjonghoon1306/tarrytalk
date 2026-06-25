@@ -58,6 +58,7 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;}input,textar
 .r-time{font-size:10px;color:var(--text3);}
 .r-badge{background:var(--green);color:#fff;font-size:9px;font-weight:900;padding:2px 6px;border-radius:50px;min-width:18px;text-align:center;}
 .r-item.onbot-fixed{border-bottom:1px solid var(--border);background:linear-gradient(135deg,rgba(124,58,237,.1),rgba(168,85,247,.05));}
+.r-item.announce-fixed{border-bottom:1px solid var(--border);background:linear-gradient(135deg,rgba(255,209,102,.08),rgba(124,58,237,.04));}
 .onbot-avatar{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
 .onbot-avatar svg{width:100%;height:100%;display:block;}
 .empty-rooms{padding:36px 20px;text-align:center;color:var(--text3);}
@@ -149,6 +150,13 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;}input,textar
 .bot-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;max-width:min(560px,100%);}
 .bot-chip{padding:7px 11px;border-radius:50px;background:var(--surface);border:1px solid var(--border2);color:var(--green);font-size:12px;font-weight:800;cursor:pointer;transition:all .16s;}
 .bot-chip:hover,.bot-chip:active{background:var(--green);color:#fff;border-color:var(--green);}
+.announce-feed{display:flex;flex-direction:column;gap:10px;width:min(680px,100%);align-self:center;padding:4px 0 18px;}
+.announce-card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--green);border-radius:16px;padding:14px 16px;box-shadow:0 8px 26px rgba(0,0,0,.08);}
+.announce-card .ac-meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--text3);font-size:11px;font-weight:800;margin-bottom:8px;}
+.announce-card .ac-text{white-space:pre-wrap;word-break:break-word;color:var(--text);font-size:14px;line-height:1.75;font-weight:600;}
+.announce-empty{align-self:center;text-align:center;color:var(--text3);font-size:13px;line-height:1.8;padding:50px 18px;}
+.readonly-note{display:none;padding:10px 14px;border-top:1px solid var(--border);background:var(--bg2);color:var(--text3);font-size:12px;font-weight:800;text-align:center;flex-shrink:0;}
+.readonly-note.show{display:block;}
 .mg-meta{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);}
 .mg.out .mg-meta{flex-direction:row-reverse;}
 .chk{color:var(--green);font-size:11px;}
@@ -456,6 +464,7 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none;}input,textar
     <button class="scroll-btn" id="scroll-btn" onclick="scrollToBottom(true)">↓<span class="scroll-badge" id="scroll-badge"></span></button>
     <div class="guest-wall" id="guest-wall" style="display:none;"><div class="gw-box"><div style="font-size:40px;margin-bottom:12px;">🔒</div><h3>로그인이 필요합니다</h3><p>채팅 내용을 보고 참여하려면<br>로그인하거나 회원가입하세요</p><button class="gw-login" onclick="location.href='index.html'">로그인 / 회원가입</button></div></div>
   </div>
+  <div class="readonly-note" id="readonly-note">관리자 공지 채널입니다. 회원은 읽기만 할 수 있어요.</div>
   <div class="input-wrap" id="input-wrap" style="display:none;">
     <div class="mute-notice" id="mute-notice"></div>
     <div class="reply-bar" id="reply-bar"><div style="font-size:14px;color:var(--green);">↩</div><div class="reply-bar-txt"><strong id="reply-sender"></strong><span id="reply-text"></span></div><button class="reply-bar-x" onclick="clearReply()">✕</button></div>
@@ -595,6 +604,7 @@ let sess=null,isGuest=false,curRoom=null,curTab='group',selType='dm',selUsers=[]
 let allUsers={},replyTo=null,reactionTarget=null,typingTimer=null,isAtBottom=true,newMsgCount=0;
 let _msgUnsub=null,_typingUnsub=null;
 let activeAds=[],adIndex=0,adTimer=null,popupNotice=null,introIndex=0;
+let announcements=[];
 const viewedAds=new Set();
 const COLORS=['#00a84a','#0087d4','#a855f7','#e85d04','#d62828','#2ec4b6'];
 const ONBOT_SVG=`<span class="onbot-avatar" aria-hidden="true"><svg viewBox="0 0 64 64" role="img" focusable="false"><defs><linearGradient id="onbotG" x1="12" y1="8" x2="52" y2="56" gradientUnits="userSpaceOnUse"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs><path d="M32 9v7" fill="none" stroke="#a855f7" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="7" r="4" fill="#c084fc"/><path d="M13 22c0-5 4-9 9-9h20c5 0 9 4 9 9v17c0 5-4 9-9 9H30l-9 7c-2 1.5-4.5-.2-4-2.7l1.2-5.8C15.1 45 13 42.1 13 39V22z" fill="url(#onbotG)"/><circle cx="25" cy="30" r="5" fill="#fff"/><circle cx="39" cy="30" r="5" fill="#fff"/><circle cx="26.5" cy="31" r="1.8" fill="#5b21b6"/><circle cx="37.5" cy="31" r="1.8" fill="#5b21b6"/><path d="M25 39c3.5 3 10.5 3 14 0" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg></span>`;
@@ -632,6 +642,7 @@ function initUI(){
     document.getElementById('uc-role').textContent=sess.isAdmin?'⚙️ 관리자':'● 온라인';
     if(sess.isAdmin)document.getElementById('admin-link').style.display='flex';
     onValue(ref(db,'users'),snap=>{allUsers=snap.val()||{};const me=allUsers[sess.uid]||{};sess.warnings=me.warnings||0;sess.mutedUntil=me.mutedUntil||0;updateMuteNotice();renderRooms(document.getElementById('search-inp')?.value||'');refreshRoomHeader();});
+    listenAnnouncements();
     listenAds();
     listenPopupNotice();
   }else{document.getElementById('uc-name').textContent='게스트';document.getElementById('uc-role').textContent='👀 둘러보기';document.getElementById('new-btn').style.display='none';}
@@ -738,7 +749,7 @@ function roomEmoji(room){
   return title&&title!=='1대1 채팅'?title[0]:'👤';
 }
 function refreshRoomHeader(){
-  if(!curRoom||curRoom==='onbot')return;
+  if(!curRoom||curRoom==='onbot'||curRoom==='announce')return;
   const room=(window._rooms||[]).find(r=>r.id===curRoom);
   if(!room)return;
   document.getElementById('tb-name').textContent=roomTitle(room);
@@ -770,8 +781,16 @@ function renderRooms(filter=''){
     <div class="r-av">${ONBOT_SVG}</div>
     <div style="flex:1;min-width:0;"><div class="r-name">온봇 · 도우미</div><div class="r-prev">온메신저 기능을 물어보세요</div></div>
   </div>`;
-  if(!rooms.length){list.innerHTML=botItem+`<div class="empty-rooms"><div class="ei">${curTab==='group'?'👥':'💬'}</div><p>${curTab==='group'?'단체채팅방이 없어요\n새 채팅을 만들어보세요':'1대1 채팅이 없어요\n대화를 시작해보세요'}</p></div>`;return;}
-  list.innerHTML=botItem+rooms.map(r=>{
+  const latestAnn=announcements[announcements.length-1]?.at||0;
+  const seenAnn=Number(localStorage.getItem(`tt_ann_seen_${sess?.uid||'guest'}`)||0);
+  const unseenAnn=!!(sess&&latestAnn>seenAnn&&curRoom!=='announce');
+  const announceItem=sess?`<div class="r-item announce-fixed${curRoom==='announce'?' on':''}" onclick="openAnnouncements()">
+    <div class="r-av">📢</div>
+    <div style="flex:1;min-width:0;"><div class="r-name">공식 공지</div><div class="r-prev">운영진이 전하는 공지 피드</div></div>
+    ${unseenAnn?'<div class="r-badge">N</div>':''}
+  </div>`:'';
+  if(!rooms.length){list.innerHTML=botItem+announceItem+`<div class="empty-rooms"><div class="ei">${curTab==='group'?'👥':'💬'}</div><p>${curTab==='group'?'단체채팅방이 없어요\n새 채팅을 만들어보세요':'1대1 채팅이 없어요\n대화를 시작해보세요'}</p></div>`;return;}
+  list.innerHTML=botItem+announceItem+rooms.map(r=>{
     const unread=r.unread?.[sess?.uid]||0;
     const title=roomTitle(r);
     return`<div class="r-item${curRoom===r.id?' on':''}" onclick="openRoom('${r.id}')">
@@ -787,6 +806,54 @@ function renderRooms(filter=''){
 window.filterRooms=v=>renderRooms(v);
 window.setTab=function(t){curTab=t;document.getElementById('tab-g').classList.toggle('on',t==='group');document.getElementById('tab-d').classList.toggle('on',t==='dm');renderRooms();};
 window.setSpaceTab=function(t){['chat','storage','schedule'].forEach(s=>{document.getElementById('spt-'+s).classList.toggle('on',s===t);const el=document.getElementById('sp-'+s);el.style.display=s===t?(s==='chat'?'flex':'block'):'none';if(s==='chat'){el.style.flexDirection='column';el.style.flex='1';el.style.minHeight='0';}});};
+function listenAnnouncements(){
+  if(!sess)return;
+  onValue(ref(db,'announcements'),snap=>{
+    announcements=Object.entries(snap.val()||{}).map(([id,v])=>({id,...v})).sort((a,b)=>(a.at||0)-(b.at||0));
+    if(curRoom==='announce')renderAnnouncements();
+    renderRooms(document.getElementById('search-inp')?.value||'');
+  });
+}
+function renderAnnouncements(){
+  const el=document.getElementById('messages');
+  if(!announcements.length){el.innerHTML='<div class="announce-empty"><div style="font-size:42px;margin-bottom:10px;">📢</div>아직 등록된 공식 공지가 없습니다.</div>';return;}
+  el.innerHTML=`<div class="announce-feed">${announcements.map(a=>`
+    <div class="announce-card">
+      <div class="ac-meta"><span>${esc(a.by||'운영진')}</span><span>${new Date(a.at||Date.now()).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</span></div>
+      <div class="ac-text">${esc(a.text||'').replace(/\n/g,'<br>')}</div>
+    </div>
+  `).join('')}</div>`;
+  scrollToBottom();
+}
+window.openAnnouncements=function(){
+  if(!sess){showToast('로그인 후 공식 공지를 볼 수 있습니다','info');return;}
+  curRoom='announce';
+  if(_msgUnsub){_msgUnsub();_msgUnsub=null;}if(_typingUnsub){_typingUnsub();_typingUnsub=null;}
+  clearReply();
+  const latest=announcements[announcements.length-1]?.at||Date.now();
+  localStorage.setItem(`tt_ann_seen_${sess.uid}`,String(latest));
+  document.getElementById('tb-av').style.display='flex';document.getElementById('tb-av').textContent='📢';
+  document.getElementById('tb-info').style.display='block';document.getElementById('tb-name').textContent='📢 공식 공지';document.getElementById('tb-sub').textContent=sess.isAdmin?'● 운영진 공지 작성 가능':'● 읽기 전용 공지 채널';
+  document.getElementById('secret-badge').classList.remove('show');
+  document.getElementById('tb-logo').style.display='none';document.getElementById('tb-onbot-close').style.display='none';document.getElementById('tb-settings').style.display='none';document.getElementById('tb-search-btn').style.display='none';
+  document.getElementById('chat-empty').style.display='none';document.getElementById('messages').style.display='flex';document.getElementById('messages').style.filter='';
+  document.getElementById('guest-wall').style.display='none';document.getElementById('typing-bar').classList.remove('show');
+  document.getElementById('readonly-note').classList.toggle('show',!sess.isAdmin);
+  document.getElementById('input-wrap').style.display=sess.isAdmin?'block':'none';
+  document.getElementById('tool-row').style.display='none';document.querySelector('.emoji-row').style.display='none';document.getElementById('link-row').classList.remove('show');
+  document.getElementById('m-inp').placeholder='공식 공지를 입력하세요...';
+  renderAnnouncements();renderRooms(document.getElementById('search-inp')?.value||'');closeSb();
+  if(sess.isAdmin)document.getElementById('m-inp').focus();
+};
+async function sendAnnouncement(){
+  if(!sess?.isAdmin)return;
+  const inp=document.getElementById('m-inp');const text=inp.value.trim();if(!text)return;
+  const btn=document.getElementById('send-btn');btn.disabled=true;
+  try{
+    await set(push(ref(db,'announcements')),{text,at:Date.now(),by:sess.name||'운영진'});
+    inp.value='';inp.style.height='auto';showToast('📢 공식 공지를 등록했습니다','ok');
+  }finally{btn.disabled=false;inp.focus();}
+}
 window.openRoom=async function(id){
   curRoom=id;const room=(window._rooms||[]).find(r=>r.id===id);if(!room)return;
   if(_msgUnsub)_msgUnsub();if(_typingUnsub)_typingUnsub();
@@ -801,8 +868,11 @@ window.openRoom=async function(id){
   document.getElementById('tb-onbot-close').style.display='none';
   document.getElementById('tb-settings').style.display=isCreator?'flex':'none';
   document.getElementById('tb-search-btn').style.display=sess?'flex':'none';
+  document.getElementById('readonly-note').classList.remove('show');
   document.getElementById('chat-empty').style.display='none';document.getElementById('messages').style.display='flex';
   document.getElementById('tool-row').style.display='flex';
+  document.querySelector('.emoji-row').style.display='';
+  document.getElementById('m-inp').placeholder='메시지를 입력하세요...';
   document.getElementById('emoji-row')?.style?.removeProperty?.('display');
   clearReply();
   if(isGuest){document.getElementById('messages').style.filter='blur(7px)';document.getElementById('guest-wall').style.display='flex';document.getElementById('input-wrap').style.display='none';}
@@ -917,7 +987,9 @@ window.openOnbot=function(){
   document.getElementById('tb-logo').style.display='none';document.getElementById('tb-onbot-close').style.display='flex';document.getElementById('tb-settings').style.display='none';document.getElementById('tb-search-btn').style.display='none';
   document.getElementById('chat-empty').style.display='none';document.getElementById('messages').style.display='flex';document.getElementById('messages').style.filter='';
   document.getElementById('guest-wall').style.display='none';document.getElementById('typing-bar').classList.remove('show');
+  document.getElementById('readonly-note').classList.remove('show');
   document.getElementById('input-wrap').style.display='block';document.getElementById('tool-row').style.display='none';document.getElementById('link-row').classList.remove('show');
+  document.querySelector('.emoji-row').style.display='';document.getElementById('m-inp').placeholder='메시지를 입력하세요...';
   clearReply();
   if(!onbotMessages.length)onbotMessages=[onbotMsg('안녕하세요, 저는 온메신저 도우미 온봇이에요. 아래 버튼을 누르거나 궁금한 기능을 편하게 입력해 주세요. 사진·영상·파일 보관기간도 바로 안내해 드릴게요.')];
   renderOnbot();renderRooms(document.getElementById('search-inp')?.value||'');closeSb();document.getElementById('m-inp').focus();
@@ -933,6 +1005,7 @@ window.closeOnbot=function(){
   document.getElementById('guest-wall').style.display='none';
   document.getElementById('typing-bar').classList.remove('show');
   document.getElementById('search-bar').classList.remove('show');
+  document.getElementById('readonly-note').classList.remove('show');
   document.getElementById('tb-logo').style.display='';
   document.getElementById('tb-av').style.display='none';
   document.getElementById('tb-info').style.display='none';
@@ -990,9 +1063,10 @@ function listenTyping(roomId){
 }
 function currentRoom(){return(window._rooms||[]).find(r=>r.id===curRoom);}
 function sendTypingSignal(active){if(!curRoom||!sess||isSecretWatch(currentRoom()))return;set(ref(db,`typing/${curRoom}/${sess.uid}`),active?{active:true,at:Date.now()}:null);}
-window.handleInput=function(el){autoResize(el);if(curRoom==='onbot'||!curRoom||!sess||isSecretWatch(currentRoom()))return;clearTimeout(typingTimer);sendTypingSignal(true);typingTimer=setTimeout(()=>sendTypingSignal(false),3000);};
+window.handleInput=function(el){autoResize(el);if(curRoom==='onbot'||curRoom==='announce'||!curRoom||!sess||isSecretWatch(currentRoom()))return;clearTimeout(typingTimer);sendTypingSignal(true);typingTimer=setTimeout(()=>sendTypingSignal(false),3000);};
 window.sendMsg=async function(){
   if(curRoom==='onbot'){sendOnbotMessage();return;}
+  if(curRoom==='announce'){await sendAnnouncement();return;}
   if(isSecretWatch(currentRoom())){showToast('시크릿 관전 중에는 메시지를 보낼 수 없습니다','warn');return;}
   if(blockIfMuted())return;
   if(!curRoom||!sess||isGuest)return;const inp=document.getElementById('m-inp');const text=inp.value.trim();if(!text)return;
@@ -1122,6 +1196,7 @@ window.editMsg=function(msgId, currentText){
 const _origSendMsg = window.sendMsg;
 window.sendMsg = async function(){
   if(curRoom==='onbot')return _origSendMsg();
+  if(curRoom==='announce')return _origSendMsg();
   if(window._editingMsgId){
     const inp=document.getElementById('m-inp');
     const text=inp.value.trim(); if(!text) return;
