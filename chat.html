@@ -261,7 +261,11 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .media-keep-note{padding:0 10px 8px;font-size:10px;line-height:1.4;color:var(--green);font-weight:800;}
 .file-card .media-keep-note{padding:0 13px 10px;}
 .expired-media{max-width:260px;padding:12px 14px;border:1px dashed var(--border2);border-radius:14px;background:rgba(124,58,237,.08);color:var(--text3);font-size:13px;line-height:1.55;font-weight:700;}
-.schedule-card{border-radius:16px;overflow:hidden;max-width:260px;border:1px solid var(--border2);background:var(--bg2);}
+.schedule-card{border-radius:16px;overflow:hidden;max-width:260px;border:1px solid var(--border2);background:var(--bg2);transition:transform .16s,box-shadow .16s;}
+.schedule-card:hover{transform:translateY(-2px);box-shadow:0 8px 22px var(--glow);}
+.sch-more{font-size:11px;color:var(--green);font-weight:800;margin-top:8px;}
+.sv-row{display:flex;gap:10px;align-items:flex-start;padding:7px 0;font-size:14px;}
+.sv-ico{flex-shrink:0;}
 .sch-head{background:linear-gradient(135deg,var(--green),var(--green2));padding:12px 14px;color:#fff;}
 .sch-date{font-size:10px;font-weight:800;opacity:.75;}
 .sch-title{font-size:15px;font-weight:900;margin-top:2px;}
@@ -631,6 +635,18 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 
 <!-- 라이트박스 -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()"><div class="lb-close" onclick="closeLightbox()">✕</div><img id="lb-img" src="" alt=""><div class="lb-name" id="lb-name"></div><a id="lb-save" class="lb-save" download onclick="event.stopPropagation()">💾 이미지 저장</a></div>
+<div class="popup-overlay" id="schedule-view-overlay" onclick="if(event.target.id==='schedule-view-overlay')closeScheduleView()">
+  <div class="popup-card" style="max-width:400px;">
+    <div class="popup-head"><div class="popup-ico">📅</div><div class="popup-title" id="sv-title"></div></div>
+    <div class="popup-body">
+      <div class="sv-row"><span class="sv-ico">🗓️</span><span id="sv-date"></span></div>
+      <div class="sv-row" id="sv-place-row"><span class="sv-ico">📍</span><span id="sv-place"></span></div>
+      <div class="sv-row" id="sv-memo-row"><span class="sv-ico">📝</span><span id="sv-memo"></span></div>
+      <div class="sv-row"><span class="sv-ico">🙋</span><span id="sv-by"></span></div>
+    </div>
+    <div class="popup-foot"><span></span><button class="popup-close" onclick="closeScheduleView()">확인</button></div>
+  </div>
+</div>
 
 <!-- 새 채팅방 모달 -->
 <div class="overlay" id="overlay" onclick="outsideClose(event)">
@@ -1272,7 +1288,7 @@ function buildMsg(m,prev){
   else if(m.type==='image'){const src=esc(m.data||m.url||'');content=`<div class="img-bub" onclick="openLightbox('${src}','${esc(m.fileName||'이미지')}')"><img src="${src}" alt="이미지" loading="lazy" class="loading" onload="this.classList.remove('loading')"><div class="img-cap">🖼️ ${esc(m.fileName||'이미지')} <a href="${src}" download="${m.fileName||'image'}" onclick="event.stopPropagation()">다운로드</a></div>${mediaNote}</div>`;}
   else if(m.type==='document'){const icons={pdf:'📄',doc:'📝',docx:'📝',ppt:'📊',pptx:'📊',xls:'📗',xlsx:'📗',zip:'🗜️',hwp:'📄',txt:'📃'};const ext=(m.fileName||'').split('.').pop().toLowerCase();content=`<div class="file-card"><div class="file-card-body"><div class="file-icon">${icons[ext]||'📎'}</div><div class="file-info"><div class="file-name">${esc(m.fileName||'파일')}</div><div class="file-size">${m.fileSize||''}</div></div><a class="file-dl" href="${esc(m.data)}" download="${m.fileName||'file'}">받기</a></div>${mediaNote}</div>`;}
   else if(m.type==='video'){content=`<div class="file-card"><video controls src="${esc(m.data)}" style="max-height:200px;width:100%;"></video><div class="file-card-body"><div class="file-icon">🎥</div><div class="file-info"><div class="file-name">${esc(m.fileName||'영상')}</div><div class="file-size">${m.fileSize||''}</div></div></div>${mediaNote}</div>`;}
-  else if(m.type==='schedule'){const ds=new Date(m.scheduleDate).toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});content=`<div class="schedule-card"><div class="sch-head"><div class="sch-date">📅 ${ds}${m.scheduleTime?' · '+m.scheduleTime:''}</div><div class="sch-title">${esc(m.scheduleTitle)}</div></div><div class="sch-body">${m.schedulePlace?`<div class="sch-row"><span>📍</span><span>${esc(m.schedulePlace)}</span></div>`:''}${m.scheduleMemo?`<div class="sch-row"><span>📝</span><span>${esc(m.scheduleMemo)}</span></div>`:''}</div></div>`;}
+  else if(m.type==='schedule'){const ds=new Date(m.scheduleDate).toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});content=`<div class="schedule-card" onclick="openScheduleView('${m.id}')" style="cursor:pointer;"><div class="sch-head"><div class="sch-date">📅 ${ds}${m.scheduleTime?' · '+m.scheduleTime:''}</div><div class="sch-title">${esc(m.scheduleTitle)}</div></div><div class="sch-body">${m.schedulePlace?`<div class="sch-row"><span>📍</span><span>${esc(m.schedulePlace)}</span></div>`:''}${m.scheduleMemo?`<div class="sch-row"><span>📝</span><span>${esc(m.scheduleMemo)}</span></div>`:''}<div class="sch-more">탭하여 크게 보기 →</div></div></div>`;}
   else{const txt=esc(m.text).replace(/\n/g,'<br>').replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');content=`<div class="bubble">${txt}</div>`;}
   const reactions=m.reactions?Object.entries(m.reactions).reduce((acc,[emoji,users])=>{const uids=Object.keys(users||{});if(uids.length)acc.push({emoji,count:uids.length,mine:sess&&uids.includes(sess.uid)});return acc;},[]):[];
   const reactionsHtml=reactions.length?`<div class="reactions">${reactions.map(r=>`<div class="reaction${r.mine?' mine':''}" onclick="toggleReaction('${m.id}','${r.emoji}')"><span>${r.emoji}</span><span class="cnt">${r.count}</span></div>`).join('')}</div>`:'';
@@ -1779,6 +1795,18 @@ window.clearReply = function(){
   window._editingMsgId = null;
   _origClearReply();
 };
+window.openScheduleView=function(msgId){
+  const m=msgById(msgId);if(!m)return;
+  const d=m.scheduleDate?new Date(m.scheduleDate).toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'long'}):'날짜 미정';
+  document.getElementById('sv-title').textContent=m.scheduleTitle||'일정';
+  document.getElementById('sv-date').textContent=d+(m.scheduleTime?' · '+m.scheduleTime:'');
+  const pr=document.getElementById('sv-place-row'),mr=document.getElementById('sv-memo-row');
+  if(m.schedulePlace){document.getElementById('sv-place').textContent=m.schedulePlace;pr.style.display='';}else pr.style.display='none';
+  if(m.scheduleMemo){document.getElementById('sv-memo').textContent=m.scheduleMemo;mr.style.display='';}else mr.style.display='none';
+  document.getElementById('sv-by').textContent=(m.displayName||'알 수 없음')+'님이 공유';
+  document.getElementById('schedule-view-overlay').classList.add('show');
+};
+window.closeScheduleView=function(){document.getElementById('schedule-view-overlay').classList.remove('show');};
 window.openLightbox=function(src,name){document.getElementById('lb-img').src=src;document.getElementById('lb-name').textContent=name;const s=document.getElementById('lb-save');if(s){s.href=src;s.download=name||'image';}document.getElementById('lightbox').classList.add('show');};
 window.closeLightbox=function(){document.getElementById('lightbox').classList.remove('show');};
 window.toggleSearchBar=function(){const bar=document.getElementById('search-bar');bar.classList.toggle('show');if(bar.classList.contains('show'))document.getElementById('msg-search-inp').focus();else{document.getElementById('msg-search-inp').value='';searchMessages('');}};
