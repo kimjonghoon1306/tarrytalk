@@ -115,7 +115,8 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .chat-empty.has-hero-ad{justify-content:flex-start;gap:22px;padding-top:28px;}
 .empty-ad{display:none;width:min(920px,100%);border-radius:24px;overflow:hidden;background:linear-gradient(135deg,#221c2e,#7c3aed);box-shadow:0 22px 58px rgba(0,0,0,.26),0 0 34px var(--glow);animation:itemIn .32s ease both;position:relative;}
 .empty-ad.show{display:block;}
-.empty-ad-link{position:relative;display:block;width:100%;height:clamp(150px,17vw,220px);min-height:150px;text-decoration:none;color:#fff;overflow:hidden;border-radius:24px;background:linear-gradient(135deg,#221c2e,#7c3aed);}
+.empty-ad-link{position:relative;display:block;width:100%;aspect-ratio:5/2;max-height:340px;min-height:170px;text-decoration:none;color:#fff;overflow:hidden;border-radius:24px;background:linear-gradient(135deg,#221c2e,#7c3aed);}
+@media(max-width:720px){.empty-ad-link{aspect-ratio:16/10;max-height:none;}}
 .empty-ad-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;background:var(--surface2);transform:scale(1.01);}
 .empty-ad.no-img .empty-ad-img{display:none!important;}
 .empty-ad-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:clamp(18px,3.2vw,34px);text-align:left;background:linear-gradient(90deg,rgba(0,0,0,.64),rgba(0,0,0,.36) 42%,transparent 72%);}
