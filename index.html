@@ -301,12 +301,13 @@ const db   = getDatabase(app);
 const ADMIN_EMAIL = 'tarry9653@daum.net';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 let adminLoginInProgress = false;
+let signupInProgress = false;
 
 /* 이미 로그인 시 바로 이동 */
 onAuthStateChanged(auth, user => {
   if (user) {
     sessionStorage.removeItem('tt_guest');
-    if (!adminLoginInProgress) { location.href = 'chat.html'; }
+    if (!adminLoginInProgress && !signupInProgress) { location.href = 'chat.html'; }
   }
 });
 
@@ -450,6 +451,7 @@ window.doSignup = async function() {
   btn.disabled = true; btn.textContent = '가입 처리 중...';
   showLoading(true);
   try {
+    signupInProgress = true;
     const cred = await createUserWithEmailAndPassword(auth, em, pw);
     await updateProfile(cred.user, { displayName: nm });
     sessionStorage.removeItem('tt_guest');
@@ -464,6 +466,7 @@ window.doSignup = async function() {
     showToast('🎉 가입 완료! 환영합니다', 'ok');
     setTimeout(() => location.href='chat.html', 900);
   } catch(e) {
+    signupInProgress = false;
     showLoading(false); btn.disabled = false; btn.textContent = '회원가입 완료';
     const c = e.code||'';
     if (c.includes('email-already-in-use')) showMsg('su-em-msg','err','❌','이미 가입된 이메일 주소입니다');
