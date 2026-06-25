@@ -201,7 +201,9 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .uc-act{padding:12px;border-radius:13px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;font-weight:800;cursor:pointer;transition:all .15s;}
 .uc-act:hover{transform:translateY(-1px);box-shadow:0 6px 16px var(--glow);}
 .uc-act.primary{background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;border:none;}
+.uc-act.primary .uc-pm{color:#fff;font-weight:900;}
 .uc-act.danger{color:var(--red);border-color:var(--red);}
+.uc-act.danger .uc-pm{color:var(--red);font-weight:900;}
 .lp-link{display:block;border:1px solid rgba(0,0,0,.08);border-radius:14px;overflow:hidden;background:#fff;text-decoration:none;color:#21172f;transition:all .15s;}
 .lp-link:hover{box-shadow:0 6px 18px rgba(0,0,0,.18);}
 .lp-img{width:100%;height:130px;background-size:cover;background-position:center;background-color:#ece7f5;}
@@ -1085,8 +1087,8 @@ function renderUserCard(uid){
   document.getElementById('uc-card-status').textContent=u.online?'● 온라인':'○ 오프라인';
   document.getElementById('uc-card-actions').innerHTML=
     `<button class="uc-act" onclick="startChatWithFriend('${uid}','${esc(u.displayName||'').replace(/'/g,"\\'")}');closeUserCard();">💬 1:1 채팅</button>`+
-    (fr?`<button class="uc-act danger" onclick="removeFriend('${uid}')">➖ 친구 삭제</button>`
-       :`<button class="uc-act primary" onclick="addFriend('${uid}')">➕ 친구 추가</button>`);
+    (fr?`<button class="uc-act danger" onclick="removeFriend('${uid}')"><span class="uc-pm">－</span> 친구 삭제</button>`
+       :`<button class="uc-act primary" onclick="addFriend('${uid}')"><span class="uc-pm">＋</span> 친구 추가</button>`);
 }
 function canPinRoom(room){
   // 공지 고정/해제: 채팅방 멤버 누구나(카톡처럼) 또는 관리자
@@ -1283,6 +1285,8 @@ function loadMessages(roomId){
 }
 function markMessagesRead(roomId,msgs){
   if(!sess||isGuest||sess.uid==='admin')return;
+  // 시크릿 관전 중이면 읽음표시 절대 남기지 않음(회원이 관리자 입장 모르게)
+  if(isSecretWatch(currentRoom()))return;
   // 엄격: 그 방이 현재 열려있고 + 앱이 화면 앞(보이는 상태)일 때만 읽음 처리
   if(roomId!==curRoom)return;
   if(document.visibilityState!=='visible')return;
@@ -1297,6 +1301,8 @@ function markMessagesRead(roomId,msgs){
 }
 function cleanupExpiredMedia(roomId,msgs){
   if(!sess||isGuest)return;
+  // 시크릿 관전 중엔 DB 쓰기(정리) 금지 — 흔적 남으면 안 됨
+  if(isSecretWatch(currentRoom()))return;
   const room=(window._rooms||[]).find(r=>r.id===roomId);
   if(isSecretWatch(room))return;
   const now=Date.now();
