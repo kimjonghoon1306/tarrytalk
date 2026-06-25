@@ -67,7 +67,16 @@ button:active,.nav-item:active,.card:active,.room-card:active,.ad-row:active,.an
 
 /* ── 메인 ── */
 .adm-main{flex:1;padding:28px 28px 40px;overflow-y:auto;min-width:0;}
-@media(max-width:720px){.adm-sb{display:none;}.adm-main{padding:18px 16px;}}
+.adm-hamburger{display:none;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;border:1px solid var(--border2);background:var(--surface);color:var(--green);font-size:20px;cursor:pointer;margin-bottom:14px;}
+.adm-drawer-bg{display:none;}
+@media(max-width:720px){
+.adm-sb{position:fixed;top:0;left:0;bottom:0;width:236px;z-index:100;transform:translateX(-100%);transition:transform .25s ease;box-shadow:6px 0 40px rgba(0,0,0,.28);}
+.adm-sb.open{transform:translateX(0);}
+.adm-drawer-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99;}
+.adm-drawer-bg.show{display:block;}
+.adm-main{padding:18px 16px;}
+.adm-hamburger{display:inline-flex;}
+}
 .theme-fab{display:none;}
 @media(max-width:720px){
   .theme-fab{display:flex;align-items:center;gap:6px;position:fixed;bottom:20px;right:20px;
@@ -284,7 +293,8 @@ tr:hover td{background:rgba(124,58,237,.04);}
 
 <div class="admin-wrap">
 <!-- ── 사이드바 ── -->
-<div class="adm-sb">
+<div class="adm-drawer-bg" id="adm-drawer-bg" onclick="closeAdmSb()"></div>
+<div class="adm-sb" id="adm-sb">
   <div class="adm-logo">
     <div class="adm-logo-title">온메신저</div>
     <div class="adm-logo-sub">관리자 패널</div>
@@ -306,6 +316,7 @@ tr:hover td{background:rgba(124,58,237,.04);}
 
 <!-- ── 메인 ── -->
 <div class="adm-main">
+  <button class="adm-hamburger" onclick="toggleAdmSb()" aria-label="메뉴">☰</button>
   <div class="pg-head">
     <div>
       <div class="pg-title">대시보드 <span>📊</span></div>
@@ -788,7 +799,10 @@ window.switchSection = function(sec) {
     const secs=['dashboard','users','rooms','notice','ads','popup'];
     el.classList.toggle('on', secs[i]===sec);
   });
+  closeAdmSb();
 };
+window.toggleAdmSb=function(){document.getElementById('adm-sb').classList.toggle('open');document.getElementById('adm-drawer-bg').classList.toggle('show');};
+window.closeAdmSb=function(){const sb=document.getElementById('adm-sb'),bg=document.getElementById('adm-drawer-bg');if(sb)sb.classList.remove('open');if(bg)bg.classList.remove('show');};
 
 /* ── 광고 관리 ── */
 function dateInputToStart(v){return v?new Date(v+'T00:00:00').getTime():null;}
