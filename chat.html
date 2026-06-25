@@ -1293,7 +1293,7 @@ function buildMsg(m,prev){
   }
   else if(m.type==='image'){const src=esc(m.data||m.url||'');content=`<div class="img-bub" onclick="openLightbox('${src}','${esc(m.fileName||'이미지')}')"><img src="${src}" alt="이미지" loading="lazy" class="loading" onload="this.classList.remove('loading')"><div class="img-cap">🖼️ ${esc(m.fileName||'이미지')} <a href="${src}" download="${m.fileName||'image'}" onclick="event.stopPropagation()">다운로드</a></div>${mediaNote}</div>`;}
   else if(m.type==='document'){const icons={pdf:'📄',doc:'📝',docx:'📝',ppt:'📊',pptx:'📊',xls:'📗',xlsx:'📗',zip:'🗜️',hwp:'📄',txt:'📃'};const ext=(m.fileName||'').split('.').pop().toLowerCase();content=`<div class="file-card"><div class="file-card-body"><div class="file-icon">${icons[ext]||'📎'}</div><div class="file-info"><div class="file-name">${esc(m.fileName||'파일')}</div><div class="file-size">${m.fileSize||''}</div></div><a class="file-dl" href="${esc(m.data)}" download="${m.fileName||'file'}">받기</a></div>${mediaNote}</div>`;}
-  else if(m.type==='video'){content=`<div class="file-card"><video controls src="${esc(m.data)}" style="max-height:200px;width:100%;"></video><div class="file-card-body"><div class="file-icon">🎥</div><div class="file-info"><div class="file-name">${esc(m.fileName||'영상')}</div><div class="file-size">${m.fileSize||''}</div></div></div>${mediaNote}</div>`;}
+  else if(m.type==='video'){content=`<div class="file-card"><video controls src="${esc(m.data)}" style="max-height:200px;width:100%;"></video><div class="file-card-body"><div class="file-icon">🎥</div><div class="file-info"><div class="file-name">${esc(m.fileName||'영상')}</div><div class="file-size">${m.fileSize||''}</div></div><a class="file-dl" href="${esc(m.data)}" download="${esc(m.fileName||'video.mp4')}" onclick="event.stopPropagation()">받기</a></div>${mediaNote}</div>`;}
   else if(m.type==='schedule'){const ds=new Date(m.scheduleDate).toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});content=`<div class="schedule-card" onclick="openScheduleView('${m.id}')" style="cursor:pointer;"><div class="sch-head"><div class="sch-date">📅 ${ds}${m.scheduleTime?' · '+m.scheduleTime:''}</div><div class="sch-title">${esc(m.scheduleTitle)}</div></div><div class="sch-body">${m.schedulePlace?`<div class="sch-row"><span>📍</span><span>${esc(m.schedulePlace)}</span></div>`:''}${m.scheduleMemo?`<div class="sch-row"><span>📝</span><span>${esc(m.scheduleMemo)}</span></div>`:''}<div class="sch-more">탭하여 크게 보기 →</div></div></div>`;}
   else{const txt=esc(m.text).replace(/\n/g,'<br>').replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');content=`<div class="bubble">${txt}</div>`;}
   const reactions=m.reactions?Object.entries(m.reactions).reduce((acc,[emoji,users])=>{const uids=Object.keys(users||{});if(uids.length)acc.push({emoji,count:uids.length,mine:sess&&uids.includes(sess.uid)});return acc;},[]):[];
@@ -1384,11 +1384,15 @@ window.contextDelete=function(msgId){closeMsgMenu();deleteMsg(msgId);};
 window.contextSanction=function(msgId){const m=msgById(msgId);closeMsgMenu();if(!m)return;openSanction(m.uid,m.displayName||allUsers[m.uid]?.displayName||m.uid);};
 window.contextReact=function(msgId){
   closeMsgMenu();
-  reactionTarget=msgId;
-  const picker=document.getElementById('reaction-picker');
-  picker.classList.add('show');
-  picker.style.left=Math.max(10,Math.min(lastContextPoint.x,window.innerWidth-290))+'px';
-  picker.style.top=Math.max(10,Math.min(lastContextPoint.y-54,window.innerHeight-70))+'px';
+  const x=lastContextPoint.x,y=lastContextPoint.y;
+  // 현재 클릭이 끝난 다음 틱에 표시(바깥클릭 리스너가 즉시 닫는 것 방지)
+  setTimeout(()=>{
+    reactionTarget=msgId;
+    const picker=document.getElementById('reaction-picker');
+    picker.classList.add('show');
+    picker.style.left=Math.max(10,Math.min(x,window.innerWidth-290))+'px';
+    picker.style.top=Math.max(10,Math.min(y-54,window.innerHeight-70))+'px';
+  },30);
 };
 window.openForwardModal=function(msgId){
   closeMsgMenu();
@@ -1707,7 +1711,7 @@ window.clearReply=function(){replyTo=null;document.getElementById('reply-bar').c
 /* ── 메시지 삭제 ── */
 window.deleteMsg=async function(msgId){
   if(!curRoom||!sess)return;
-  // 확인 없이 바로 삭제 (UX 빠르게)
+  if(!confirm('정말 이 메시지를 삭제하시겠어요?'))return;
   await update(ref(db,`messages/${curRoom}/${msgId}`),{
     text:'삭제된 메시지입니다',
     deleted:true,
