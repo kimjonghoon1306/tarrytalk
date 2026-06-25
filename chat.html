@@ -482,12 +482,12 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .t-err{background:var(--red);color:#fff;}
 .popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:8500;display:none;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(4px);}
 .popup-overlay.show{display:flex;}
-.popup-card{width:100%;max-width:430px;background:var(--bg3);border:1px solid var(--border2);border-radius:24px;box-shadow:0 28px 72px rgba(0,0,0,.45);overflow:hidden;animation:popIn .22s ease;}
+.popup-card{width:100%;max-width:430px;max-height:88vh;background:var(--bg3);border:1px solid var(--border2);border-radius:24px;box-shadow:0 28px 72px rgba(0,0,0,.45);overflow-y:auto;overflow-x:hidden;animation:popIn .22s ease;display:flex;flex-direction:column;}
 .popup-head{padding:20px 22px;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;display:flex;align-items:flex-start;gap:12px;}
 .popup-ico{font-size:28px;line-height:1;}
 .popup-title{font-size:18px;font-weight:900;line-height:1.35;flex:1;}
 .popup-body{padding:20px 22px;color:var(--text2);font-size:14px;line-height:1.8;white-space:pre-wrap;}
-.popup-foot{padding:0 22px 20px;display:flex;align-items:center;gap:10px;justify-content:space-between;}
+.popup-foot{padding:14px 22px 20px;display:flex;align-items:center;gap:10px;justify-content:space-between;flex-shrink:0;}
 .popup-check{display:flex;align-items:center;gap:7px;color:var(--text3);font-size:12px;font-weight:700;}
 .popup-close{padding:10px 16px;border-radius:12px;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;font-size:13px;font-weight:800;}
 @media(max-width:520px){.popup-card{border-radius:20px}.popup-foot{flex-direction:column;align-items:stretch}.popup-close{width:100%;}}
@@ -650,16 +650,18 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 <div class="popup-overlay" id="notify-overlay" onclick="if(event.target.id==='notify-overlay')closeNotifyGuide()">
   <div class="popup-card" style="max-width:380px;">
     <div class="popup-head"><div class="popup-ico">🔔</div><div class="popup-title">알림 켜기 (카톡처럼 받기)</div></div>
-    <div class="popup-body" style="font-size:13px;line-height:1.7;">
-      <div id="notify-status" style="font-weight:800;margin-bottom:12px;padding:9px 12px;border-radius:10px;background:var(--surface);"></div>
-      <b style="color:var(--green)">📱 갤럭시(안드로이드) 설정 — 꼭 필요</b><br>
-      ① 삼성인터넷/크롬 우측 <b>메뉴(⋮)</b> → <b>"홈 화면에 추가"</b><br>
-      ② 홈 화면의 <b>온메신저 앱 아이콘</b>으로 열기 (브라우저 탭❌)<br>
-      ③ 로그인 후 <b>"알림 허용"</b> 누르기<br>
-      ④ 폰 <b>설정 → 앱 → 온메신저 → 배터리 → "제한 없음"</b><br>
-      <span style="color:var(--text3)">(④를 안 하면 갤럭시 절전이 알림을 늦추거나 막아요)</span><br><br>
-      <b style="color:var(--green)">💻 PC(맥/크롬)</b><br>
-      아래 버튼 누르고 <b>"허용"</b> → 브라우저 탭 열려있을 때 알림+소리<br>
+    <div class="popup-body" style="font-size:13px;line-height:1.65;">
+      <div id="notify-status" style="font-weight:800;margin-bottom:14px;padding:10px 12px;border-radius:10px;background:var(--surface);"></div>
+      <b style="color:var(--green)">📱 갤럭시 — 카톡처럼 받기</b>
+      <div style="margin:8px 0 14px;padding-left:2px;">
+        <div style="margin-bottom:6px;">① 브라우저 메뉴(⋮) → <b>홈 화면에 추가</b></div>
+        <div style="margin-bottom:6px;">② 홈 화면 <b>온메신저 앱</b>으로 열기</div>
+        <div style="margin-bottom:6px;">③ 로그인 후 <b>알림 허용</b></div>
+        <div style="margin-bottom:6px;">④ 설정→앱→온메신저→배터리 <b>제한 없음</b></div>
+        <div style="color:var(--text3);font-size:12px;">※ ④ 안 하면 절전이 알림을 막아요</div>
+      </div>
+      <b style="color:var(--green)">💻 PC</b>
+      <div style="margin-top:6px;">아래 버튼 → <b>허용</b> (탭 열려있을 때 알림+소리)</div>
     </div>
     <div class="popup-foot" style="flex-direction:column;gap:8px;">
       <button class="popup-close" style="width:100%;" onclick="requestNotifyPermission()">🔔 이 기기에서 알림 켜기</button>
