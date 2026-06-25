@@ -1211,6 +1211,9 @@ function loadMessages(roomId){
 }
 function markMessagesRead(roomId,msgs){
   if(!sess||isGuest||sess.uid==='admin')return;
+  // 엄격: 그 방이 현재 열려있고 + 앱이 화면 앞(보이는 상태)일 때만 읽음 처리
+  if(roomId!==curRoom)return;
+  if(document.visibilityState!=='visible')return;
   // 남이 보낸, 내가 아직 안읽은 메시지를 읽음 처리
   const updates={};
   msgs.forEach(m=>{
@@ -1992,6 +1995,8 @@ function fmtTime(ts){if(!ts)return'';const d=new Date(ts),h=d.getHours(),m=Strin
 let _t;window.showToast=function(msg,type='ok'){const el=document.getElementById('toast-el');el.textContent=msg;el.className=`toast show t-${type}`;clearTimeout(_t);_t=setTimeout(()=>el.className='toast',2600);};
 document.addEventListener('click',e=>{if(!document.getElementById('msg-menu')?.contains(e.target))closeMsgMenu();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeLightbox();closeRoomSettings();closeSearchBar();closeMsgMenu();closeForwardModal();}});
+// 화면을 다시 보면(앱 복귀) 현재 방 메시지 읽음 처리
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&curRoom&&curRoom!=='onbot'&&curRoom!=='announce')markMessagesRead(curRoom,currentMessages);});
 </script>
 
 <script>
