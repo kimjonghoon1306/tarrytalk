@@ -307,7 +307,11 @@ let signupInProgress = false;
 onAuthStateChanged(auth, user => {
   if (user) {
     sessionStorage.removeItem('tt_guest');
-    if (!adminLoginInProgress && !signupInProgress) { location.replace('chat.html'); }
+    if (!adminLoginInProgress && !signupInProgress) {
+      // 초대링크(?ref=)로 이미 로그인된 사람이 들어오면 ref를 chat으로 전달해 친구연결
+      const ref = new URLSearchParams(location.search).get('ref');
+      location.replace(ref ? ('chat.html?ref=' + encodeURIComponent(ref)) : 'chat.html');
+    }
   }
 });
 

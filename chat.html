@@ -770,6 +770,7 @@ onAuthStateChanged(auth,async user=>{
     onDisconnect(ref(db,`users/${user.uid}/lastSeen`)).set(serverTimestamp());
     initUI();
     initPushNotifications().catch(()=>{});
+    handleInviteRef().catch(()=>{});
   }else if(isGuest){initUI();}else{location.href='index.html';}
 });
 async function ensureUserProfile(user,profile){
@@ -1838,6 +1839,30 @@ window.doCreate=async function(){
 };
 window.goExist=()=>{document.getElementById('exist-ov').classList.remove('show');if(existId)openRoom(existId);};
 window.closeExist=()=>document.getElementById('exist-ov').classList.remove('show');
+async function handleInviteRef(){
+  const refUid=new URLSearchParams(location.search).get('ref');
+  if(!refUid||!sess||refUid===sess.uid)return;
+  // URL 정리(중복 처리 방지)
+  history.replaceState(null,'',location.pathname);
+  // 초대한 사람 프로필 확인
+  const snap=await get(ref(db,`users/${refUid}`));const inviter=snap.val();
+  if(!inviter)return;
+  // 서로 친구 연결: 내 invitedBy가 없으면 초대자로 설정
+  const me=await get(ref(db,`users/${sess.uid}/invitedBy`));
+  if(!me.exists())await set(ref(db,`users/${sess.uid}/invitedBy`),refUid).catch(()=>{});
+  // 이미 둘만의 DM 있으면 그 방으로, 없으면 생성
+  let room=(window._rooms||[]).find(r=>r.type==='dm'&&r.members?.[sess.uid]&&r.members?.[refUid]&&Object.keys(r.members||{}).length===2);
+  let roomId;
+  if(room){roomId=room.id;}
+  else{
+    const members={[sess.uid]:true,[refUid]:true};
+    const rRef=push(ref(db,'rooms'));roomId=rRef.key;
+    await set(rRef,{name:inviter.displayName||'친구',type:'dm',emoji:(inviter.displayName||'👤')[0],members,createdBy:sess.uid,createdAt:Date.now(),lastAt:Date.now()});
+    await set(push(ref(db,`messages/${roomId}`)),{uid:'system',displayName:'system',text:`${sess.name}님이 초대로 입장했습니다`,type:'system',at:Date.now()});
+  }
+  showToast(`👋 ${inviter.displayName||'친구'}님과 연결되었습니다`,'ok');
+  setTimeout(()=>openRoom(roomId),400);
+}
 window.openRoomSettings=function(){
   if(!curRoom)return;
   const room=(window._rooms||[]).find(r=>r.id===curRoom);if(!room)return;
@@ -1850,7 +1875,7 @@ window.openRoomSettings=function(){
     const canSanction=sess?.isAdmin&&!isMe;
     return`<div class="rs-member"><div class="rs-m-av" style="background:${u?.avatarColor||COLORS[i%COLORS.length]}">${name[0].toUpperCase()}</div><div style="flex:1;min-width:0;"><div class="rs-m-name">${esc(name)}${isOwner?'<span style="font-size:10px;background:rgba(124,58,237,.12);color:var(--green);padding:2px 7px;border-radius:50px;margin-left:6px;font-weight:800;">방장</span>':''}</div><div class="rs-m-role">${u?.mutedUntil&&u.mutedUntil>Date.now()?'🔇 정지중':u?.online?'● 온라인':'○ 오프라인'}</div></div>${canSanction?`<button class="kick-btn" onclick="openSanction('${uid}','${safe}')">제재</button>`:''}${canKick?`<button class="kick-btn" onclick="kickMember('${uid}','${safe}')">내보내기</button>`:''}</div>`;
   }).join('');
-  const canInvite=room.type==='group'&&sess&&(sess.isAdmin||room.createdBy===sess.uid);
+  const canInvite=sess&&(sess.isAdmin||room.createdBy===sess.uid||room.members?.[sess.uid]);
   document.getElementById('rs-invite-sec').style.display=canInvite?'block':'none';
   document.getElementById('rs-invite-box').style.display='none';
   document.getElementById('rs-invite-search').value='';
@@ -1861,7 +1886,15 @@ window.closeRoomSettings=()=>document.getElementById('rs-overlay').classList.rem
 window.rsOutside=e=>{if(e.target.classList.contains('rs-overlay'))closeRoomSettings();};
 window.toggleInviteMembers=function(){const box=document.getElementById('rs-invite-box');const show=box.style.display==='none';box.style.display=show?'block':'none';if(show){document.getElementById('rs-invite-search').focus();renderInviteMembers('');}};
 window.renderInviteMembers=function(filter=''){const room=(window._rooms||[]).find(r=>r.id===curRoom);const list=document.getElementById('rs-invite-list');if(!room||!list)return;const memberSet=new Set(Object.keys(room.members||{}));let users=Object.entries(allUsers).filter(([uid,u])=>!memberSet.has(uid)&&!u.disabled).map(([uid,u])=>({uid,name:u.displayName||uid,email:u.email||'',online:u.online||false,color:u.avatarColor||avatarColor(u.displayName||uid),invitedBy:u.invitedBy||''}));if(!sess?.isAdmin&&!filter)users=users.filter(u=>u.invitedBy===sess?.uid);if(filter){const q=filter.toLowerCase();users=users.filter(u=>u.name.toLowerCase().includes(q)||u.email.toLowerCase().includes(q));}if(!users.length){list.innerHTML='<div class="no-m">초대할 수 있는 회원이 없습니다</div>';return;}list.innerHTML=users.map(u=>`<div class="m-item" onclick="inviteMember('${u.uid}')"><div class="m-av" style="background:${u.color}">${u.name[0].toUpperCase()}</div><div style="flex:1;min-width:0;"><div class="m-nm">${esc(u.name)}</div><div class="m-em">${esc(u.email)}</div></div>${u.online?'<div class="m-online"></div>':''}<div class="m-check">＋</div></div>`).join('');};
-window.inviteMember=async function(uid){if(!curRoom||!sess)return;const room=(window._rooms||[]).find(r=>r.id===curRoom);if(!room||room.type!=='group')return;if(!(sess.isAdmin||room.createdBy===sess.uid)){showToast('초대 권한이 없습니다','warn');return;}const u=allUsers[uid];const name=u?.displayName||uid;await set(ref(db,`rooms/${curRoom}/members/${uid}`),true);room.members={...(room.members||{}),[uid]:true};await set(push(ref(db,`messages/${curRoom}`)),{uid:'system',displayName:'system',text:`${name}님이 초대되었습니다`,type:'system',at:Date.now()});await update(ref(db),{[`rooms/${curRoom}/lastMsg`]:`${name}님이 초대되었습니다`,[`rooms/${curRoom}/lastAt`]:Date.now()});showToast(`＋ ${name}님을 초대했습니다`,'ok');renderInviteMembers(document.getElementById('rs-invite-search').value);};
+window.inviteMember=async function(uid){if(!curRoom||!sess)return;const room=(window._rooms||[]).find(r=>r.id===curRoom);if(!room)return;if(!(sess.isAdmin||room.createdBy===sess.uid||room.members?.[sess.uid])){showToast('초대 권한이 없습니다','warn');return;}const u=allUsers[uid];const name=u?.displayName||uid;const updates={};
+  // 1:1방에 초대하면 단톡으로 전환
+  if(room.type==='dm'){updates[`rooms/${curRoom}/type`]='group';updates[`rooms/${curRoom}/emoji`]='👥';const cur=Object.keys(room.members||{}).map(id=>allUsers[id]?.displayName||'').filter(Boolean);updates[`rooms/${curRoom}/name`]=[...cur,name].slice(0,3).join(', ')+(cur.length>=3?' 외':'');room.type='group';}
+  updates[`rooms/${curRoom}/members/${uid}`]=true;
+  updates[`rooms/${curRoom}/lastMsg`]=`${name}님이 초대되었습니다`;updates[`rooms/${curRoom}/lastAt`]=Date.now();
+  await update(ref(db),updates);
+  room.members={...(room.members||{}),[uid]:true};
+  await set(push(ref(db,`messages/${curRoom}`)),{uid:'system',displayName:'system',text:`${name}님이 초대되었습니다`,type:'system',at:Date.now()});
+  showToast(`＋ ${name}님을 초대했습니다`,'ok');renderInviteMembers(document.getElementById('rs-invite-search').value);refreshRoomHeader();};
 window.kickMember=async function(uid,name){if(!curRoom||!sess)return;await remove(ref(db,`rooms/${curRoom}/members/${uid}`));await set(push(ref(db,`messages/${curRoom}`)),{uid:'system',displayName:'system',text:`${name}님이 내보내졌습니다`,type:'system',at:Date.now()});closeRoomSettings();openRoom(curRoom);showToast(`👋 ${name}님을 내보냈습니다`,'ok');};
 window.doDeleteRoom=async function(){if(!curRoom||!sess)return;await remove(ref(db,`rooms/${curRoom}`));await remove(ref(db,`messages/${curRoom}`));await remove(ref(db,`typing/${curRoom}`));curRoom=null;closeRoomSettings();document.getElementById('messages').style.display='none';document.getElementById('input-wrap').style.display='none';document.getElementById('chat-empty').style.display='flex';document.getElementById('tb-logo').style.display='';document.getElementById('tb-av').style.display='none';document.getElementById('tb-info').style.display='none';document.getElementById('secret-badge').classList.remove('show');hidePinnedBanner();document.getElementById('tb-onbot-close').style.display='none';document.getElementById('tb-settings').style.display='none';document.getElementById('tb-search-btn').style.display='none';renderHeroAd();renderAdBanner();renderRooms();showToast('🗑️ 채팅방이 삭제됐습니다','ok');};
 window.openSchedule=function(){if(!curRoom||!sess){showToast('채팅방을 먼저 선택하세요','warn');return;}document.getElementById('sch-date').value=new Date().toISOString().split('T')[0];['sch-title','sch-time','sch-place','sch-memo'].forEach(id=>document.getElementById(id).value='');document.getElementById('sch-overlay').classList.add('show');};
