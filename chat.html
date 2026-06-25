@@ -824,7 +824,7 @@ function buildMsg(m,prev){
   const sameUser=prev&&prev.uid===m.uid&&prev.type!=='system';
   const el=document.createElement('div');el.className='mg'+(mine?' out':'');el.dataset.msgId=m.id;
   let content='';
-  const mediaNote=m.keep===true?'<div class="media-keep-note">📌 영구 보관 자료</div>':'<div class="media-ttl-note">📅 미디어는 2주 후 자동 삭제돼요</div>';
+  const mediaNote=m.keep===true?'<div class="media-keep-note">📌 영구 보관 자료</div>':`<div class="media-ttl-note">📅 미디어는 2주 후 자동 삭제돼요${sess?.isAdmin?' · 보관하려면 📌':''}</div>`;
   if(m.expired&&MEDIA_TYPES.has(m.mediaKind||m.type)){
     const kind=m.mediaKind||m.type;
     const label=kind==='image'?'사진':kind==='video'?'영상':'파일';
@@ -843,9 +843,11 @@ function buildMsg(m,prev){
   const canEdit = !m.local && mine && m.type === 'text' && (Date.now() - m.at < 10 * 60 * 1000); // 10분 이내 수정
   const canDelete = !m.local && (mine || (sess && sess.isAdmin));
   const canSanction = !m.local && sess?.isAdmin && m.uid && m.uid!=='system' && m.uid!==sess.uid;
+  const canKeep = !m.local && sess?.isAdmin && !m.expired && MEDIA_TYPES.has(m.type);
   const actions=m.local?'':`<div class="mg-actions">
     <div class="ma-btn" onclick="showReactionPicker(event,'${m.id}')" title="반응">😊</div>
     <div class="ma-btn" onclick="replyToMsg('${m.id}','${safeName}','${safeText}')" title="답장">↩</div>
+    ${canKeep ? `<div class="ma-btn" onclick="toggleKeep('${m.id}')" title="${m.keep===true?'영구보관 해제':'영구보관'}" style="${m.keep===true?'color:var(--green)':''}">📌</div>` : ''}
     ${canEdit ? `<div class="ma-btn" onclick="editMsg('${m.id}','${safeText}')" title="수정">✏️</div>` : ''}
     ${canDelete ? `<div class="ma-btn" onclick="deleteMsg('${m.id}')" title="삭제" style="color:var(--red)">🗑</div>` : ''}
     ${canSanction ? `<div class="ma-btn" onclick="openSanction('${m.uid}','${safeName}')" title="제재">🛡️</div>` : ''}
@@ -916,7 +918,7 @@ function onbotAnswer(q){
     ? '온메신저 주요 기능은 실시간 채팅, 1:1/단톡방, 초대 링크, 대화 중 멤버 초대와 내보내기, 사진·파일·영상 전송, 일정 카드, 이모지 반응, 답장, 10분 내 수정, 삭제, 메시지 검색, 읽음표시, 안읽음 배지, 입력중 표시, 프로필 변경, 테마 전환, 관리자 패널, 광고 배너 등록, 접속 공지 팝업 관리까지예요. 온봇은 이 기능들을 로컬에서 안내하는 도우미라 대화가 서버에 저장되지 않아요.'
     : '온메신저 주요 기능은 실시간 채팅, 1:1/단톡방, 초대 링크, 대화 중 멤버 초대, 사진·파일·영상 전송, 일정 카드, 이모지 반응, 답장, 10분 내 수정, 삭제, 메시지 검색, 읽음표시, 안읽음 배지, 입력중 표시, 프로필 변경, 테마 전환이에요. 관리자가 등록한 광고 배너나 접속 공지 팝업은 회원 화면에 표시될 수 있어요. 온봇 대화는 서버에 저장되지 않습니다.';
   if(has('규칙','이용규칙','제재','금지','욕설','신고','차단','정지'))return '온메신저에서는 욕설·비방, 사기성 내용, 외부 유인 행위, 위험하거나 부적절한 내용을 금지하고 있어요. 위반하면 경고, 1~7일 채팅 정지, 영구 차단(비활성화) 조치가 될 수 있고 문제가 된 채팅방은 삭제될 수 있습니다. 특히 욕설이나 심각한 위반은 정지 및 영구차단 대상이에요. 관리자는 안전한 운영을 위해 필요한 관리와 조치를 할 수 있습니다.';
-  if(has('보관','저장기간','며칠','얼마나','사라','자동삭제','삭제 기간','기간'))return "온메신저는 대화 내용(글)과 일정은 계속 보관돼요. 다만 일반 회원이 올린 사진·영상·파일은 올린 지 2주(14일)가 지나면 용량 관리를 위해 자동으로 삭제돼요. 단, 관리자(운영진)가 올린 자료는 영구 보관됩니다. 중요한 미디어는 받은 즉시 다운로드 버튼으로 저장해 두시는 걸 권장해요. 삭제된 자리에는 '2주가 지나 자동 삭제됨' 안내가 남아요.";
+  if(has('보관','저장기간','며칠','얼마나','사라','자동삭제','삭제 기간','기간'))return "온메신저는 대화 내용(글)과 일정은 계속 보관돼요. 다만 일반 회원이 올린 사진·영상·파일은 올린 지 2주(14일)가 지나면 용량 관리를 위해 자동으로 삭제돼요. 단, 관리자는 중요한 미디어에 메시지의 '📌 보관'을 눌러 영구 보관할 수 있어요(누르지 않으면 2주 후 삭제). 중요한 미디어는 받은 즉시 다운로드 버튼으로 저장해 두시는 걸 권장해요. 삭제된 자리에는 '2주가 지나 자동 삭제됨' 안내가 남아요.";
   if(has('채팅 시작','메시지','전송','enter','엔터'))return '메시지는 채팅방을 선택한 뒤 입력창에 쓰고 Enter로 보내요. 줄을 바꾸려면 Shift+Enter를 누르면 됩니다. 전송된 메시지는 실시간으로 상대에게 보이고, 내가 보낸 메시지에는 ✓✓ 읽음표시가 붙어요.';
   if(has('초대','링크','회원'))return '회원 초대는 하단 👋 버튼에서 내 초대 링크를 복사하거나 공유하면 됩니다. 그 링크로 가입한 회원은 내 목록에 보이고, 이름·이메일 검색으로 1:1이나 단톡방에 초대할 수 있어요. 단톡방 안에서는 방장이나 관리자가 설정에서 + 멤버 초대를 할 수 있습니다.';
   if(has('단톡','그룹','단체','방 이름'))return '단톡방은 새로운 채팅 시작 > 단체채팅에서 만들어요. 방 이름을 입력하고 멤버를 고른 뒤 생성하면 됩니다. 만든 사람은 방장이 되고, 방장은 멤버 초대·내보내기·방 삭제를 할 수 있어요.';
@@ -924,7 +926,7 @@ function onbotAnswer(q){
     ? '1:1 채팅은 새로운 채팅 시작 > 1대1 채팅에서 상대를 한 명 선택하면 됩니다. 같은 상대와 이미 대화방이 있으면 기존 방으로 바로 이동해요. 관리자는 관리자 패널에서도 회원에게 1:1 채팅을 바로 걸 수 있습니다.'
     : '1:1 채팅은 새로운 채팅 시작 > 1대1 채팅에서 상대를 한 명 선택하면 됩니다. 같은 상대와 이미 대화방이 있으면 기존 방으로 바로 이동해요.';
   if(has('일정','약속','날짜','장소','메모'))return '일정 공유는 하단 📅 버튼으로 열어요. 제목, 날짜, 선택 항목인 시간·장소·메모를 입력하면 채팅방에 일정 카드로 올라가서 모두가 한눈에 볼 수 있습니다.';
-  if(has('사진','이미지','파일','영상','다운로드','라이트박스'))return '사진은 📷, 문서는 📎, 영상은 🎥 버튼으로 보낼 수 있어요. 이미지 메시지를 누르면 크게 보는 라이트박스가 열리고, 파일과 이미지는 다운로드 버튼으로 받을 수 있습니다. 일반 회원의 사진·영상·파일은 2주 후 자동 삭제되고, 관리자(운영진)가 올린 자료는 영구 보관됩니다. 텍스트와 일정은 계속 남아요.';
+  if(has('사진','이미지','파일','영상','다운로드','라이트박스'))return '사진은 📷, 문서는 📎, 영상은 🎥 버튼으로 보낼 수 있어요. 이미지 메시지를 누르면 크게 보는 라이트박스가 열리고, 파일과 이미지는 다운로드 버튼으로 받을 수 있습니다. 일반 회원의 사진·영상·파일은 2주 후 자동 삭제되고, 관리자는 중요한 미디어에 메시지의 '📌 보관'을 눌러 영구 보관할 수 있어요(누르지 않으면 2주 후 삭제). 텍스트와 일정은 계속 남아요.';
   if(has('이모지','반응','답장','수정','삭제'))return '메시지 위에 마우스를 올리거나 길게 살펴보면 😊 반응, ↩ 답장, ✏️ 수정, 🗑 삭제 액션을 사용할 수 있어요. 내 텍스트 메시지는 10분 안에 수정할 수 있고, 삭제된 메시지는 삭제 표시로 남습니다.';
   if(has('검색','읽음','안읽음','입력중','입력 중'))return '상단 🔍로 현재 방 메시지를 검색할 수 있어요. 사이드바에는 안읽음 배지가 표시되고, 내가 보낸 메시지에는 ✓✓가 보입니다. 상대가 입력 중이면 하단에 입력중 표시가 잠깐 나타나요.';
   if(has('공지','팝업','광고','배너'))return admin
@@ -977,10 +979,11 @@ window.sendMsg=async function(){
     clearReply();if(!isAtBottom){newMsgCount++;const sb=document.getElementById('scroll-badge');sb.textContent=newMsgCount;sb.classList.add('show');}else scrollToBottom();
   }finally{btn.disabled=false;inp.focus();}
 };
-window.sendImg=async function(){if(!curRoom||!sess)return;if(isSecretWatch(currentRoom())){showToast('시크릿 관전 중에는 메시지를 보낼 수 없습니다','warn');return;}if(blockIfMuted())return;const url=document.getElementById('l-inp').value.trim();if(!url)return;const isImg=/\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i.test(url);const rr=push(ref(db,`messages/${curRoom}`));await set(rr,{uid:sess.uid,displayName:sess.name,type:isImg?'image':'text',text:isImg?'':url,url:isImg?url:'',fileName:'이미지',...(isImg?{mediaKind:'image',...(sess.isAdmin?{keep:true}:{})}:{}),at:Date.now()});await update(ref(db),{[`rooms/${curRoom}/lastMsg`]:isImg?'📷 이미지':url,[`rooms/${curRoom}/lastAt`]:Date.now()});document.getElementById('l-inp').value='';document.getElementById('link-row').classList.remove('show');if(isImg)showToast(sess.isAdmin?'운영진 사진은 영구 보관됩니다.':'사진은 2주 후 자동 삭제됩니다. 중요하면 다운로드해 두세요.','info');};
+window.toggleKeep=async function(msgId){if(!curRoom||!sess||!sess.isAdmin)return;const snap=await get(ref(db,`messages/${curRoom}/${msgId}/keep`));const cur=snap.val()===true;await update(ref(db,`messages/${curRoom}/${msgId}`),{keep:!cur});showToast(!cur?'📌 영구 보관으로 지정했습니다':'영구 보관을 해제했습니다','ok');};
+window.sendImg=async function(){if(!curRoom||!sess)return;if(isSecretWatch(currentRoom())){showToast('시크릿 관전 중에는 메시지를 보낼 수 없습니다','warn');return;}if(blockIfMuted())return;const url=document.getElementById('l-inp').value.trim();if(!url)return;const isImg=/\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i.test(url);const rr=push(ref(db,`messages/${curRoom}`));await set(rr,{uid:sess.uid,displayName:sess.name,type:isImg?'image':'text',text:isImg?'':url,url:isImg?url:'',fileName:'이미지',...(isImg?{mediaKind:'image'}:{}),at:Date.now()});await update(ref(db),{[`rooms/${curRoom}/lastMsg`]:isImg?'📷 이미지':url,[`rooms/${curRoom}/lastAt`]:Date.now()});document.getElementById('l-inp').value='';document.getElementById('link-row').classList.remove('show');if(isImg)showToast(sess.isAdmin?'전송됨. 영구 보관하려면 메시지의 📌 버튼을 누르세요.':'사진은 2주 후 자동 삭제됩니다. 중요하면 다운로드해 두세요.','info');};
 window.pickImage=()=>document.getElementById('pick-img').click();window.pickFile=()=>document.getElementById('pick-file').click();window.pickVideo=()=>document.getElementById('pick-video').click();
 function fmtSize(b){if(b<1024)return b+'B';if(b<1048576)return(b/1024).toFixed(1)+'KB';return(b/1048576).toFixed(1)+'MB';}
-window.onFileSelected=async function(e,type){if(!curRoom||!sess)return;if(isSecretWatch(currentRoom())){e.target.value='';showToast('시크릿 관전 중에는 파일을 보낼 수 없습니다','warn');return;}if(blockIfMuted()){e.target.value='';return;}const file=e.target.files[0];if(!file)return;e.target.value='';const MAX=type==='video'?50*1024*1024:8*1024*1024;if(file.size>MAX){showToast(`최대 ${type==='video'?'50MB':'8MB'}까지 가능합니다`,'warn');return;}showToast('📤 업로드 중...','info');const reader=new FileReader();reader.onload=async ev=>{const rr=push(ref(db,`messages/${curRoom}`));await set(rr,{uid:sess.uid,displayName:sess.name,type,data:ev.target.result,fileName:file.name,fileSize:fmtSize(file.size),mediaKind:type,...(sess.isAdmin?{keep:true}:{}),at:Date.now()});await update(ref(db),{[`rooms/${curRoom}/lastMsg`]:type==='image'?'📷 이미지':type==='video'?'🎥 영상':'📎 '+file.name,[`rooms/${curRoom}/lastAt`]:Date.now()});showToast(sess.isAdmin?'운영진 미디어는 영구 보관됩니다.':'사진·영상·파일은 2주 후 자동 삭제됩니다. 중요하면 다운로드해 두세요.','ok');scrollToBottom();};reader.onerror=()=>showToast('파일 읽기 실패','warn');reader.readAsDataURL(file);};
+window.onFileSelected=async function(e,type){if(!curRoom||!sess)return;if(isSecretWatch(currentRoom())){e.target.value='';showToast('시크릿 관전 중에는 파일을 보낼 수 없습니다','warn');return;}if(blockIfMuted()){e.target.value='';return;}const file=e.target.files[0];if(!file)return;e.target.value='';const MAX=type==='video'?50*1024*1024:8*1024*1024;if(file.size>MAX){showToast(`최대 ${type==='video'?'50MB':'8MB'}까지 가능합니다`,'warn');return;}showToast('📤 업로드 중...','info');const reader=new FileReader();reader.onload=async ev=>{const rr=push(ref(db,`messages/${curRoom}`));await set(rr,{uid:sess.uid,displayName:sess.name,type,data:ev.target.result,fileName:file.name,fileSize:fmtSize(file.size),mediaKind:type,at:Date.now()});await update(ref(db),{[`rooms/${curRoom}/lastMsg`]:type==='image'?'📷 이미지':type==='video'?'🎥 영상':'📎 '+file.name,[`rooms/${curRoom}/lastAt`]:Date.now()});showToast(sess.isAdmin?'전송됨. 영구 보관하려면 메시지의 📌 버튼을 누르세요.':'사진·영상·파일은 2주 후 자동 삭제됩니다. 중요하면 다운로드해 두세요.','ok');scrollToBottom();};reader.onerror=()=>showToast('파일 읽기 실패','warn');reader.readAsDataURL(file);};
 window.showReactionPicker=function(e,msgId){e.stopPropagation();reactionTarget=msgId;const picker=document.getElementById('reaction-picker');picker.classList.add('show');const rect=e.target.getBoundingClientRect();picker.style.left=Math.max(10,Math.min(rect.left,window.innerWidth-290))+'px';picker.style.top=Math.max(10,rect.top-54)+'px';};
 window.addReaction=async function(emoji){if(!reactionTarget||!sess||!curRoom)return;document.getElementById('reaction-picker').classList.remove('show');const path=`messages/${curRoom}/${reactionTarget}/reactions/${encodeURIComponent(emoji)}/${sess.uid}`;const snap=await get(ref(db,path));if(snap.exists())await remove(ref(db,path));else await set(ref(db,path),true);reactionTarget=null;};
 window.toggleReaction=async function(msgId,emoji){if(!sess||!curRoom)return;const path=`messages/${curRoom}/${msgId}/reactions/${encodeURIComponent(emoji)}/${sess.uid}`;const snap=await get(ref(db,path));if(snap.exists())await remove(ref(db,path));else await set(ref(db,path),true);};
@@ -1172,7 +1175,7 @@ function renderGuide(){
     ['👋','회원 초대','내 초대 링크를 공유하고, 가입한 회원은 이름·이메일 검색으로 찾습니다.'],
     ['➕','대화 중 멤버 초대','방장은 방 설정에서 멤버를 추가하고 시스템 메시지를 남길 수 있습니다.'],
     ['🚪','내보내기·방 삭제','방장은 멤버 내보내기와 방 삭제를 할 수 있습니다.'],
-    ['📷','사진·파일·영상','사진, 문서, 영상을 보내고 이미지 라이트박스와 다운로드를 사용할 수 있습니다. 일반 회원의 사진·영상·파일은 2주 후 자동 삭제되고, 관리자(운영진)가 올린 자료는 영구 보관됩니다. 텍스트는 계속 남습니다.'],
+    ['📷','사진·파일·영상','사진, 문서, 영상을 보내고 이미지 라이트박스와 다운로드를 사용할 수 있습니다. 일반 회원의 사진·영상·파일은 2주 후 자동 삭제되고, 관리자는 중요한 미디어에 메시지의 '📌 보관'을 눌러 영구 보관할 수 있어요(누르지 않으면 2주 후 삭제). 텍스트는 계속 남습니다.'],
     ['😊','반응·답장·수정','이모지 반응, 답장, 10분 내 메시지 수정, 삭제를 지원합니다.'],
     ['📅','일정 공유 카드','날짜, 시간, 장소, 메모를 담은 일정 카드를 채팅방에 공유합니다.'],
     ['🔍','검색·읽음·입력중','메시지 검색, ✓✓ 읽음표시, 안읽음 배지, 입력중 표시를 제공합니다.'],
