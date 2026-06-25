@@ -37,6 +37,13 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'No
 button{font-family:inherit;cursor:pointer;border:none;outline:none;}
 input{font-family:inherit;outline:none;}
 a{text-decoration:none;color:inherit;}
+button,.nav-item,.theme-btn,.theme-fab,.add-btn,.card,.stat-card,.room-card,.ad-row,.ann-row,.group-member,.act-btn,.small-btn,.notice-send-btn,.m-submit,.m-cancel,.conf-ok,.conf-cancel{transition:transform .18s cubic-bezier(.16,1,.3,1),box-shadow .18s,border-color .18s,background .18s,color .18s;will-change:transform;}
+button{position:relative;overflow:hidden;}
+button::after{content:'';position:absolute;inset:0;background:radial-gradient(circle,rgba(255,255,255,.28),transparent 34%);opacity:0;transform:scale(.8);transition:opacity .35s,transform .35s;pointer-events:none;}
+button:active::after{opacity:.55;transform:scale(1.8);transition:0s;}
+button:active,.nav-item:active,.card:active,.room-card:active,.ad-row:active,.ann-row:active{transform:scale(.98);}
+.add-btn,.notice-send-btn,.m-submit,.small-btn.on{background-size:180% 180%;animation:ctaShift 7s ease-in-out infinite;}
+@keyframes ctaShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
 
 /* ── 레이아웃 ── */
 .admin-wrap{display:flex;min-height:100vh;}
@@ -53,7 +60,7 @@ a{text-decoration:none;color:inherit;}
 .adm-role-badge{display:inline-block;margin-top:9px;padding:4px 9px;border-radius:50px;background:rgba(124,58,237,.1);border:1px solid var(--border2);color:var(--green);font-size:10px;font-weight:900;}
 .nav-sec{padding:14px 20px 6px;font-size:9px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;}
 .nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;margin:1px 8px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text3);transition:all .2s;border:1px solid transparent;}
-.nav-item:hover{background:var(--surface);color:var(--text2);}
+.nav-item:hover{background:var(--surface);color:var(--text2);transform:translateX(2px);}
 .nav-item.on{background:rgba(124,58,237,.08);border-color:var(--border2);color:var(--green);}
 .nav-item .ni{font-size:15px;width:20px;text-align:center;}
 .adm-sb-foot{margin-top:auto;padding:14px 8px;border-top:1px solid var(--border);}
@@ -86,7 +93,7 @@ a{text-decoration:none;color:inherit;}
   background:var(--bg3);border:1px solid var(--border);border-radius:18px;padding:18px 20px;
   position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s;
 }
-.stat-card:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(0,0,0,.3);}
+.stat-card:hover{transform:translateY(-3px);box-shadow:0 14px 34px var(--glow);border-color:var(--border2);}
 .stat-card::before{content:'';position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;opacity:.06;}
 .sc-users::before{background:var(--green);}
 .sc-rooms::before{background:var(--blue);}
@@ -103,7 +110,8 @@ a{text-decoration:none;color:inherit;}
 .stat-lbl{font-size:12px;color:var(--text3);font-weight:500;}
 
 /* 카드 */
-.card{background:var(--bg3);border:1px solid var(--border);border-radius:18px;padding:20px;margin-bottom:16px;}
+.card{background:var(--bg3);border:1px solid var(--border);border-radius:18px;padding:20px;margin-bottom:16px;animation:itemIn .3s ease both;}
+.card:hover{border-color:var(--border2);box-shadow:0 10px 30px rgba(124,58,237,.1);}
 .card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
 .card-title{font-size:15px;font-weight:800;}
 .card-action{font-size:12px;color:var(--green);cursor:pointer;font-weight:700;}
@@ -159,8 +167,8 @@ tr:hover td{background:rgba(124,58,237,.04);}
 .log-time{font-size:11px;color:var(--text3);flex-shrink:0;}
 
 /* 방 카드 */
-.room-card{display:flex;align-items:center;gap:10px;padding:11px;border-radius:13px;transition:background .15s;}
-.room-card:hover{background:var(--surface);}
+.room-card{display:flex;align-items:center;gap:10px;padding:11px;border-radius:13px;transition:background .15s;animation:itemIn .26s ease both;}
+.room-card:hover{background:var(--surface);transform:translateY(-2px);box-shadow:0 10px 24px var(--glow);}
 .rc-av{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;background:var(--surface2);flex-shrink:0;}
 .rc-name{font-size:13px;font-weight:700;}
 .rc-sub{font-size:11px;color:var(--text3);margin-top:2px;}
@@ -212,19 +220,22 @@ tr:hover td{background:rgba(124,58,237,.04);}
 /* 로딩 */
 .loading-overlay{position:fixed;inset:0;background:rgba(26,22,34,.95);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;}
 .loading-overlay.hide{display:none;}
-.spinner{width:32px;height:32px;border:3px solid rgba(124,58,237,.15);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;}
+.spinner{width:32px;height:32px;border:3px solid rgba(124,58,237,.15);border-top-color:var(--green);border-right-color:var(--green2);border-radius:50%;animation:spin .7s linear infinite,pulseRing 1.8s ease-in-out infinite;box-shadow:0 0 22px var(--glow);}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulseRing{50%{box-shadow:0 0 34px var(--glow2)}}
+@keyframes itemIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
 /* 공지 전송 버튼 */
 .notice-send-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--green),var(--green2));border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px var(--glow);margin-top:10px;transition:all .2s;}
-.notice-send-btn:hover{transform:translateY(-1px);}
+.notice-send-btn:hover,.add-btn:hover,.m-submit:hover,.small-btn:hover,.theme-btn:hover,.theme-fab:hover{transform:translateY(-2px);box-shadow:0 10px 26px var(--glow);}
 .form-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:12px;}
 @media(min-width:760px){.form-grid.two{grid-template-columns:1.2fr 1fr;}}
 @media(min-width:900px){.form-grid.three{grid-template-columns:1fr 1fr 1fr;}}
 .admin-input{width:100%;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color .2s;}
 .admin-input:focus{border-color:var(--green);}
 .admin-label{font-size:11px;font-weight:800;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;display:block;}
-.ad-row{display:flex;align-items:center;gap:12px;padding:12px;border-radius:13px;background:var(--surface);border:1px solid var(--border);margin-bottom:8px;}
+.ad-row{display:flex;align-items:center;gap:12px;padding:12px;border-radius:13px;background:var(--surface);border:1px solid var(--border);margin-bottom:8px;animation:itemIn .26s ease both;}
+.ad-row:hover,.ann-row:hover,.group-member:hover{transform:translateY(-2px);border-color:var(--border2);box-shadow:0 10px 24px var(--glow);}
 .ad-thumb{width:86px;height:54px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);object-fit:cover;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:18px;font-weight:900;}
 .ad-main{flex:1;min-width:0;}
 .ad-row-text{font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -241,7 +252,7 @@ tr:hover td{background:rgba(124,58,237,.04);}
 .preview-box{background:linear-gradient(135deg,rgba(124,58,237,.16),rgba(168,85,247,.08));border:1px solid var(--border2);border-radius:16px;padding:18px;margin-top:12px;}
 .preview-title{font-size:16px;font-weight:900;margin-bottom:7px;color:var(--text);}
 .preview-body{font-size:13px;line-height:1.75;color:var(--text2);white-space:pre-wrap;}
-.ann-row{display:flex;align-items:flex-start;gap:10px;padding:12px;border-radius:13px;background:var(--surface);border:1px solid var(--border);margin-bottom:8px;}
+.ann-row{display:flex;align-items:flex-start;gap:10px;padding:12px;border-radius:13px;background:var(--surface);border:1px solid var(--border);margin-bottom:8px;animation:itemIn .26s ease both;}
 .ann-ico{width:38px;height:38px;border-radius:12px;background:rgba(124,58,237,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .ann-main{flex:1;min-width:0;}
 .ann-text{font-size:13px;font-weight:700;line-height:1.65;white-space:pre-wrap;color:var(--text2);}
@@ -259,6 +270,10 @@ tr:hover td{background:rgba(124,58,237,.04);}
 .gm-email{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
 .group-count{font-size:12px;font-weight:800;color:var(--green);margin-top:8px;}
 .m-submit:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.001ms!important;}
+  button,.nav-item,.card,.stat-card,.room-card,.ad-row,.ann-row,.group-member{transform:none!important;}
+}
 </style>
 </head>
 <body>
