@@ -5,7 +5,7 @@
    - 네트워크 전략: Cache First (정적) + Network First (API)
 ═══════════════════════════════════════════════ */
 
-const CACHE_NAME = 'tarrytalk-v6.0';
+const CACHE_NAME = 'tarrytalk-v6.1';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -15,6 +15,11 @@ const STATIC_ASSETS = [
   '/manifest.json',
   'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap'
 ];
+
+/* ── 대기 SW 즉시 활성화(앱 자동 최신화) ── */
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
+});
 
 /* ── 설치: 정적 자원 캐싱 ── */
 self.addEventListener('install', event => {

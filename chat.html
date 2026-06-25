@@ -2286,12 +2286,29 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 </script>
 
 <script>
-// Service Worker 등록 (PWA)
+// Service Worker 등록 (PWA) + 자동 업데이트
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then(reg => {
-      console.log('SW registered:', reg.scope);
+    navigator.serviceWorker.register('/sw.js', {updateViaCache:'none'}).then(reg => {
+      reg.update();
+      // 새 버전 감지 → 대기 SW 즉시 활성화
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        if (!nw) return;
+        nw.addEventListener('statechange', () => {
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+            nw.postMessage && reg.waiting && reg.waiting.postMessage({type:'SKIP_WAITING'});
+          }
+        });
+      });
+      // 포커스 돌아올 때마다 업데이트 체크 (홈화면 앱 최신 유지)
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update(); });
     }).catch(err => console.log('SW registration failed:', err));
+    // 새 SW가 제어권 잡으면 자동 새로고침(한 번만)
+    let _reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (_reloaded) return; _reloaded = true; location.reload();
+    });
   });
 }
 // SW 메시지 수신 (알림 클릭 → 해당 방 이동)
