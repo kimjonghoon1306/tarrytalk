@@ -9,11 +9,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#120a0f;--bg2:#1a0d14;--bg3:#1f1018;
-  --surface:#23121b;--surface2:#2c1622;
-  --border:rgba(255,77,148,.14);--border2:rgba(255,77,148,.26);
-  --text:#ffe5f0;--text2:#ff9fc5;--text3:#a96b86;
-  --green:#ff4d94;--green2:#e0246e;--glow:rgba(255,77,148,.22);--glow2:rgba(255,77,148,.38);
+  --bg:#1a1622;--bg2:#221c2e;--bg3:#2a2238;
+  --surface:#271f35;--surface2:#322847;
+  --border:rgba(168,85,247,.14);--border2:rgba(168,85,247,.26);
+  --text:#f4efff;--text2:#d8c4ff;--text3:#a99ac4;
+  --green:#a855f7;--green2:#7c3aed;--glow:rgba(168,85,247,.22);--glow2:rgba(168,85,247,.38);
   --red:#ff4f6a;--red-bg:rgba(255,79,106,.08);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -29,7 +29,7 @@ a{text-decoration:none;color:inherit;}
 /* ── 탑바 ── */
 .topbar{display:flex;align-items:center;gap:12px;padding:14px 0 20px;}
 .back-btn{width:38px;height:38px;border-radius:11px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;color:var(--text2);transition:all .2s;}
-.back-btn:hover{background:var(--green);color:#2a0717;border-color:var(--green);}
+.back-btn:hover{background:var(--green);color:#fff;border-color:var(--green);}
 .topbar-title{font-size:17px;font-weight:800;}
 
 /* ── 프로필 히어로 ── */
@@ -40,7 +40,7 @@ a{text-decoration:none;color:inherit;}
 }
 .profile-hero::before{
   content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;
-  border-radius:50%;background:radial-gradient(circle,rgba(255,77,148,.14),transparent 70%);
+  border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,.14),transparent 70%);
   pointer-events:none;
 }
 .av-wrap{position:relative;display:inline-block;margin-bottom:16px;}
@@ -57,7 +57,7 @@ a{text-decoration:none;color:inherit;}
 }
 .profile-name{font-size:22px;font-weight:900;margin-bottom:4px;}
 .profile-email{font-size:13px;color:var(--text3);margin-bottom:12px;}
-.profile-badge{display:inline-block;padding:4px 14px;border-radius:50px;font-size:11px;font-weight:800;background:rgba(255,77,148,.14);border:1px solid var(--border2);color:var(--green);}
+.profile-badge{display:inline-block;padding:4px 14px;border-radius:50px;font-size:11px;font-weight:800;background:rgba(168,85,247,.14);border:1px solid var(--border2);color:var(--green);}
 
 /* ── 섹션 ── */
 .section{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:20px;margin-bottom:14px;}
@@ -78,7 +78,7 @@ a{text-decoration:none;color:inherit;}
 /* ── 버튼 ── */
 .primary-btn{
   width:100%;padding:14px;background:linear-gradient(135deg,var(--green),var(--green2));
-  border:none;border-radius:13px;color:#2a0717;font-size:15px;font-weight:800;
+  border:none;border-radius:13px;color:#fff;font-size:15px;font-weight:800;
   cursor:pointer;box-shadow:0 4px 16px var(--glow);transition:all .2s;
 }
 .primary-btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px var(--glow2);}
@@ -114,14 +114,14 @@ a{text-decoration:none;color:inherit;}
 /* ── 토스트 ── */
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);border-radius:50px;padding:11px 22px;font-size:13px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.4);opacity:0;transition:all .35s cubic-bezier(.16,1,.3,1);z-index:999;white-space:nowrap;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-.t-ok{background:var(--green);color:#2a0717;}
+.t-ok{background:var(--green);color:#fff;}
 .t-err{background:var(--red);color:#fff;}
 .t-info{background:var(--bg2);color:var(--text);border:1px solid var(--border);}
 
 /* ── 로딩 ── */
-.loading-overlay{position:fixed;inset:0;background:rgba(18,10,15,.95);z-index:9999;display:flex;align-items:center;justify-content:center;}
+.loading-overlay{position:fixed;inset:0;background:rgba(26,22,34,.95);z-index:9999;display:flex;align-items:center;justify-content:center;}
 .loading-overlay.hide{display:none;}
-.spinner{width:32px;height:32px;border:3px solid rgba(255,77,148,.15);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;}
+.spinner{width:32px;height:32px;border:3px solid rgba(168,85,247,.15);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
@@ -275,7 +275,7 @@ function renderProfile(){
       width:44px;height:44px;border-radius:13px;background:${c};cursor:pointer;
       display:flex;align-items:center;justify-content:center;font-size:18px;
       border:2.5px solid ${c===color?'#fff':'transparent'};
-      box-shadow:${c===color?'0 0 0 3px rgba(255,77,148,.5)':'none'};
+      box-shadow:${c===color?'0 0 0 3px rgba(168,85,247,.5)':'none'};
       transition:all .2s;
     " id="col-${c.replace('#','')}">${c===color?'✓':''}</div>`).join('');
 }
@@ -301,7 +301,7 @@ window.selectColor=function(color){
     const el=document.getElementById('col-'+c.replace('#',''));
     if(!el)return;
     el.style.border=`2.5px solid ${c===color?'#fff':'transparent'}`;
-    el.style.boxShadow=c===color?'0 0 0 3px rgba(255,77,148,.5)':'none';
+    el.style.boxShadow=c===color?'0 0 0 3px rgba(168,85,247,.5)':'none';
     el.textContent=c===color?'✓':'';
   });
   document.getElementById('av-big').style.background=color;
@@ -355,9 +355,9 @@ window.checkPwStrength=function(v){
   const p=Object.values(ok).filter(Boolean).length;
   const fill=document.getElementById('pw-fill');
   fill.style.width=[0,25,50,75,100][p]+'%';
-  fill.style.background=['','#ff4f6a','#ffd166','#ff7eb3','#ff4d94'][p];
+  fill.style.background=['','#ff4f6a','#ffd166','#c084fc','#a855f7'][p];
   document.getElementById('pw-label').textContent=['','매우 약함','약함','보통','강함'][p];
-  document.getElementById('pw-label').style.color=['','#ff4f6a','#ffd166','#ff7eb3','#ff4d94'][p];
+  document.getElementById('pw-label').style.color=['','#ff4f6a','#ffd166','#c084fc','#a855f7'][p];
   document.getElementById('pc-len').classList.toggle('ok',ok.l);
   document.getElementById('pc-up').classList.toggle('ok',ok.u);
   document.getElementById('pc-lo').classList.toggle('ok',ok.lo);

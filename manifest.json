@@ -4,8 +4,8 @@
   "description": "친구들과 언제 어디서나 실시간 채팅",
   "start_url": "/index.html",
   "display": "standalone",
-  "background_color": "#120a0f",
-  "theme_color": "#ff4d94",
+  "background_color": "#1a1622",
+  "theme_color": "#7c3aed",
   "orientation": "portrait-primary",
   "icons": [
     {
