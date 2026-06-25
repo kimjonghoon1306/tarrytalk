@@ -1,11 +1,11 @@
 {
-  "name": "TARRYTALK",
-  "short_name": "TarryTalk",
+  "name": "온메신저",
+  "short_name": "온메신저",
   "description": "친구들과 언제 어디서나 실시간 채팅",
   "start_url": "/index.html",
   "display": "standalone",
-  "background_color": "#07100d",
-  "theme_color": "#00dc6e",
+  "background_color": "#120a0f",
+  "theme_color": "#ff4d94",
   "orientation": "portrait-primary",
   "icons": [
     {

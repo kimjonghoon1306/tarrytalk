@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════
-   TARRYTALK Service Worker v1.2
+   온메신저 Service Worker v1.2
    - 오프라인 캐싱
    - 백그라운드 푸시 알림
    - 네트워크 전략: Cache First (정적) + Network First (API)
@@ -82,10 +82,10 @@ self.addEventListener('push', event => {
   if (!event.data) return;
   let data;
   try { data = event.data.json(); }
-  catch { data = { title: 'TARRYTALK', body: event.data.text() }; }
+  catch { data = { title: '온메신저', body: event.data.text() }; }
 
   event.waitUntil(
-    self.registration.showNotification(data.title || 'TARRYTALK', {
+    self.registration.showNotification(data.title || '온메신저', {
       body: data.body || '새 메시지가 있습니다',
       icon: '/icon-192.png',
       badge: '/icon-192.png',
