@@ -480,9 +480,9 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .t-warn{background:var(--yellow);color:#3a2800;}
 .t-info{background:var(--bg3);color:var(--text);border:1px solid var(--border);}
 .t-err{background:var(--red);color:#fff;}
-.popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:8500;display:none;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(4px);}
+.popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:8500;display:none;align-items:center;justify-content:center;padding:calc(28px + env(safe-area-inset-top)) 18px calc(28px + env(safe-area-inset-bottom));backdrop-filter:blur(4px);}
 .popup-overlay.show{display:flex;}
-.popup-card{width:100%;max-width:430px;max-height:88vh;background:var(--bg3);border:1px solid var(--border2);border-radius:24px;box-shadow:0 28px 72px rgba(0,0,0,.45);overflow-y:auto;overflow-x:hidden;animation:popIn .22s ease;display:flex;flex-direction:column;}
+.popup-card{width:100%;max-width:430px;max-height:calc(100vh - 110px);background:var(--bg3);border:1px solid var(--border2);border-radius:24px;box-shadow:0 28px 72px rgba(0,0,0,.45);overflow-y:auto;overflow-x:hidden;animation:popIn .22s ease;display:flex;flex-direction:column;}
 .popup-head{padding:20px 22px;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;display:flex;align-items:flex-start;gap:12px;}
 .popup-ico{font-size:28px;line-height:1;}
 .popup-title{font-size:18px;font-weight:900;line-height:1.35;flex:1;}
