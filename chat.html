@@ -2100,9 +2100,13 @@ window.leaveRoom=async function(){
   if(!curRoom||!sess)return;
   const room=(window._rooms||[]).find(r=>r.id===curRoom);if(!room)return;
   if(!confirm('이 채팅방에서 나가시겠어요? 다시 초대받아야 들어올 수 있어요.'))return;
-  await remove(ref(db,`rooms/${curRoom}/members/${sess.uid}`));
-  await remove(ref(db,`rooms/${curRoom}/unread/${sess.uid}`)).catch(()=>{});
-  await set(push(ref(db,`messages/${curRoom}`)),{uid:'system',displayName:'system',text:`${sess.name}님이 나갔습니다`,type:'system',at:Date.now()});
+  const rid=curRoom;
+  try{
+    // 멤버일 때 먼저 시스템 메시지(나간 뒤엔 메시지 쓰기 권한 없음)
+    await set(push(ref(db,`messages/${rid}`)),{uid:'system',displayName:'system',text:`${sess.name}님이 나갔습니다`,type:'system',at:Date.now()}).catch(()=>{});
+    await remove(ref(db,`rooms/${rid}/unread/${sess.uid}`)).catch(()=>{});
+    await remove(ref(db,`rooms/${rid}/members/${sess.uid}`));
+  }catch(e){showToast('나가기 실패: '+(e.message||'권한 오류'),'warn');return;}
   closeRoomSettings();goHome();showToast('채팅방에서 나왔습니다','ok');
 };
 window.closeRoomSettings=()=>document.getElementById('rs-overlay').classList.remove('show');
