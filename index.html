@@ -424,6 +424,7 @@ window.doLogin = async function() {
     sessionStorage.removeItem('tt_guest');
     await set(ref(db, `users/${cred.user.uid}/online`), true);
     await set(ref(db, `users/${cred.user.uid}/lastSeen`), serverTimestamp());
+    localStorage.setItem('tt_theme','light');
     showToast('👋 반갑습니다!', 'ok');
     setTimeout(() => location.href='chat.html', 800);
   } catch(e) {
@@ -463,6 +464,7 @@ window.doSignup = async function() {
       online: true, disabled: false,
       ...(urlRef ? { invitedBy: urlRef } : {})
     });
+    localStorage.setItem('tt_theme','light');
     showToast('🎉 가입 완료! 환영합니다', 'ok');
     location.href='chat.html';
   } catch(e) {
