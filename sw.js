@@ -6,7 +6,7 @@
    - 네트워크 전략: Cache First (정적) + Network First (API)
 ═══════════════════════════════════════════════ */
 
-const CACHE_NAME = 'tarrytalk-v10.1';
+const CACHE_NAME = 'tarrytalk-v10.1b';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
