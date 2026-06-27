@@ -983,7 +983,7 @@ window.handleHeroAdClick=function(e,type){
   if(type==='cta'){
     e.preventDefault();
     e.stopPropagation();
-    if(ad.ctaLink)window.open(normAdUrl(ad.ctaLink),'_blank','noopener');
+    if(ad.ctaLink||ad.link)window.open(normAdUrl(ad.ctaLink||ad.link),'_blank','noopener');
   }else if(!(ad.link||ad.ctaLink)){
     e.preventDefault();
   }
