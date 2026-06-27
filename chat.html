@@ -825,7 +825,7 @@ const app=initializeApp(FC),auth=getAuth(app),db=getDatabase(app),ADMIN_EMAIL='t
 const VAPID_KEY='BOaSeflyJoz-KNivb_EIPIfFuVwQe52LGW4DCb2hmc5SyTNNaod97MPodilohfzNsJba_yQatZLCpOVxJB8Q98A';
 let sess=null,isGuest=false,curRoom=null,curTab='group',selType='dm',selUsers=[],existId=null,sanctionTarget=null;
 let allUsers={},replyTo=null,reactionTarget=null,typingTimer=null,isAtBottom=true,newMsgCount=0;
-let _msgUnsub=null,_typingUnsub=null;
+let _msgUnsub=null,_typingUnsub=null,_hiddenUnsub=null,hiddenMsgs=new Set();
 let activeAds=[],adIndex=0,adTimer=null,heroAdIndex=0,heroAdTimer=null,popupNotice=null,welcomeData=null,introIndex=0;
 let announcements=[];
 let pushReady=false;
@@ -915,6 +915,13 @@ function listenAds(){
     renderHeroAd();
   });
 }
+function normAdUrl(u){
+  u=(u||'').trim();
+  if(!u)return '';
+  if(/^(https?:\/\/|mailto:|tel:)/i.test(u))return u;
+  if(/^\/\//.test(u))return 'https:'+u;
+  return 'https://'+u;
+}
 function renderAdBanner(){
   const banner=document.getElementById('ad-banner');
   const inRoom=!!(curRoom&&curRoom!=='onbot'&&curRoom!=='announce');
@@ -924,7 +931,7 @@ function renderAdBanner(){
   const link=document.getElementById('ad-link'),text=document.getElementById('ad-text'),thumb=document.getElementById('ad-thumb'),cta=document.getElementById('ad-cta');
   text.textContent=ad.text||'추천 광고';
   if(ad.imageData){thumb.src=ad.imageData;thumb.style.display='block';}else{thumb.removeAttribute('src');thumb.style.display='none';}
-  link.href=ad.link||ad.ctaLink||'#';
+  link.href=normAdUrl(ad.link||ad.ctaLink)||'#';
   link.style.pointerEvents=(ad.link||ad.ctaLink)?'auto':'none';
   if(ad.ctaLabel&&ad.ctaLink){cta.textContent=ad.ctaLabel;cta.classList.add('show');}else{cta.textContent='';cta.classList.remove('show');}
   banner.classList.add('show');
@@ -943,7 +950,7 @@ function renderHeroAd(){
   box.classList.toggle('full-img',ad.fullImage===true);
   text.textContent=ad.text||'추천 광고';
   if(ad.imageData){img.src=ad.imageData;img.style.display='block';box.classList.remove('no-img');}else{img.removeAttribute('src');img.style.display='none';box.classList.add('no-img');}
-  link.href=ad.link||ad.ctaLink||'#';
+  link.href=normAdUrl(ad.link||ad.ctaLink)||'#';
   if(ad.ctaLabel&&ad.ctaLink){cta.textContent=(ad.ctaLabel||'자세히 보기')+' →';cta.classList.add('show');}else if(ad.link){cta.textContent='자세히 보기 →';cta.classList.add('show');}else{cta.textContent='';cta.classList.remove('show');}
   dots.innerHTML=activeAds.length>1?activeAds.map((_,i)=>`<span class="empty-ad-dot${i===heroAdIndex%activeAds.length?' on':''}"></span>`).join(''):'';
   box.dataset.adId=ad.id;
@@ -964,7 +971,7 @@ window.handleAdClick=function(e,type){
   if(type==='cta'){
     e.preventDefault();
     e.stopPropagation();
-    if(ad.ctaLink||ad.link)window.open(ad.ctaLink||ad.link,'_blank','noopener');
+    if(ad.ctaLink||ad.link)window.open(normAdUrl(ad.ctaLink||ad.link),'_blank','noopener');
   }else if(!(ad.link||ad.ctaLink)){
     e.preventDefault();
   }
@@ -976,7 +983,7 @@ window.handleHeroAdClick=function(e,type){
   if(type==='cta'){
     e.preventDefault();
     e.stopPropagation();
-    if(ad.ctaLink)window.open(ad.ctaLink,'_blank','noopener');
+    if(ad.ctaLink)window.open(normAdUrl(ad.ctaLink),'_blank','noopener');
   }else if(!(ad.link||ad.ctaLink)){
     e.preventDefault();
   }
@@ -1363,6 +1370,14 @@ window.openRoom=async function(id){
 };
 function loadMessages(roomId){
   if(_msgUnsub)_msgUnsub();
+  if(_hiddenUnsub){_hiddenUnsub();_hiddenUnsub=null;}
+  hiddenMsgs=new Set();
+  if(sess&&!isGuest&&sess.uid!=='admin'){
+    _hiddenUnsub=onValue(ref(db,`users/${sess.uid}/hidden/${roomId}`),s=>{
+      hiddenMsgs=new Set(Object.keys(s.val()||{}));
+      if(currentMessages.length)renderMessages(currentMessages);
+    });
+  }
   const q=query(ref(db,`messages/${roomId}`),orderByChild('at'),limitToLast(120));
   _msgUnsub=onValue(q,snap=>{
     const data=snap.val()||{};
@@ -1409,13 +1424,14 @@ function cleanupExpiredMedia(roomId,msgs){
 }
 function renderMessages(msgs){
   currentMessages=msgs||[];
+  const vis=(msgs||[]).filter(m=>!hiddenMsgs.has(m.id));
   const el=document.getElementById('messages');const wasAtBottom=isAtBottom;el.innerHTML='';
-  if(!msgs.length){el.innerHTML='<div class="sys-msg">대화를 시작해보세요 👋</div>';return;}
+  if(!vis.length){el.innerHTML='<div class="sys-msg">대화를 시작해보세요 👋</div>';return;}
   let lastDate='';
-  msgs.forEach((m,i)=>{
+  vis.forEach((m,i)=>{
     const d=new Date(m.at).toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
     if(d!==lastDate){const sep=document.createElement('div');sep.className='date-sep';sep.innerHTML=`<span>${d}</span>`;el.appendChild(sep);lastDate=d;}
-    el.appendChild(buildMsg(m,msgs[i-1]));
+    el.appendChild(buildMsg(m,vis[i-1]));
   });
   if(wasAtBottom)scrollToBottom();
   loadLinkPreviews();
@@ -1534,7 +1550,7 @@ function menuCapabilities(m){
     reply:!!sess&&!isGuest,
     react:!!sess&&!isGuest,
     edit:mine&&m.type==='text'&&Date.now()-m.at<10*60*1000,
-    del:mine||!!sess?.isAdmin,
+    del:!!sess&&!isGuest,
     pin:canPinRoom(room),
     sanction:!!(sess?.isAdmin&&m.uid&&m.uid!=='system'&&m.uid!==sess.uid)
   };
@@ -1907,14 +1923,28 @@ window.clearReply=function(){replyTo=null;document.getElementById('reply-bar').c
 
 /* ── 메시지 삭제 ── */
 window.deleteMsg=async function(msgId){
-  if(!curRoom||!sess)return;
-  if(!confirm('정말 이 메시지를 삭제하시겠어요?'))return;
-  await update(ref(db,`messages/${curRoom}/${msgId}`),{
-    text:'삭제된 메시지입니다',
-    deleted:true,
-    deletedAt:Date.now(),
-    deletedBy:sess.uid
-  });
+  if(!curRoom||!sess||isGuest)return;
+  const m=msgById(msgId);
+  if(!m)return;
+  const mine=m.uid===sess.uid;
+  const within10=Date.now()-(m.at||0)<=10*60*1000;
+  // 카톡식: 내 메시지를 10분 이내 삭제(또는 관리자) → 모두 삭제(상대방 화면에서도 사라짐)
+  if((mine&&within10)||sess.isAdmin){
+    if(!confirm('이 메시지를 삭제할까요?\n상대방 화면에서도 사라집니다.'))return;
+    await update(ref(db,`messages/${curRoom}/${msgId}`),{
+      text:'삭제된 메시지입니다',
+      deleted:true,
+      deletedAt:Date.now(),
+      deletedBy:sess.uid
+    });
+    showToast('🗑 메시지를 삭제했습니다','ok');
+    return;
+  }
+  // 10분이 지났거나 상대방 메시지 → 나에게만 삭제(상대방에게는 계속 보임)
+  const reason=mine?'이 메시지는 10분이 지나 나에게만 삭제됩니다.':'상대방의 메시지는 나에게만 삭제할 수 있습니다.';
+  if(!confirm(reason+'\n상대방에게는 그대로 보입니다.\n나에게만 삭제할까요?'))return;
+  await set(ref(db,`users/${sess.uid}/hidden/${curRoom}/${msgId}`),true);
+  showToast('나에게만 삭제했어요 · 상대방에게는 그대로 보입니다','info');
 };
 
 async function addSystemMessage(text){

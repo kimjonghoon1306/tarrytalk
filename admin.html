@@ -860,10 +860,11 @@ window.onAdImageSelected = function(e) {
   reader.readAsDataURL(file);
 };
 window.saveAd = async function() {
+  const normUrl = u => { u=(u||'').trim(); if(!u)return ''; if(/^(https?:\/\/|mailto:|tel:)/i.test(u))return u; if(/^\/\//.test(u))return 'https:'+u; return 'https://'+u; };
   const text = document.getElementById('ad-text-inp').value.trim();
-  const link = document.getElementById('ad-link-inp').value.trim();
+  const link = normUrl(document.getElementById('ad-link-inp').value);
   const ctaLabel = document.getElementById('ad-cta-label-inp').value.trim();
-  const ctaLink = document.getElementById('ad-cta-link-inp').value.trim();
+  const ctaLink = normUrl(document.getElementById('ad-cta-link-inp').value);
   const priority = Number(document.getElementById('ad-priority-inp').value || 0);
   const startAt = dateInputToStart(document.getElementById('ad-start-inp').value);
   const endAt = dateInputToEnd(document.getElementById('ad-end-inp').value);
