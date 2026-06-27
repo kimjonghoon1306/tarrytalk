@@ -1319,7 +1319,7 @@ window.openAnnouncements=function(){
   if(!sess){showToast('로그인 후 공식 공지를 볼 수 있습니다','info');return;}
   curRoom='announce';
   hidePinnedBanner();
-  if(_msgUnsub){_msgUnsub();_msgUnsub=null;}if(_typingUnsub){_typingUnsub();_typingUnsub=null;}
+  if(_msgUnsub){_msgUnsub();_msgUnsub=null;}if(_typingUnsub){_typingUnsub();_typingUnsub=null;}if(_hiddenUnsub){_hiddenUnsub();_hiddenUnsub=null;}hiddenMsgs=new Set();
   clearReply();
   const latest=announcements[announcements.length-1]?.at||Date.now();
   localStorage.setItem(`tt_ann_seen_${sess.uid}`,String(latest));
@@ -1747,7 +1747,7 @@ function renderOnbot(){
 window.openOnbot=function(opts={}){
   curRoom='onbot';
   hidePinnedBanner();
-  if(_msgUnsub){_msgUnsub();_msgUnsub=null;}if(_typingUnsub){_typingUnsub();_typingUnsub=null;}
+  if(_msgUnsub){_msgUnsub();_msgUnsub=null;}if(_typingUnsub){_typingUnsub();_typingUnsub=null;}if(_hiddenUnsub){_hiddenUnsub();_hiddenUnsub=null;}hiddenMsgs=new Set();
   document.getElementById('tb-av').style.display='flex';document.getElementById('tb-av').innerHTML=ONBOT_SVG;
   document.getElementById('tb-info').style.display='block';document.getElementById('tb-name').textContent='온봇';document.getElementById('tb-sub').textContent='● 온메신저 도우미';
   document.getElementById('tb-logo').style.display='none';document.getElementById('tb-onbot-close').style.display='flex';document.getElementById('tb-settings').style.display='none';document.getElementById('tb-search-btn').style.display='none';
@@ -1767,6 +1767,7 @@ window.openOnbot=function(opts={}){
 window.goHome=function(){
   if(_msgUnsub){_msgUnsub();_msgUnsub=null;}
   if(_typingUnsub){_typingUnsub();_typingUnsub=null;}
+  if(_hiddenUnsub){_hiddenUnsub();_hiddenUnsub=null;}hiddenMsgs=new Set();
   curRoom=null;clearReply();
   document.getElementById('messages').innerHTML='';
   document.getElementById('messages').style.display='none';
