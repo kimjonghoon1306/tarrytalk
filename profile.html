@@ -192,8 +192,8 @@ button:active,.section:active,.info-row:active{transform:scale(.98);}
       <div><div class="info-label">가입일</div><div class="info-value" id="info-joined">–</div></div>
     </div>
     <div class="info-row">
-      <div class="info-icon">💬</div>
-      <div><div class="info-label">보낸 메시지</div><div class="info-value" id="info-msgs">계산 중...</div></div>
+      <div class="info-icon">👥</div>
+      <div><div class="info-label">친구 수</div><div class="info-value" id="info-msgs">–</div></div>
     </div>
     <div class="info-row">
       <div class="info-icon">🏠</div>
@@ -303,8 +303,9 @@ function renderProfile(){
   document.getElementById('prof-badge').textContent=isAdmin?'⚙️ 관리자':'● 회원';
   document.getElementById('name-inp').value=name;
 
-  if(userProfile.joinedAt){
-    const d=new Date(userProfile.joinedAt);
+  const joinedMs=userProfile.joinedAt||(currentUser.metadata?.creationTime?new Date(currentUser.metadata.creationTime).getTime():0);
+  if(joinedMs){
+    const d=new Date(joinedMs);
     document.getElementById('info-joined').textContent=d.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
   }
 
@@ -323,17 +324,18 @@ function renderProfile(){
 
 async function loadStats(){
   const uid=currentUser.uid;
-  // 메시지 수
-  const msgsSnap=await get(ref(db,'messages'));
-  const allMsgs=msgsSnap.val()||{};
-  let msgCount=0;
-  Object.values(allMsgs).forEach(room=>Object.values(room||{}).forEach(m=>{if(m.uid===uid)msgCount++;}));
-  document.getElementById('info-msgs').textContent=msgCount+'개';
-  // 채팅방 수
-  const roomsSnap=await get(ref(db,'rooms'));
-  const allRooms=roomsSnap.val()||{};
-  const roomCount=Object.values(allRooms).filter(r=>r.members?.[uid]).length;
-  document.getElementById('info-rooms').textContent=roomCount+'개';
+  // 친구 수 (내 프로필의 friends — 추가 읽기 불필요)
+  const friendCount=userProfile.friends?Object.keys(userProfile.friends).length:0;
+  document.getElementById('info-msgs').textContent=friendCount+'명';
+  // 참여 채팅방 (내가 멤버인 방 수)
+  try{
+    const roomsSnap=await get(ref(db,'rooms'));
+    const allRooms=roomsSnap.val()||{};
+    const roomCount=Object.values(allRooms).filter(r=>r&&r.members?.[uid]).length;
+    document.getElementById('info-rooms').textContent=roomCount+'개';
+  }catch(e){
+    document.getElementById('info-rooms').textContent='–';
+  }
 }
 
 window.selectColor=function(color){
