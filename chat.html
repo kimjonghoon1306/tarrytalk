@@ -374,19 +374,30 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .reply-bar-txt strong{color:var(--green);display:block;margin-bottom:2px;font-size:11px;}
 .reply-bar-txt span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;max-width:220px;}
 .reply-bar-x{cursor:pointer;color:var(--text3);font-size:16px;padding:4px;flex-shrink:0;}
-.emoji-row{display:flex;gap:4px;padding:7px 12px 3px;overflow-x:auto;scrollbar-width:none;}
-.emoji-row::-webkit-scrollbar{display:none;}
-.ep{padding:6px 9px;border-radius:9px;background:var(--surface);border:1px solid var(--border);cursor:pointer;font-size:14px;flex-shrink:0;transition:all .15s;}
-.ep:hover,.ep:active{background:var(--green);border-color:var(--green);transform:scale(1.1);}
+/* 카톡식 카테고리 이모지 피커 */
+.emoji-panel{display:none;flex-direction:column;border-top:1px solid var(--border);background:var(--bg2);max-height:236px;}
+.emoji-panel.show{display:flex;}
+.emoji-cats{display:flex;gap:2px;padding:6px 10px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+.emoji-cats::-webkit-scrollbar{display:none;}
+.emoji-cat{flex-shrink:0;width:38px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;background:none;border:none;opacity:.5;transition:all .15s;}
+.emoji-cat.on{opacity:1;background:var(--surface);}
+.emoji-grid{flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(8,1fr);gap:2px;padding:8px 10px;scrollbar-width:thin;}
+.emoji-grid .eg{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;border-radius:8px;transition:background .12s,transform .12s;}
+.emoji-grid .eg:hover,.emoji-grid .eg:active{background:var(--surface);transform:scale(1.18);}
 .link-row{display:none;align-items:center;gap:8px;margin:0 12px 5px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:7px 12px;}
 .link-row.show{display:flex;}
 .l-inp{flex:1;background:none;border:none;color:var(--text);font-size:13px;}
 .l-inp::placeholder{color:var(--text3);}
 .l-send{padding:5px 12px;border-radius:8px;background:var(--green);color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;}
 .l-x{cursor:pointer;font-size:16px;color:var(--text3);background:none;border:none;}
-.tool-row{display:flex;gap:4px;padding:3px 12px 5px;}
-.tb2{width:32px;height:32px;border-radius:9px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:all .2s;flex-shrink:0;color:var(--text2);}
-.tb2:hover,.tb2:active{background:var(--green);border-color:var(--green);color:#fff;}
+.tool-row{display:flex;gap:5px;padding:4px 12px 6px;overflow-x:auto;scrollbar-width:none;}
+.tool-row::-webkit-scrollbar{display:none;}
+.tb2{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-width:48px;padding:5px 7px;border-radius:12px;background:var(--surface);border:1px solid var(--border);cursor:pointer;transition:all .15s;flex-shrink:0;color:var(--text2);}
+.tb2 .tb-ic{font-size:17px;line-height:1.1;}
+.tb2 .tb-lb{font-size:9.5px;font-weight:800;color:var(--text3);letter-spacing:-.3px;}
+.tb2:hover,.tb2:active{background:rgba(124,58,237,.08);border-color:var(--green);}
+.tb2:hover .tb-lb,.tb2.on .tb-lb{color:var(--green);}
+.tb2.on{background:rgba(124,58,237,.1);border-color:var(--green);}
 .inp-row{display:flex;gap:8px;align-items:flex-end;padding:0 12px 12px;}
 .m-inp{flex:1;min-width:0;width:100%;box-sizing:border-box;padding:12px 15px;background:var(--surface);border:1px solid var(--border);border-radius:24px;color:var(--text);font-size:15px;resize:none;max-height:160px;min-height:46px;line-height:1.5;overflow-y:hidden;transition:border-color .2s;-webkit-appearance:none;scrollbar-width:none;}
 .m-inp::-webkit-scrollbar{width:0;height:0;display:none;}
@@ -726,12 +737,19 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
   <div class="input-wrap" id="input-wrap" style="display:none;">
     <div class="mute-notice" id="mute-notice"></div>
     <div class="reply-bar" id="reply-bar"><div style="font-size:14px;color:var(--green);">↩</div><div class="reply-bar-txt"><strong id="reply-sender"></strong><span id="reply-text"></span></div><button class="reply-bar-x" onclick="clearReply()">✕</button></div>
-    <div class="emoji-row">
-      <div class="ep" onclick="addEmoji('😄')">😄</div><div class="ep" onclick="addEmoji('👍')">👍</div><div class="ep" onclick="addEmoji('🎉')">🎉</div><div class="ep" onclick="addEmoji('🔥')">🔥</div><div class="ep" onclick="addEmoji('❤️')">❤️</div><div class="ep" onclick="addEmoji('😂')">😂</div><div class="ep" onclick="addEmoji('🙏')">🙏</div><div class="ep" onclick="addEmoji('✅')">✅</div><div class="ep" onclick="addEmoji('💡')">💡</div><div class="ep" onclick="addEmoji('🚀')">🚀</div><div class="ep" onclick="addEmoji('😎')">😎</div><div class="ep" onclick="addEmoji('👏')">👏</div>
+    <div class="emoji-panel" id="emoji-panel">
+      <div class="emoji-cats" id="emoji-cats"></div>
+      <div class="emoji-grid" id="emoji-grid"></div>
     </div>
     <div class="link-row" id="link-row"><input class="l-inp" id="l-inp" placeholder="이미지 URL (https://...)" onkeydown="if(event.key==='Enter')sendImg()"><button class="l-send" onclick="sendImg()">전송</button><button class="l-x" onclick="toggleLink()">✕</button></div>
     <div class="tool-row" id="tool-row">
-      <div class="tb2" onclick="pickImage()" title="이미지">📷</div><div class="tb2" onclick="pickFile()" title="파일">📎</div><div class="tb2" onclick="pickVideo()" title="영상">🎥</div><div class="tb2" onclick="toggleLink()" title="URL">🔗</div><div class="tb2" onclick="openSchedule()" title="일정">📅</div><div class="tb2" onclick="openInvite()" title="초대">👋</div>
+      <div class="tb2" id="emoji-toggle" onclick="toggleEmoji()"><span class="tb-ic">😊</span><span class="tb-lb">이모지</span></div>
+      <div class="tb2" onclick="pickImage()"><span class="tb-ic">📷</span><span class="tb-lb">사진</span></div>
+      <div class="tb2" onclick="pickVideo()"><span class="tb-ic">🎥</span><span class="tb-lb">영상</span></div>
+      <div class="tb2" onclick="pickFile()"><span class="tb-ic">📎</span><span class="tb-lb">파일</span></div>
+      <div class="tb2" onclick="toggleLink()"><span class="tb-ic">🔗</span><span class="tb-lb">링크</span></div>
+      <div class="tb2" onclick="openSchedule()"><span class="tb-ic">📅</span><span class="tb-lb">일정</span></div>
+      <div class="tb2" onclick="openInvite()"><span class="tb-ic">👋</span><span class="tb-lb">초대</span></div>
     </div>
     <input type="file" id="pick-img" accept="image/*" style="display:none" onchange="onFileSelected(event,'image')">
     <input type="file" id="pick-file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.zip,.hwp" style="display:none" onchange="onFileSelected(event,'document')">
@@ -940,7 +958,7 @@ let currentMessages=[],contextMsgId=null,forwardMsgId=null,longPressTimer=null,l
 const viewedAds=new Set();
 const COLORS=['#00a84a','#0087d4','#a855f7','#e85d04','#d62828','#2ec4b6'];
 const ONBOT_SVG=`<span class="onbot-avatar" aria-hidden="true"><svg viewBox="0 0 64 64" role="img" focusable="false"><defs><linearGradient id="onbotG" x1="12" y1="8" x2="52" y2="56" gradientUnits="userSpaceOnUse"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs><path d="M32 9v7" fill="none" stroke="#a855f7" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="7" r="4" fill="#c084fc"/><path d="M13 22c0-5 4-9 9-9h20c5 0 9 4 9 9v17c0 5-4 9-9 9H30l-9 7c-2 1.5-4.5-.2-4-2.7l1.2-5.8C15.1 45 13 42.1 13 39V22z" fill="url(#onbotG)"/><circle cx="25" cy="30" r="5" fill="#fff"/><circle cx="39" cy="30" r="5" fill="#fff"/><circle cx="26.5" cy="31" r="1.8" fill="#5b21b6"/><circle cx="37.5" cy="31" r="1.8" fill="#5b21b6"/><path d="M25 39c3.5 3 10.5 3 14 0" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg></span>`;
-const BOT_CHIPS=['채팅 시작하기','회원 초대','단톡방 만들기','일정 공유','📁 보관함','사진·파일 보내기','📅 미디어 보관기간','🛡️ 이용규칙/제재','이모지·답장·수정','공지·광고란?','관리자 기능','전체 기능 보기'];
+const BOT_CHIPS=['채팅 시작하기','회원 초대','단톡방 만들기','📁 보관함','📌 자료실','📅 일정·출석','📢 공식 공지','✏️ 줄바꿈','😊 이모지','사진·파일 보내기','내 프로필','전체 기능 보기'];
 let onbotMessages=[];
 const isAdminUser=()=>sess?.isAdmin===true;
 const MEDIA_TTL=14*24*60*60*1000;
@@ -1678,7 +1696,7 @@ window.openAnnouncements=function(){
   document.getElementById('guest-wall').style.display='none';document.getElementById('typing-bar').classList.remove('show');
   document.getElementById('readonly-note').classList.toggle('show',!sess.isAdmin);
   document.getElementById('input-wrap').style.display=sess.isAdmin?'block':'none';
-  document.getElementById('tool-row').style.display='none';document.querySelector('.emoji-row').style.display='none';document.getElementById('link-row').classList.remove('show');
+  document.getElementById('tool-row').style.display='none';closeEmoji();document.getElementById('link-row').classList.remove('show');
   document.getElementById('m-inp').placeholder='공식 공지를 입력하세요...';
   renderAnnouncements();renderRooms(document.getElementById('search-inp')?.value||'');closeSb();
   if(sess.isAdmin)document.getElementById('m-inp').focus();
@@ -1713,9 +1731,8 @@ window.openRoom=async function(id){
   renderPinnedBanner(room);
   renderHeroAd();renderAdBanner();
   document.getElementById('tool-row').style.display='flex';
-  document.querySelector('.emoji-row').style.display='';
+  closeEmoji();
   document.getElementById('m-inp').placeholder='메시지를 입력하세요...';
-  document.getElementById('emoji-row')?.style?.removeProperty?.('display');
   clearReply();
   if(isGuest){document.getElementById('messages').style.filter='blur(7px)';document.getElementById('guest-wall').style.display='flex';document.getElementById('input-wrap').style.display='none';}
   else{document.getElementById('messages').style.filter='';document.getElementById('guest-wall').style.display='none';document.getElementById('input-wrap').style.display=secret?'none':'block';loadMessages(id);if(!secret)listenTyping(id);else document.getElementById('typing-bar').classList.remove('show');updateMuteNotice();}
@@ -2102,7 +2119,7 @@ window.openOnbot=function(opts={}){
   document.getElementById('guest-wall').style.display='none';document.getElementById('typing-bar').classList.remove('show');
   document.getElementById('readonly-note').classList.remove('show');
   document.getElementById('input-wrap').style.display='block';document.getElementById('tool-row').style.display='none';document.getElementById('link-row').classList.remove('show');
-  document.querySelector('.emoji-row').style.display='';document.getElementById('m-inp').placeholder='메시지를 입력하세요...';
+  closeEmoji();document.getElementById('m-inp').placeholder='메시지를 입력하세요...';
   clearReply();
   if(!onbotMessages.length)onbotMessages=[onbotMsg('안녕하세요, 저는 온메신저 도우미 온봇이에요. 아래 버튼을 누르거나 궁금한 기능을 편하게 입력해 주세요. 사진·영상·파일 보관기간도 바로 안내해 드릴게요.')];
   if(opts.autoWelcome&&welcomeData?.active===true&&welcomeData.text){
@@ -2166,7 +2183,7 @@ function onbotAnswer(q){
   const admin=isAdminUser();
   if(has('전체','도움말','온봇'))return admin
     ? '온메신저 주요 기능은 실시간 채팅, 1:1/단톡방, 초대 링크, 대화 중 멤버 초대와 내보내기, 사진·파일·영상 전송, 일정 카드, 이모지 반응, 답장, 10분 내 수정, 삭제, 메시지 검색, 읽음표시, 안읽음 배지, 입력중 표시, 프로필 변경, 테마 전환, 관리자 패널, 광고 배너 등록, 접속 공지 팝업 관리까지예요. 온봇은 이 기능들을 로컬에서 안내하는 도우미라 대화가 서버에 저장되지 않아요.'
-    : '온메신저 주요 기능은 실시간 채팅, 1:1/단톡방, 초대 링크, 대화 중 멤버 초대, 사진·파일·영상 전송, 일정 카드, 이모지 반응, 답장, 10분 내 수정, 삭제, 메시지 검색, 읽음표시, 안읽음 배지, 입력중 표시, 프로필 변경, 테마 전환이에요. 관리자가 등록한 광고 배너나 접속 공지 팝업은 회원 화면에 표시될 수 있어요. 온봇 대화는 서버에 저장되지 않습니다.';
+    : '온메신저 주요 기능을 알려드릴게요 😊\n• 💬 실시간 채팅(1:1·단톡방), 초대 링크, 대화 중 멤버 초대\n• 📁 보관함 — 모든 방의 사진·영상·파일·링크가 한곳에 자동으로\n• 📌 자료실 — 운영진이 올린 공식 교재·안내문을 보고 받기\n• 📅 일정 — 모임 일정 모아보기 + 참석/불참(출석체크) + 알림\n• 📢 공지 — 운영진 공식 공지 확인(왼쪽 공지 탭)\n• 사진·파일·영상 전송, 일정 카드, 😊 이모지(카테고리), 답장, 10분 내 수정·삭제, 메시지 검색, 읽음표시\n• ✏️ 줄바꿈(PC는 Shift+Enter), 👤 내 프로필(친구 수·참여 방·가입일)\n• 🤖 온봇 — 화면 오른쪽 아래 둥근 버튼으로 언제든 불러요\n온봇 대화는 서버에 저장되지 않아요.';
   if(has('규칙','이용규칙','제재','금지','욕설','신고','차단','정지'))return '온메신저에서는 욕설·비방, 사기성 내용, 외부 유인 행위, 위험하거나 부적절한 내용을 금지하고 있어요. 위반하면 경고, 1~7일 채팅 정지, 영구 차단(비활성화) 조치가 될 수 있고 문제가 된 채팅방은 삭제될 수 있습니다. 특히 욕설이나 심각한 위반은 정지 및 영구차단 대상이에요. 관리자는 안전한 운영을 위해 필요한 관리와 조치를 할 수 있습니다.';
   if(has('보관','저장기간','며칠','얼마나','사라','자동삭제','삭제 기간','기간'))return "온메신저는 대화 내용(글)과 일정은 계속 보관돼요. 다만 일반 회원이 올린 사진·영상·파일은 올린 지 2주(14일)가 지나면 용량 관리를 위해 자동으로 삭제돼요. 단, 관리자는 중요한 미디어에 메시지의 '📌 보관'을 눌러 영구 보관할 수 있어요(누르지 않으면 2주 후 삭제). 중요한 미디어는 받은 즉시 다운로드 버튼으로 저장해 두시는 걸 권장해요. 삭제된 자리에는 '2주가 지나 자동 삭제됨' 안내가 남아요.";
   if(has('채팅 시작','메시지','전송','enter','엔터'))return '메시지는 채팅방을 선택한 뒤 입력창에 쓰고 Enter로 보내요. 줄을 바꾸려면 Shift+Enter를 누르면 됩니다. 전송된 메시지는 실시간으로 상대에게 보이고, 내가 보낸 메시지에는 ✓✓ 읽음표시가 붙어요.';
@@ -2176,9 +2193,13 @@ function onbotAnswer(q){
     ? '1:1 채팅은 새로운 채팅 시작 > 1대1 채팅에서 상대를 한 명 선택하면 됩니다. 같은 상대와 이미 대화방이 있으면 기존 방으로 바로 이동해요. 관리자는 관리자 패널에서도 회원에게 1:1 채팅을 바로 걸 수 있습니다.'
     : '1:1 채팅은 새로운 채팅 시작 > 1대1 채팅에서 상대를 한 명 선택하면 됩니다. 같은 상대와 이미 대화방이 있으면 기존 방으로 바로 이동해요.';
   if(has('보관함','모아보기','자료실','갤러리','자료 모아','한곳에','한 곳에'))return "왼쪽 메뉴의 📁 보관함을 누르면, 내가 속한 모든 채팅방에서 주고받은 사진·영상·파일·링크가 한곳에 자동으로 모여요. 위쪽 칩으로 사진/영상/파일/링크만 골라볼 수 있어요. 사진·영상·파일은 보낸 지 2주가 지나면 자동 삭제되는 점은 동일해요. 그리고 '📌 자료실' 탭에는 관리자가 올린 공식 교재·안내문·링크가 영구로 보관돼요(관리자만 등록).";
-  if(has('일정','약속','날짜','장소','메모'))return '일정은 두 가지로 써요. ①채팅방에서 하단 📅 버튼으로 제목·날짜·시간·장소·메모를 입력하면 일정 카드가 올라가요. ②왼쪽 메뉴 📅 일정을 누르면 모든 방의 일정이 날짜순으로 모여서 다가오는 일정을 한눈에 보고, 참석/불참(출석체크)도 누를 수 있어요. 다가오는 일정은 접속할 때 안내도 떠요.';
+  if(has('일정','약속','날짜','장소','메모','출석','참석'))return '일정은 두 가지로 써요. ①채팅방에서 하단 📅 일정 버튼으로 제목·날짜·시간·장소·메모를 입력하면 일정 카드가 올라가요. ②왼쪽 메뉴 📅 일정을 누르면 모든 방의 일정이 날짜순으로 모여서 다가오는 일정을 한눈에 보고, 참석/불참(출석체크)도 누를 수 있어요. 다가오는 일정은 접속할 때 안내도 떠요.';
+  if(has('공식 공지','공식공지','공지 탭','공지탭','공지사항','운영진'))return '왼쪽 메뉴 📢 공지 탭에서 운영진이 올린 공식 공지를 볼 수 있어요. 새 공지가 오면 공지 탭에 빨간 점으로 알려드려요. (작성은 운영진만 가능하고, 회원은 읽기 전용이에요)';
+  if(has('줄바꿈','엔터','enter','여러줄','개행'))return '메시지에서 줄바꿈은 PC는 Shift+Enter, 휴대폰은 Enter로 할 수 있어요. 보내기는 입력창 오른쪽 ➤ 버튼(PC는 Enter)이에요. 입력창은 글이 길어지면 자동으로 늘어나요.';
+  if(has('온봇 어디','온봇 위치','온봇 버튼','도우미 어디','너 어디','챗봇 어디'))return '저는 화면 오른쪽 아래 둥근 보라색 버튼이에요 🤖 둥둥 떠 있는 그 버튼을 누르면 언제든 저를 부를 수 있어요. 궁금한 기능을 편하게 물어보세요!';
   if(has('사진','이미지','파일','영상','다운로드','라이트박스'))return "사진은 📷, 문서는 📎, 영상은 🎥 버튼으로 보낼 수 있어요. 이미지 메시지를 누르면 크게 보는 라이트박스가 열리고, 파일과 이미지는 다운로드 버튼으로 받을 수 있습니다. 일반 회원의 사진·영상·파일은 2주 후 자동 삭제되고, 관리자는 중요한 미디어에 메시지의 '📌 보관'을 눌러 영구 보관할 수 있어요(누르지 않으면 2주 후 삭제). 텍스트와 일정은 계속 남아요.";
-  if(has('이모지','반응','답장','수정','삭제'))return '메시지를 우클릭하거나 모바일에서 길게 누르면 컨텍스트 메뉴가 열려요. 그곳에서 😊 반응, ↩ 답장, ✏️ 수정, 🗑 삭제를 사용할 수 있습니다. 내 텍스트 메시지는 10분 안에 수정할 수 있고, 삭제된 메시지는 삭제 표시로 남습니다.';
+  if(has('이모지','반응','답장','수정','삭제'))return '입력창 아래 😊 이모지 버튼을 누르면 카톡처럼 표정·손짓·하트·축하·동물·음식·활동·기호 카테고리로 골라 넣을 수 있어요. 그리고 메시지를 우클릭(모바일은 길게 누르기)하면 😊 반응, ↩ 답장, ✏️ 수정, 🗑 삭제를 쓸 수 있어요. 내 글은 10분 안에 수정 가능해요.';
+  if(has('프로필','내 정보','가입일','친구 수','내 프로필'))return '왼쪽 위 내 이름을 누르면 프로필이 열려요. 거기서 이름·프로필 색을 바꾸고, 친구 수·참여 중인 채팅방·가입일을 볼 수 있어요.';
   if(has('검색','읽음','안읽음','입력중','입력 중'))return '상단 🔍로 현재 방 메시지를 검색할 수 있어요. 사이드바에는 안읽음 배지가 표시되고, 내가 보낸 메시지에는 ✓✓가 보입니다. 상대가 입력 중이면 하단에 입력중 표시가 잠깐 나타나요.';
   if(has('공지','팝업','광고','배너'))return admin
     ? '광고 배너와 접속 공지 팝업은 관리자 패널에서 등록하고 활성화할 수 있어요. 활성 광고는 채팅 화면 상단에 순환 표시되고, 공지 팝업은 로그인한 회원이 접속할 때 떠요.'
@@ -2683,6 +2704,37 @@ window.doLogout=async function(e){if(e)e.preventDefault();if(isGuest){sessionSto
 window.openSb=()=>{document.getElementById('sidebar').classList.add('open');document.getElementById('drawer-bg').classList.add('show');};
 window.closeSb=()=>{document.getElementById('sidebar').classList.remove('open');document.getElementById('drawer-bg').classList.remove('show');};
 window.addEmoji=emoji=>{const inp=document.getElementById('m-inp');inp.value+=emoji;inp.focus();autoResize(inp);};
+/* 카톡식 카테고리 이모지 피커 */
+const EMOJI_CATS=[
+  {ic:'😀',list:['😀','😃','😄','😁','😆','😅','😂','🤣','🥹','😊','🙂','🙃','😉','😍','🥰','😘','😗','😋','😛','😜','🤪','🤗','🤩','🥳','😎','🤔','🤨','😐','😑','😴','😪','😌','😔','😢','😭','😤','😠','😡','🥺','😳','😱','😬','🙄','😮','😲','🤯','😇','🤭','🤫','🥲']},
+  {ic:'👍',list:['👍','👎','👌','✌️','🤞','🤟','🤙','👋','🙌','👏','🙏','💪','✊','👊','🤛','🤜','🫶','🤝','✍️','🙆','🙅','🤷','🙋','🫡','👇','👆','👈','👉','☝️','✋','🤚','🖐️']},
+  {ic:'❤️',list:['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💕','💞','💓','💗','💖','💘','💝','💟','❣️','💔','❤️‍🔥','💌','😻','🥰','😍']},
+  {ic:'🎉',list:['🎉','🎊','🎈','🎁','🎀','🎂','🍰','🧁','🍾','🥂','✨','🌟','⭐','💫','🔥','💯','🏆','🥇','🥈','🥉','🎯','🎖️','🏅','💐','🌹','🌸','🌷','🌻']},
+  {ic:'🐶',list:['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🐤','🦄','🐢','🐝','🦋','🐞','🐙','🐬','🐳','🐠','🦔','🐾']},
+  {ic:'🍎',list:['🍎','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍒','🍑','🥭','🍍','🥝','🍅','🥑','🌽','🍔','🍟','🍕','🌭','🍗','🍜','🍙','🍱','🍣','🍦','🍩','🍪','🎂','☕','🍵','🧋','🍺','🍻','🥤']},
+  {ic:'⚽',list:['⚽','🏀','🏈','⚾','🎾','🏐','🏓','🏸','🥅','⛳','🎣','🎮','🕹️','🎲','🎸','🎹','🎤','🎧','🎬','🎨','📷','✈️','🚗','🚌','🚲','🏠','⛰️','🏖️','🌞','🌙','🌈','☔']},
+  {ic:'✅',list:['✅','❌','⭕','❗','❓','‼️','💡','📌','📍','📢','🔔','⏰','⌚','💰','💎','🔑','📝','✏️','📅','📆','📎','🔗','⚡','♻️','✔️','➕','➖','⭐','🚀','🆗','🔴','🟢','🟡','🟣','⚪','⚫']}
+];
+let _emojiCat=0,_emojiReady=false;
+window.toggleEmoji=function(){
+  const p=document.getElementById('emoji-panel');if(!p)return;
+  const show=!p.classList.contains('show');
+  p.classList.toggle('show',show);
+  document.getElementById('emoji-toggle')?.classList.toggle('on',show);
+  if(show&&!_emojiReady){_emojiReady=true;renderEmojiCats();setEmojiCat(0);}
+};
+function closeEmoji(){const p=document.getElementById('emoji-panel');if(p){p.classList.remove('show');document.getElementById('emoji-toggle')?.classList.remove('on');}}
+function renderEmojiCats(){
+  const el=document.getElementById('emoji-cats');if(!el)return;
+  el.innerHTML=EMOJI_CATS.map((c,i)=>`<button class="emoji-cat${i===_emojiCat?' on':''}" onclick="setEmojiCat(${i})">${c.ic}</button>`).join('');
+}
+window.setEmojiCat=function(i){
+  _emojiCat=i;
+  document.querySelectorAll('#emoji-cats .emoji-cat').forEach((b,idx)=>b.classList.toggle('on',idx===i));
+  const grid=document.getElementById('emoji-grid');
+  grid.innerHTML=EMOJI_CATS[i].list.map(e=>`<div class="eg" onclick="addEmoji('${e}')">${e}</div>`).join('');
+  grid.scrollTop=0;
+};
 window.toggleLink=()=>document.getElementById('link-row').classList.toggle('show');
 function isMobileInputDevice(){return (window.matchMedia&&window.matchMedia('(pointer: coarse)').matches)||navigator.maxTouchPoints>0;}
 window.handleKey=e=>{if(e.key==='Enter'&&!e.shiftKey&&!isMobileInputDevice()){e.preventDefault();sendMsg();}};

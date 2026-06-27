@@ -430,6 +430,7 @@ tr:hover td{background:rgba(124,58,237,.04);}
       <div class="card-head"><div class="card-title">📢 공식 공지 피드</div><span class="card-action" id="ann-count-lbl">0개</span></div>
       <p style="font-size:13px;color:var(--text3);margin-bottom:14px;line-height:1.7;">회원 채팅 화면의 “공식 공지” 채널에 읽기 전용 공지를 쌓아 보여줍니다.</p>
       <textarea class="notice-area" id="official-ann-text" placeholder="공식 공지 내용을 입력하세요..."></textarea>
+      <button type="button" class="small-btn" onclick="openAdmEmoji('official-ann-text',this)" style="margin-top:6px;">😊 이모지 넣기</button>
       <div class="ad-file-row" style="margin-top:8px;">
         <input class="admin-input" type="file" id="official-ann-img-inp" accept="image/*" onchange="onOfficialAnnImage(event)">
         <img class="ad-img-preview" id="official-ann-img-preview" alt="공지 이미지 미리보기" style="display:none">
@@ -565,6 +566,7 @@ tr:hover td{background:rgba(124,58,237,.04);}
         <div>
           <label class="admin-label">내용</label>
           <textarea class="notice-area" id="popup-body-inp" placeholder="회원 접속 시 팝업으로 보여줄 내용"></textarea>
+          <button type="button" class="small-btn" onclick="openAdmEmoji('popup-body-inp',this)" style="margin-top:6px;">😊 이모지 넣기</button>
         </div>
         <div>
           <label class="admin-label">이미지 (선택)</label>
@@ -644,6 +646,15 @@ tr:hover td{background:rgba(124,58,237,.04);}
 </div>
 
 <div class="toast" id="toast-el"></div>
+
+<!-- 이모지 피커 (공지/팝업 입력용) -->
+<div id="adm-emoji-overlay" onclick="if(event.target.id==='adm-emoji-overlay')closeAdmEmoji()" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.35);align-items:center;justify-content:center;">
+  <div style="width:min(380px,92vw);max-height:60vh;background:var(--bg2,#fff);border:1px solid var(--border,#eee);border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow:hidden;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border,#eee);"><b style="font-size:14px;">😊 이모지</b><button class="small-btn" onclick="closeAdmEmoji()">닫기</button></div>
+    <div id="adm-emoji-cats" style="display:flex;gap:2px;padding:8px 12px;border-bottom:1px solid var(--border,#eee);overflow-x:auto;"></div>
+    <div id="adm-emoji-grid" style="flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(8,1fr);gap:2px;padding:10px 12px;"></div>
+  </div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -905,6 +916,35 @@ window.switchSection = function(sec) {
   closeAdmSb();
 };
 window.toggleAdmSb=function(){document.getElementById('adm-sb').classList.toggle('open');document.getElementById('adm-drawer-bg').classList.toggle('show');};
+/* ── 이모지 피커 (공지/팝업 입력) ── */
+const ADM_EMOJI_CATS=[
+  {ic:'😀',list:['😀','😃','😄','😁','😆','😅','😂','🤣','🥹','😊','🙂','😉','😍','🥰','😘','😋','😎','🤩','🥳','🤔','😐','😴','😢','😭','😠','🥺','😳','😱','🙄','😮','🤯','😇','🤭','🙏']},
+  {ic:'👍',list:['👍','👎','👌','✌️','🤞','🤙','👋','🙌','👏','🙏','💪','✊','🤝','✍️','🙆','🙅','🤷','🙋','🫡','👇','👆','👈','👉','☝️','✋']},
+  {ic:'❤️',list:['❤️','🧡','💛','💚','💙','💜','🖤','🤍','💕','💞','💗','💖','💘','💝','💟','❣️','💔','💌','✨','🌟','⭐','💫']},
+  {ic:'🎉',list:['🎉','🎊','🎈','🎁','🎀','🎂','🍰','🥂','✨','🌟','⭐','🔥','💯','🏆','🥇','🎯','📢','💐','🌹','🌸','👏','🙌']},
+  {ic:'✅',list:['✅','❌','⭕','❗','❓','‼️','💡','📌','📍','📢','🔔','⏰','💰','💎','🔑','📝','✏️','📅','📆','📎','🔗','⚡','♻️','✔️','➕','🆕','⬇️','➡️','💬','🤖','📁','🗂️','🏠']},
+  {ic:'🐶',list:['🐶','🐱','🐰','🐻','🐼','🦊','🦁','🐯','🐮','🐷','🐸','🐵','🐔','🐧','🦄','🐢','🐝','🦋','🍎','🍓','🍔','🍕','🍰','☕','🍺','🌞','🌙','🌈','✈️','🚗']}
+];
+let _admEmojiTarget=null,_admEmojiCat=0;
+window.openAdmEmoji=function(targetId){
+  _admEmojiTarget=document.getElementById(targetId);if(!_admEmojiTarget)return;
+  _admEmojiCat=0;
+  document.getElementById('adm-emoji-cats').innerHTML=ADM_EMOJI_CATS.map((c,i)=>`<button type="button" class="small-btn${i===0?' on':''}" onclick="setAdmEmojiCat(${i})" style="font-size:17px;min-width:38px;">${c.ic}</button>`).join('');
+  setAdmEmojiCat(0);
+  document.getElementById('adm-emoji-overlay').style.display='flex';
+};
+window.setAdmEmojiCat=function(i){
+  _admEmojiCat=i;
+  document.querySelectorAll('#adm-emoji-cats button').forEach((b,idx)=>b.classList.toggle('on',idx===i));
+  document.getElementById('adm-emoji-grid').innerHTML=ADM_EMOJI_CATS[i].list.map(e=>`<div onclick="insertAdmEmoji('${e}')" style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;border-radius:8px;" onmouseover="this.style.background='var(--surface,#f3f3f3)'" onmouseout="this.style.background='none'">${e}</div>`).join('');
+};
+window.insertAdmEmoji=function(e){
+  const t=_admEmojiTarget;if(!t)return;
+  const s=t.selectionStart??t.value.length,en=t.selectionEnd??t.value.length;
+  t.value=t.value.slice(0,s)+e+t.value.slice(en);
+  t.focus();const pos=s+e.length;t.setSelectionRange(pos,pos);
+};
+window.closeAdmEmoji=function(){document.getElementById('adm-emoji-overlay').style.display='none';};
 window.closeAdmSb=function(){const sb=document.getElementById('adm-sb'),bg=document.getElementById('adm-drawer-bg');if(sb)sb.classList.remove('open');if(bg)bg.classList.remove('show');};
 
 /* ── 광고 관리 ── */
