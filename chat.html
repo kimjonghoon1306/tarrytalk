@@ -1611,7 +1611,8 @@ window.unsuspendRoom=async function(){
 };
 function renderInfoTab(){
   const list=document.getElementById('info-list');if(!list)return;
-  const latestAnn=announcements[announcements.length-1]?.at||0;
+  const _actAnns=announcements.filter(a=>a.active!==false);
+  const latestAnn=_actAnns[_actAnns.length-1]?.at||0;
   const seenAnn=Number(localStorage.getItem(`tt_ann_seen_${sess?.uid||'guest'}`)||0);
   const unseenAnn=!!(sess&&latestAnn>seenAnn&&curRoom!=='announce');
   const announceItem=sess?`<div class="r-item announce-fixed${curRoom==='announce'?' on':''}" onclick="openAnnouncements()">
@@ -1679,8 +1680,9 @@ function listenAnnouncements(){
 }
 function renderAnnouncements(){
   const el=document.getElementById('messages');
-  if(!announcements.length){el.innerHTML='<div class="announce-empty"><div style="font-size:42px;margin-bottom:10px;">📢</div>아직 등록된 공식 공지가 없습니다.</div>';return;}
-  el.innerHTML=`<div class="announce-feed">${announcements.map(a=>`
+  const active=announcements.filter(a=>a.active!==false);
+  if(!active.length){el.innerHTML='<div class="announce-empty"><div style="font-size:42px;margin-bottom:10px;">📢</div>아직 등록된 공식 공지가 없습니다.</div>';return;}
+  el.innerHTML=`<div class="announce-feed">${active.map(a=>`
     <div class="announce-card">
       <div class="ac-meta"><span>${esc(a.by||'운영진')}</span><span>${new Date(a.at||Date.now()).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</span></div>
       ${a.imageData?`<img class="ac-img" src="${esc(a.imageData)}" alt="" loading="lazy">`:''}

@@ -439,7 +439,10 @@ tr:hover td{background:rgba(124,58,237,.04);}
         <button type="button" class="small-btn on" onclick="fillFeatureNotice()">✨ 새 기능 공지 자동작성</button>
         <button type="button" class="small-btn" onclick="clearOfficialAnnImage()">이미지 제거</button>
       </div>
-      <button class="notice-send-btn" onclick="saveOfficialAnnouncement()">＋ 공식 공지 등록</button>
+      <div style="display:flex;gap:8px;">
+        <button class="notice-send-btn" id="ann-save-btn" onclick="saveOfficialAnnouncement()" style="flex:1;">＋ 공식 공지 등록</button>
+        <button class="small-btn" id="ann-cancel-btn" onclick="cancelEditAnnouncement()" style="display:none;">수정 취소</button>
+      </div>
       <div id="ann-list" style="margin-top:14px;"><div class="empty-tbl">등록된 공식 공지가 없습니다</div></div>
     </div>
   </div>
@@ -1410,17 +1413,45 @@ function renderOfficialAnnouncements() {
   const anns = Object.entries(allAnnouncements).map(([id,v])=>({id,...v})).sort((a,b)=>(b.at||0)-(a.at||0));
   count.textContent = anns.length + '개';
   if(!anns.length){list.innerHTML='<div class="empty-tbl">등록된 공식 공지가 없습니다</div>';return;}
-  list.innerHTML = anns.map(a=>`
-    <div class="ann-row">
+  list.innerHTML = anns.map(a=>{
+    const on = a.active !== false;
+    return `
+    <div class="ann-row" style="${on?'':'opacity:.55;'}">
       <div class="ann-ico">📢</div>
       <div class="ann-main">
         <div class="ann-text">${esc(a.text||'')}</div>
-        <div class="ann-meta">${esc(a.by||'운영진')} · ${new Date(a.at||Date.now()).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
+        <div class="ann-meta">${esc(a.by||'운영진')} · ${new Date(a.at||Date.now()).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}${a.imageData?' · 🖼️ 이미지':''} · ${on?'🟢 노출중':'⚪ 숨김'}</div>
       </div>
+      <button class="small-btn ${on?'on':''}" onclick="toggleAnnActive('${a.id}',${on})">${on?'ON':'OFF'}</button>
+      <button class="small-btn" onclick="editOfficialAnnouncement('${a.id}')">✏️ 수정</button>
       <button class="small-btn" onclick="deleteOfficialAnnouncement('${a.id}')">삭제</button>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
+window.toggleAnnActive = async function(id, on){
+  try{ await update(ref(db,`announcements/${id}`),{active:!on}); showToast(!on?'공지를 켰습니다 (회원에게 노출)':'공지를 껐습니다 (숨김)','ok'); }
+  catch(e){ showToast('변경 실패','err'); }
+};
+let _editingAnnId = null;
+window.editOfficialAnnouncement = function(id){
+  const a = allAnnouncements[id]; if(!a) return;
+  _editingAnnId = id;
+  document.getElementById('official-ann-text').value = a.text || '';
+  officialAnnImageData = a.imageData || '';
+  const p = document.getElementById('official-ann-img-preview');
+  if(officialAnnImageData){ p.src = officialAnnImageData; p.style.display=''; } else { p.style.display='none'; p.removeAttribute('src'); }
+  const btn = document.getElementById('ann-save-btn'); if(btn) btn.textContent = '✏️ 수정 완료';
+  const cancel = document.getElementById('ann-cancel-btn'); if(cancel) cancel.style.display='';
+  const ta = document.getElementById('official-ann-text'); ta.scrollIntoView({behavior:'smooth',block:'center'}); ta.focus();
+  showToast("수정 모드예요. 내용을 고치고 '수정 완료'를 누르세요",'info');
+};
+window.cancelEditAnnouncement = function(){
+  _editingAnnId = null;
+  document.getElementById('official-ann-text').value='';
+  clearOfficialAnnImage();
+  const btn = document.getElementById('ann-save-btn'); if(btn) btn.textContent='＋ 공식 공지 등록';
+  const cancel = document.getElementById('ann-cancel-btn'); if(cancel) cancel.style.display='none';
+};
 let officialAnnImageData = '';
 window.onOfficialAnnImage = function(e){
   const f = e.target.files?.[0]; if(!f) return;
@@ -1459,7 +1490,13 @@ window.fillFeatureNotice = function(){
 window.saveOfficialAnnouncement = async function() {
   const text = document.getElementById('official-ann-text').value.trim();
   if(!text){showToast('공식 공지 내용을 입력하세요','info');return;}
-  await set(push(ref(db,'announcements')),{text,imageData:officialAnnImageData||'',at:Date.now(),by:adminSess?.name||'운영진'});
+  if(_editingAnnId){
+    await update(ref(db,`announcements/${_editingAnnId}`),{text,imageData:officialAnnImageData||''});
+    showToast('✏️ 공식 공지를 수정했습니다','ok');
+    cancelEditAnnouncement();
+    return;
+  }
+  await set(push(ref(db,'announcements')),{text,imageData:officialAnnImageData||'',active:true,at:Date.now(),by:adminSess?.name||'운영진'});
   sendPushToUsers(allPushTargetUids(),'📢 공식 공지',text.length>60?text.slice(0,60)+'…':text,'/chat.html').catch(()=>{});
   document.getElementById('official-ann-text').value='';
   clearOfficialAnnImage();
