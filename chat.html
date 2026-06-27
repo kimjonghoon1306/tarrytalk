@@ -966,19 +966,34 @@ function initIntro(){
   dots.innerHTML=slides.map((_,i)=>`<span class="intro-dot${i===0?' on':''}"></span>`).join('');
   setInterval(()=>{introIndex=(introIndex+1)%slides.length;slides.forEach((s,i)=>s.classList.toggle('on',i===introIndex));document.querySelectorAll('.intro-dot').forEach((d,i)=>d.classList.toggle('on',i===introIndex));},3800);
 }
+// 광고 순서 규칙: 순서번호(priority)가 있으면 작은 번호부터, 없으면 등록순(먼저 등록한 것 먼저)
+function adSortFn(a,b){
+  const pa=Number(a.priority)||0,pb=Number(b.priority)||0;
+  if(pa&&pb)return pa-pb;
+  if(pa)return -1;
+  if(pb)return 1;
+  return (a.createdAt||0)-(b.createdAt||0);
+}
 function listenAds(){
   onValue(ref(db,'ads'),snap=>{
     const data=snap.val()||{};
     const now=Date.now();
-    activeAds=Object.entries(data).map(([id,v])=>({id,...v}))
+    const next=Object.entries(data).map(([id,v])=>({id,...v}))
       .filter(ad=>ad.active===true&&(ad.text||ad.imageData)&&(!ad.startAt||now>=ad.startAt)&&(!ad.endAt||now<=ad.endAt))
-      .sort((a,b)=>(Number(b.priority||0)-Number(a.priority||0))||((b.createdAt||0)-(a.createdAt||0)));
-    adIndex=0;heroAdIndex=0;
+      .sort(adSortFn);
+    const prevKey=activeAds.map(a=>a.id).join('|');
+    const nextKey=next.map(a=>a.id).join('|');
+    const listChanged=prevKey!==nextKey;
+    activeAds=next;
+    // 목록/순서가 바뀐 경우에만 처음부터. 조회수·클릭수만 바뀌면 현재 위치 유지(순서 안 튐)
+    if(listChanged){adIndex=0;heroAdIndex=0;}
+    else if(activeAds.length){adIndex%=activeAds.length;heroAdIndex%=activeAds.length;}
     renderAdBanner();
     renderHeroAd();
-    // 정해진 순서대로 3.5초마다 다음 광고로 전환 (화면 갱신과 무관한 단일 타이머)
-    clearInterval(adRotTimer);adRotTimer=null;
-    if(activeAds.length>1)adRotTimer=setInterval(rotateAds,3500);
+    if(listChanged){
+      clearInterval(adRotTimer);adRotTimer=null;
+      if(activeAds.length>1)adRotTimer=setInterval(rotateAds,3500);
+    }
   });
 }
 function rotateAds(){
