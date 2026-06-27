@@ -5,7 +5,7 @@ if (!admin.apps.length) admin.initializeApp({credential: admin.credential.cert(J
 module.exports = async (req, res) => {
   if ((req.query.key || '') !== SECRET) return res.status(403).json({ error: 'forbidden' });
   try {
-    await admin.database().ref('popup').update({ imageData: '/popup-notice-v3.png', updatedAt: Date.now() });
+    await admin.database().ref('popup').update({ imageData: '/popup-notice-v4.png', updatedAt: Date.now() });
     return res.status(200).json({ ok: true });
   } catch (e) { return res.status(500).json({ error: 'server_error', message: String(e&&e.message||e) }); }
 };
