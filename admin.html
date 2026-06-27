@@ -955,9 +955,11 @@ window.openAdmEmoji=function(targetId){
   document.getElementById('adm-emoji-overlay').style.display='flex';
 };
 window.setAdmEmojiCat=function(i){
+  i=Number(i);
+  if(!Number.isInteger(i)||!ADM_EMOJI_CATS[i])return;
   _admEmojiCat=i;
   document.querySelectorAll('#adm-emoji-cats button').forEach((b,idx)=>b.classList.toggle('on',idx===i));
-  document.getElementById('adm-emoji-grid').innerHTML=ADM_EMOJI_CATS[i].list.map(e=>`<div onclick="insertAdmEmoji('${e}')" style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;border-radius:8px;" onmouseover="this.style.background='var(--surface,#f3f3f3)'" onmouseout="this.style.background='none'">${e}</div>`).join('');
+  document.getElementById('adm-emoji-grid').innerHTML=ADM_EMOJI_CATS[i].list.map(e=>`<div onclick="insertAdmEmoji(${jsArg(e)})" style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;border-radius:8px;" onmouseover="this.style.background='var(--surface,#f3f3f3)'" onmouseout="this.style.background='none'">${e}</div>`).join('');
 };
 window.insertAdmEmoji=function(e){
   const t=_admEmojiTarget;if(!t)return;
@@ -993,7 +995,7 @@ function renderAds() {
         <span style="font-size:14px;font-weight:900;color:var(--green);">${idx+1}</span>
         <button style="${ordBtn}${idx===ads.length-1?'opacity:.3;cursor:default;':''}" onclick="moveAd('${ad.id}',1)" ${idx===ads.length-1?'disabled':''}>▼</button>
       </div>
-      ${ad.imageData?`<img class="ad-thumb" src="${esc(ad.imageData)}" alt="광고 썸네일">`:`<div class="ad-thumb">AD</div>`}
+      ${safeImageSrc(ad.imageData)?`<img class="ad-thumb" src="${escAttr(safeImageSrc(ad.imageData))}" alt="광고 썸네일">`:`<div class="ad-thumb">AD</div>`}
       <div class="ad-main">
         <div class="ad-row-text">${esc(ad.text||'이미지 광고')}</div>
         <div class="ad-row-link">배너: ${ad.link?esc(ad.link):'링크 없음'} · CTA: ${ad.ctaLabel?esc(ad.ctaLabel):'없음'} · 순서 ${Number(ad.priority||0)?Number(ad.priority):'등록순'}</div>
@@ -1082,7 +1084,10 @@ window.saveLibraryItem = async function(){
   let url = document.getElementById('lib-url-inp').value.trim();
   if(!title){ showToast('자료 제목을 입력하세요','info'); return; }
   if(!url && !libFileData && !memo){ showToast('링크·파일·메모 중 하나는 입력하세요','info'); return; }
-  if(url && !/^(https?:\/\/|mailto:|tel:)/i.test(url) && !/^[a-z][a-z0-9+.-]*:/i.test(url)) url = 'https://' + url;
+  if(url && !/^(https?:\/\/|mailto:|tel:)/i.test(url)){
+    if(/^[a-z][a-z0-9+.-]*:/i.test(url)){ showToast('자료실 링크는 http(s), mailto, tel만 허용됩니다','info'); return; }
+    url = 'https://' + url;
+  }
   try{
     await set(push(ref(db,'library')), { title, url:url||'', data:libFileData||'', fileName:libFileName||'', memo, createdAt:Date.now(), by:'관리자' });
     libFileData=''; libFileName='';
@@ -1141,7 +1146,7 @@ window.toggleWelcomeActive = async function() {
 function renderPopupForm() {
   document.getElementById('popup-title-inp').value = popupData.title || '';
   document.getElementById('popup-body-inp').value = popupData.body || '';
-  popupImageData = popupData.imageData || '';
+  popupImageData = safeImageSrc(popupData.imageData);
   const p = document.getElementById('popup-img-preview');
   if(popupImageData){ p.src = popupImageData; p.style.display=''; } else { p.style.display='none'; p.removeAttribute('src'); }
   renderPopupPreview();
@@ -1177,6 +1182,7 @@ window.savePopup = async function() {
   const body = document.getElementById('popup-body-inp').value.trim();
   if(!title||!body){showToast('제목과 내용을 입력하세요','info');return;}
   const active=popupData.active===true;
+  if(popupImageData&&!safeImageSrc(popupImageData)){showToast('허용되지 않는 이미지 주소입니다','info');return;}
   await set(ref(db,'popup'),{title,body,imageData:popupImageData||'',active,updatedAt:Date.now()});
   if(active){
     const summary=(title||body).slice(0,60);
@@ -1455,7 +1461,7 @@ window.editOfficialAnnouncement = function(id){
   const a = allAnnouncements[id]; if(!a) return;
   _editingAnnId = id;
   document.getElementById('official-ann-text').value = a.text || '';
-  officialAnnImageData = a.imageData || '';
+  officialAnnImageData = safeImageSrc(a.imageData);
   const p = document.getElementById('official-ann-img-preview');
   if(officialAnnImageData){ p.src = officialAnnImageData; p.style.display=''; } else { p.style.display='none'; p.removeAttribute('src'); }
   const btn = document.getElementById('ann-save-btn'); if(btn) btn.textContent = '✏️ 수정 완료';
@@ -1509,11 +1515,13 @@ window.saveOfficialAnnouncement = async function() {
   const text = document.getElementById('official-ann-text').value.trim();
   if(!text){showToast('공식 공지 내용을 입력하세요','info');return;}
   if(_editingAnnId){
+    if(officialAnnImageData&&!safeImageSrc(officialAnnImageData)){showToast('허용되지 않는 이미지 주소입니다','info');return;}
     await update(ref(db,`announcements/${_editingAnnId}`),{text,imageData:officialAnnImageData||''});
     showToast('✏️ 공식 공지를 수정했습니다','ok');
     cancelEditAnnouncement();
     return;
   }
+  if(officialAnnImageData&&!safeImageSrc(officialAnnImageData)){showToast('허용되지 않는 이미지 주소입니다','info');return;}
   await set(push(ref(db,'announcements')),{text,imageData:officialAnnImageData||'',active:true,at:Date.now(),by:adminSess?.name||'운영진'});
   sendPushToUsers(allPushTargetUids(),'📢 공식 공지',text.length>60?text.slice(0,60)+'…':text,'/chat.html').catch(()=>{});
   document.getElementById('official-ann-text').value='';
@@ -1578,6 +1586,18 @@ function relTime(ts) { if(!ts)return'–'; const d=Date.now()-(typeof ts==='numb
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function escAttr(s){return esc(s).replace(/'/g,'&#39;');}
 function jsArg(s){return escAttr(JSON.stringify(String(s??'')));}
+function safeImageSrc(src){
+  const s=String(src||'').trim();
+  if(!s)return '';
+  if(s.length>6*1024*1024)return '';
+  if(/^\/(?!.*(?:^|\/)\.\.(?:\/|$))[A-Za-z0-9_./-]+\.(?:png|jpe?g|webp|gif)$/i.test(s))return s;
+  if(/^data:image\/(?:png|jpe?g|webp|gif);base64,[A-Za-z0-9+/=\s]+$/i.test(s))return s;
+  try{
+    const u=new URL(s,location.origin);
+    if(u.protocol==='http:'||u.protocol==='https:')return u.href;
+  }catch(_){}
+  return '';
+}
 let _t;
 window.showToast = function(msg,type='ok'){const el=document.getElementById('toast-el');el.textContent=msg;el.className=`toast show t-${type}`;clearTimeout(_t);_t=setTimeout(()=>el.className='toast',2800);};
 </script>

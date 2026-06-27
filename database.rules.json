@@ -131,7 +131,24 @@
     },
     "announcements": {
       ".read": "auth != null",
-      ".write": "auth != null && (root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')"
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')",
+      "$annId": {
+        "text": {
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().length >= 1 && newData.val().length <= 5000)"
+        },
+        "imageData": {
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 6291456 && (newData.val() === '' || newData.val().matches(/^\\/[A-Za-z0-9_.\\/-]+\\.(png|jpg|jpeg|webp|gif)$/) || newData.val().matches(/^https?:\\/\\/.{1,2000}$/) || newData.val().matches(/^data:image\\/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+\\/=]+$/)))"
+        },
+        "active": {
+          ".validate": "!newData.exists() || newData.isBoolean()"
+        },
+        "at": {
+          ".validate": "!newData.exists() || newData.isNumber()"
+        },
+        "by": {
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 50)"
+        }
+      }
     },
     "ads": {
       ".read": "auth != null",
@@ -147,11 +164,49 @@
     },
     "library": {
       ".read": "auth != null",
-      ".write": "auth != null && (root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')"
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')",
+      "$itemId": {
+        "title": {
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().length >= 1 && newData.val().length <= 120)"
+        },
+        "url": {
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 2000 && (newData.val() === '' || newData.val().matches(/^(https?:\\/\\/|mailto:|tel:).+/)))"
+        },
+        "data": {
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 6291456 && (newData.val() === '' || newData.val().matches(/^data:[A-Za-z0-9.+-]+\\/[A-Za-z0-9.+-]+;base64,[A-Za-z0-9+\\/=]+$/)))"
+        },
+        "fileName": {
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 180)"
+        },
+        "memo": {
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 3000)"
+        },
+        "createdAt": {
+          ".validate": "!newData.exists() || newData.isNumber()"
+        },
+        "by": {
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 50)"
+        }
+      }
     },
     "popup": {
       ".read": "auth != null",
-      ".write": "auth != null && (root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')"
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')",
+      "title": {
+        ".validate": "!newData.exists() || (newData.isString() && newData.val().length >= 1 && newData.val().length <= 120)"
+      },
+      "body": {
+        ".validate": "!newData.exists() || (newData.isString() && newData.val().length >= 1 && newData.val().length <= 5000)"
+      },
+      "imageData": {
+        ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 6291456 && (newData.val() === '' || newData.val().matches(/^\\/[A-Za-z0-9_.\\/-]+\\.(png|jpg|jpeg|webp|gif)$/) || newData.val().matches(/^https?:\\/\\/.{1,2000}$/) || newData.val().matches(/^data:image\\/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+\\/=]+$/)))"
+      },
+      "active": {
+        ".validate": "!newData.exists() || newData.isBoolean()"
+      },
+      "updatedAt": {
+        ".validate": "!newData.exists() || newData.isNumber()"
+      }
     },
     "welcome": {
       ".read": "auth != null",

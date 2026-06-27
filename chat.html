@@ -485,6 +485,9 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .m-online{width:8px;height:8px;border-radius:50%;background:var(--green);margin-left:auto;flex-shrink:0;box-shadow:0 0 5px var(--green);}
 .m-check{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .2s;}
 .m-item.on .m-check{background:var(--green);border-color:var(--green);color:#fff;}
+.m-fr{flex-shrink:0;padding:6px 11px;border-radius:50px;border:1px solid var(--green);background:rgba(124,58,237,.08);color:var(--green);font-size:11.5px;font-weight:800;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.m-fr:hover{background:var(--green);color:#fff;}
+.m-fr.is-fr{border-color:var(--border);background:var(--surface);color:var(--text3);cursor:default;}
 .no-m{padding:28px;text-align:center;color:var(--text3);font-size:13px;line-height:1.7;}
 .modal-foot{padding:12px 18px;border-top:1px solid var(--border);}
 .create-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--green),var(--green2));border:none;border-radius:13px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px var(--glow);transition:all .2s;}
@@ -1118,7 +1121,8 @@ function renderAdBanner(){
   banner.dataset.adId=ad.id;
   const link=document.getElementById('ad-link'),text=document.getElementById('ad-text'),thumb=document.getElementById('ad-thumb'),cta=document.getElementById('ad-cta');
   text.textContent=ad.text||'추천 광고';
-  if(ad.imageData){thumb.src=ad.imageData;thumb.style.display='block';}else{thumb.removeAttribute('src');thumb.style.display='none';}
+  const imgSrc=safeImageSrc(ad.imageData);
+  if(imgSrc){thumb.src=imgSrc;thumb.style.display='block';}else{thumb.removeAttribute('src');thumb.style.display='none';}
   link.removeAttribute('href');
   link.style.pointerEvents=getAdClickUrl(ad,'banner')?'auto':'none';
   if(ad.ctaLabel&&ad.ctaLink){cta.textContent=ad.ctaLabel;cta.classList.add('show');}else{cta.textContent='';cta.classList.remove('show');}
@@ -1135,7 +1139,8 @@ function renderHeroAd(){
   const link=document.getElementById('empty-ad-link'),img=document.getElementById('empty-ad-img'),text=document.getElementById('empty-ad-text'),cta=document.getElementById('empty-ad-cta'),dots=document.getElementById('empty-ad-dots');
   box.classList.toggle('full-img',ad.fullImage===true);
   text.textContent=ad.text||'추천 광고';
-  if(ad.imageData){img.src=ad.imageData;img.style.display='block';box.classList.remove('no-img');}else{img.removeAttribute('src');img.style.display='none';box.classList.add('no-img');}
+  const imgSrc=safeImageSrc(ad.imageData);
+  if(imgSrc){img.src=imgSrc;img.style.display='block';box.classList.remove('no-img');}else{img.removeAttribute('src');img.style.display='none';box.classList.add('no-img');}
   link.removeAttribute('href');
   if(ad.ctaLabel&&ad.ctaLink){cta.textContent=(ad.ctaLabel||'자세히 보기')+' →';cta.classList.add('show');}else if(ad.link){cta.textContent='자세히 보기 →';cta.classList.add('show');}else{cta.textContent='';cta.classList.remove('show');}
   dots.innerHTML=activeAds.length>1?activeAds.map((_,i)=>`<span class="empty-ad-dot${i===heroAdIndex%activeAds.length?' on':''}"></span>`).join(''):'';
@@ -1381,7 +1386,8 @@ function maybeShowPopupNotice(){
   document.getElementById('popup-title').textContent=popupNotice.title||'공지';
   document.getElementById('popup-body').textContent=popupNotice.body||'';
   const pImg=document.getElementById('popup-img');
-  if(popupNotice.imageData){pImg.src=popupNotice.imageData;pImg.style.display='block';}else{pImg.removeAttribute('src');pImg.style.display='none';}
+  const popupImgSrc=safeImageSrc(popupNotice.imageData);
+  if(popupImgSrc){pImg.src=popupImgSrc;pImg.style.display='block';}else{pImg.removeAttribute('src');pImg.style.display='none';}
   document.getElementById('popup-today').checked=false;
   document.getElementById('popup-overlay').classList.add('show');
 }
@@ -1522,6 +1528,15 @@ function canManageRoom(room){
 function isFriend(uid){return !!(sess&&(sess.friends&&sess.friends[uid]||allUsers[uid]?.invitedBy===sess.uid||uid===sess.invitedBy));}
 window.addFriend=async function(uid){if(!sess||!uid||uid===sess.uid)return;await set(ref(db,`users/${sess.uid}/friends/${uid}`),true);showToast('👥 친구로 추가했습니다','ok');renderUserCard(uid);};
 window.removeFriend=async function(uid){if(!sess||!uid)return;await remove(ref(db,`users/${sess.uid}/friends/${uid}`));showToast('친구에서 삭제했습니다','ok');renderUserCard(uid);};
+window.addFriendInSearch=async function(uid,name){
+  if(!sess||!uid||uid===sess.uid)return;
+  try{
+    await set(ref(db,`users/${sess.uid}/friends/${uid}`),true);
+    sess.friends=sess.friends||{};sess.friends[uid]=true;
+    showToast(`👥 ${name||'친구'}님을 친구로 추가했어요`,'ok');
+    renderMembers(document.getElementById('ms-inp')?.value||'');
+  }catch(e){showToast('친구 추가 실패','err');}
+};
 window.openUserCard=function(uid){if(!uid||uid==='system'||uid==='onbot'||uid===sess?.uid)return;ucTarget=uid;renderUserCard(uid);document.getElementById('usercard-overlay').classList.add('show');};
 window.closeUserCard=function(){document.getElementById('usercard-overlay').classList.remove('show');ucTarget=null;};
 function renderUserCard(uid){
@@ -1685,7 +1700,7 @@ function renderAnnouncements(){
   el.innerHTML=`<div class="announce-feed">${active.map(a=>`
     <div class="announce-card">
       <div class="ac-meta"><span>${esc(a.by||'운영진')}</span><span>${new Date(a.at||Date.now()).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</span></div>
-      ${a.imageData?`<img class="ac-img" src="${esc(a.imageData)}" alt="" loading="lazy">`:''}
+      ${safeImageSrc(a.imageData)?`<img class="ac-img" src="${escAttr(safeImageSrc(a.imageData))}" alt="" loading="lazy">`:''}
       <div class="ac-text">${esc(a.text||'').replace(/\n/g,'<br>')}</div>
     </div>
   `).join('')}</div>`;
@@ -2571,7 +2586,7 @@ function renderMembers(filter){
   }
   const list=document.getElementById('m-list');
   if(!f.length){list.innerHTML=`<div class="no-m">${q?'이메일을 정확히 입력하면 찾을 수 있어요':'친구를 초대하거나 이메일로 검색하세요'}</div>`;return;}
-  list.innerHTML=f.map((u,i)=>{const on=selUsers.includes(u.uid);return`<div class="m-item${on?' on':''}" onclick="toggleMember('${u.uid}',${jsArg(u.name)})">\n<div class="m-av" style="background:${u.color}">${esc(u.name[0]||'?').toUpperCase()}</div>\n<div style="flex:1;min-width:0;"><div class="m-nm">${esc(u.name)}</div><div class="m-em">${esc(u.email)}</div></div>\n${u.online?'<div class="m-online"></div>':''}\n<div class="m-check">${on?'✓':''}</div>\n</div>`;}).join('');
+  list.innerHTML=f.map((u,i)=>{const on=selUsers.includes(u.uid);const fr=isFriend(u.uid);return`<div class="m-item${on?' on':''}" onclick="toggleMember('${u.uid}',${jsArg(u.name)})">\n<div class="m-av" style="background:${u.color}">${esc(u.name[0]||'?').toUpperCase()}</div>\n<div style="flex:1;min-width:0;"><div class="m-nm">${esc(u.name)}</div><div class="m-em">${esc(u.email)}</div></div>\n${u.online?'<div class="m-online"></div>':''}\n${fr?'<span class="m-fr is-fr">✓ 친구</span>':`<button class="m-fr" onclick="event.stopPropagation();addFriendInSearch('${u.uid}',${jsArg(u.name)})">＋ 친구추가</button>`}\n<div class="m-check">${on?'✓':''}</div>\n</div>`;}).join('');
 }
 window.toggleMember=function(uid,name){if(selType==='dm')selUsers=selUsers.includes(uid)?[]:[uid];else selUsers.includes(uid)?selUsers=selUsers.filter(e=>e!==uid):selUsers.push(uid);updateChips();renderMembers(document.getElementById('ms-inp').value);updateBtn();};
 function updateChips(){const wrap=document.getElementById('chips-row');if(!selUsers.length){wrap.classList.remove('show');wrap.innerHTML='';return;}wrap.classList.add('show');wrap.innerHTML=selUsers.map(uid=>{const u=allUsers[uid];const name=u?.displayName||uid;return`<div class="chip">${esc(name)}<span class="chip-x" onclick="toggleMember('${uid}','')">✕</span></div>`;}).join('');}
@@ -2743,10 +2758,12 @@ function renderEmojiCats(){
   el.innerHTML=EMOJI_CATS.map((c,i)=>`<button class="emoji-cat${i===_emojiCat?' on':''}" onclick="setEmojiCat(${i})">${c.ic}</button>`).join('');
 }
 window.setEmojiCat=function(i){
+  i=Number(i);
+  if(!Number.isInteger(i)||!EMOJI_CATS[i])return;
   _emojiCat=i;
   document.querySelectorAll('#emoji-cats .emoji-cat').forEach((b,idx)=>b.classList.toggle('on',idx===i));
   const grid=document.getElementById('emoji-grid');
-  grid.innerHTML=EMOJI_CATS[i].list.map(e=>`<div class="eg" onclick="addEmoji('${e}')">${e}</div>`).join('');
+  grid.innerHTML=EMOJI_CATS[i].list.map(e=>`<div class="eg" onclick="addEmoji(${jsArg(e)})">${e}</div>`).join('');
   grid.scrollTop=0;
 };
 window.toggleLink=()=>document.getElementById('link-row').classList.toggle('show');
@@ -2757,6 +2774,18 @@ function avatarColor(n){const c=['#00a84a','#0087d4','#a855f7','#e85d04','#d6282
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function escAttr(s){return esc(s).replace(/'/g,'&#39;');}
 function jsArg(s){return escAttr(JSON.stringify(String(s??'')));}
+function safeImageSrc(src){
+  const s=String(src||'').trim();
+  if(!s)return '';
+  if(s.length>6*1024*1024)return '';
+  if(/^\/(?!.*(?:^|\/)\.\.(?:\/|$))[A-Za-z0-9_./-]+\.(?:png|jpe?g|webp|gif)$/i.test(s))return s;
+  if(/^data:image\/(?:png|jpe?g|webp|gif);base64,[A-Za-z0-9+/=\s]+$/i.test(s))return s;
+  try{
+    const u=new URL(s,location.origin);
+    if(u.protocol==='http:'||u.protocol==='https:')return u.href;
+  }catch(_){}
+  return '';
+}
 // 이미 esc된 텍스트에서 URL/도메인을 클릭가능 링크로 (http없는 도메인·한글도메인 포함)
 function linkify(escaped){
   return escaped.replace(/(https?:\/\/[^\s<]+|www\.[^\s<]+|[a-zA-Z0-9가-힣][a-zA-Z0-9가-힣-]*\.(?:com|net|org|kr|io|app|co\.kr|온종일\.com)(?:\/[^\s<]*)?)/g,(m)=>{
