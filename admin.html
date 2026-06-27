@@ -315,6 +315,7 @@ tr:hover td{background:rgba(124,58,237,.04);}
   <div class="nav-item" onclick="switchSection('rooms')"><span class="ni">💬</span>채팅방 관리</div>
   <div class="nav-item" onclick="switchSection('notice')"><span class="ni">📢</span>공지 발송</div>
   <div class="nav-item" onclick="switchSection('ads')"><span class="ni">🏷️</span>광고 관리</div>
+  <div class="nav-item" onclick="switchSection('library')"><span class="ni">📌</span>자료실</div>
   <div class="nav-item" onclick="switchSection('popup')"><span class="ni">🪧</span>공지 팝업</div>
   <div class="adm-sb-foot">
     <div class="nav-item" onclick="location.href='chat.html'"><span class="ni">💬</span>채팅으로</div>
@@ -490,6 +491,39 @@ tr:hover td{background:rgba(124,58,237,.04);}
     </div>
   </div>
 
+  <!-- 자료실 섹션 -->
+  <div id="sec-library" style="display:none;">
+    <div class="card">
+      <div class="card-head"><div class="card-title">📌 공식 자료실 등록</div></div>
+      <div class="ad-help" style="margin-bottom:10px;">회원들이 보관함 → 📌 자료실에서 보고 다운로드하는 영구 자료예요. 교재·안내문·서식·링크를 올려보세요.</div>
+      <div>
+        <label class="admin-label">자료 제목</label>
+        <input class="admin-input" id="lib-title-inp" placeholder="예: 1강 교재, 모임 안내문">
+      </div>
+      <div>
+        <label class="admin-label">링크 주소 (선택)</label>
+        <input class="admin-input" id="lib-url-inp" placeholder="https://... (없으면 비워두세요)">
+      </div>
+      <div>
+        <label class="admin-label">설명 메모 (선택)</label>
+        <input class="admin-input" id="lib-memo-inp" placeholder="간단한 설명">
+      </div>
+      <div>
+        <label class="admin-label">파일·이미지 첨부 (선택, 4MB 이하)</label>
+        <div class="ad-file-row">
+          <input class="admin-input" type="file" id="lib-file-inp" onchange="onLibFileSelected(event)">
+          <img class="ad-img-preview" id="lib-img-preview" alt="첨부 미리보기" style="display:none">
+        </div>
+        <div class="ad-help" id="lib-file-label"></div>
+      </div>
+      <button class="notice-send-btn" onclick="saveLibraryItem()">＋ 자료실에 등록</button>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">등록된 자료</div><span class="card-action" id="lib-count-lbl">0개</span></div>
+      <div id="library-list"><div class="empty-tbl">등록된 자료가 없습니다</div></div>
+    </div>
+  </div>
+
   <!-- 공지 팝업 섹션 -->
   <div id="sec-popup" style="display:none;">
     <div class="card">
@@ -618,7 +652,8 @@ function userRoleLabel(u){
 }
 
 let adminSess = null;
-let allUsers = {}, allRooms = {}, allMsgs = {}, allAnnouncements = {};
+let allUsers = {}, allRooms = {}, allMsgs = {}, allAnnouncements = {}, allLibrary = {};
+let libFileData = '', libFileName = '';
 let allAds = {}, popupData = {}, welcomeData = {};
 let pendingAction = null;
 let groupSelected = [];
@@ -663,6 +698,10 @@ function loadData() {
     allAds = snap.val()||{};
     renderAds();
   });
+  onValue(ref(db,'library'), snap => {
+    allLibrary = snap.val()||{};
+    renderLibrary();
+  }, ()=>{});
   onValue(ref(db,'popup'), snap => {
     popupData = snap.val()||{};
     renderPopupForm();
@@ -837,11 +876,11 @@ function renderLog() {
 
 /* ── 섹션 전환 ── */
 window.switchSection = function(sec) {
-  ['dashboard','users','rooms','notice','ads','popup'].forEach(s=>{
+  ['dashboard','users','rooms','notice','ads','library','popup'].forEach(s=>{
     document.getElementById('sec-'+s).style.display = s===sec?'':'none';
   });
   document.querySelectorAll('.nav-item').forEach((el,i)=>{
-    const secs=['dashboard','users','rooms','notice','ads','popup'];
+    const secs=['dashboard','users','rooms','notice','ads','library','popup'];
     el.classList.toggle('on', secs[i]===sec);
   });
   closeAdmSb();
@@ -939,6 +978,65 @@ window.deleteAd = async function(id) {
   await remove(ref(db,`ads/${id}`));
   showToast('광고가 삭제됐습니다','ok');
 };
+
+/* ── 자료실 ── */
+window.onLibFileSelected = function(e){
+  const f = e.target.files?.[0];
+  libFileData = ''; libFileName = '';
+  const prev = document.getElementById('lib-img-preview');
+  prev.style.display = 'none';
+  document.getElementById('lib-file-label').textContent = '';
+  if(!f) return;
+  if(f.size > 4*1024*1024){ showToast('첨부는 4MB 이하만 가능합니다','info'); e.target.value=''; return; }
+  const r = new FileReader();
+  r.onload = ev => {
+    libFileData = ev.target.result; libFileName = f.name;
+    document.getElementById('lib-file-label').textContent = '첨부됨: ' + f.name;
+    if(f.type.startsWith('image/')){ prev.src = libFileData; prev.style.display = ''; }
+  };
+  r.readAsDataURL(f);
+};
+window.saveLibraryItem = async function(){
+  const title = document.getElementById('lib-title-inp').value.trim();
+  const memo = document.getElementById('lib-memo-inp').value.trim();
+  let url = document.getElementById('lib-url-inp').value.trim();
+  if(!title){ showToast('자료 제목을 입력하세요','info'); return; }
+  if(!url && !libFileData && !memo){ showToast('링크·파일·메모 중 하나는 입력하세요','info'); return; }
+  if(url && !/^(https?:\/\/|mailto:|tel:)/i.test(url) && !/^[a-z][a-z0-9+.-]*:/i.test(url)) url = 'https://' + url;
+  try{
+    await set(push(ref(db,'library')), { title, url:url||'', data:libFileData||'', fileName:libFileName||'', memo, createdAt:Date.now(), by:'관리자' });
+    libFileData=''; libFileName='';
+    ['lib-title-inp','lib-url-inp','lib-memo-inp','lib-file-inp'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    document.getElementById('lib-img-preview').style.display='none';
+    document.getElementById('lib-file-label').textContent='';
+    showToast('📌 자료실에 등록됐습니다','ok');
+  }catch(e){ showToast('등록 실패 — 규칙 적용 여부를 확인하세요','err'); }
+};
+window.deleteLibraryItem = async function(id, title){
+  if(!confirm(`"${title}" 자료를 삭제할까요?`)) return;
+  try{ await remove(ref(db,`library/${id}`)); showToast('자료를 삭제했습니다','ok'); }
+  catch(e){ showToast('삭제 실패','err'); }
+};
+function renderLibrary(){
+  const el = document.getElementById('library-list'); if(!el) return;
+  const items = Object.entries(allLibrary).map(([id,v])=>({id,...v})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  const lbl = document.getElementById('lib-count-lbl'); if(lbl) lbl.textContent = items.length+'개';
+  if(!items.length){ el.innerHTML = '<div class="empty-tbl">등록된 자료가 없습니다</div>'; return; }
+  el.innerHTML = items.map(it=>{
+    const ico = it.url ? '🔗' : (it.data ? (String(it.data).startsWith('data:image')?'🖼️':'📎') : '📝');
+    const sub = it.memo || it.url || it.fileName || '';
+    const when = it.createdAt ? new Date(it.createdAt).toLocaleDateString('ko-KR') : '';
+    return `<div class="ad-row">
+      <div class="ad-thumb">${ico}</div>
+      <div class="ad-main">
+        <div class="ad-row-text">${esc(it.title||'자료')}</div>
+        <div class="ad-row-link">${esc(sub)}</div>
+        <div class="ad-row-link">${when}</div>
+      </div>
+      <div class="ad-actions"><button class="small-btn" onclick="deleteLibraryItem('${it.id}',${jsArg(it.title||'')})">삭제</button></div>
+    </div>`;
+  }).join('');
+}
 
 /* ── 팝업 공지 ── */
 function renderWelcomeForm() {
