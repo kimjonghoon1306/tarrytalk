@@ -1182,10 +1182,8 @@ function loadLibrary(){
 }
 function renderLibAdmin(){
   const box=document.getElementById('lib-admin-box');if(!box)return;
-  // 자료 등록은 관리자 패널에서만. 채팅 보관함의 자료실은 모두 '보기 전용'.
-  box.innerHTML=sess?.isAdmin
-    ? `<div class="store-empty" style="padding:10px 12px;font-size:11.5px;line-height:1.7;">자료 등록·삭제는 <b>관리자 패널 → 📌 자료실</b>에서 할 수 있어요.</div>`
-    : '';
+  // 채팅 보관함의 자료실은 모두 '보기 전용'(등록·삭제는 관리자 패널에서만).
+  box.innerHTML='';
 }
 window.pickLibFile=function(){const inp=document.createElement('input');inp.type='file';inp.onchange=e=>{const f=e.target.files?.[0];if(!f)return;if(f.size>4*1024*1024){showToast('자료실 첨부는 4MB 이하만 가능해요','warn');return;}const r=new FileReader();r.onload=ev=>{_libFileData=ev.target.result;_libFileName=f.name;const el=document.getElementById('lib-file-name');if(el)el.textContent='첨부됨: '+f.name;};r.readAsDataURL(f);};inp.click();};
 window.addLibraryItem=async function(){
@@ -1205,7 +1203,7 @@ window.addLibraryItem=async function(){
 window.deleteLibraryItem=async function(id){if(!sess?.isAdmin||!id)return;if(!confirm('이 자료를 자료실에서 삭제할까요?'))return;try{await remove(ref(db,`library/${id}`));showToast('삭제했어요','ok');}catch(e){showToast('삭제 실패','err');}};
 function renderLibrary(){
   const el=document.getElementById('lib-list');if(!el)return;
-  if(!libItems.length){el.innerHTML='<div class="store-empty">아직 등록된 공식 자료가 없어요.'+(sess?.isAdmin?'<br>관리자 패널 → 📌 자료실에서 등록해 보세요.':'<br>관리자가 올린 자료가 여기 모여요.')+'</div>';return;}
+  if(!libItems.length){el.innerHTML='<div class="store-empty">아직 등록된 공식 자료가 없어요.<br>관리자가 올린 자료가 여기 모여요.</div>';return;}
   el.innerHTML=libItems.map(it=>{
     const isFile=!it.url&&it.data;
     const ico=it.url?'🔗':(it.data?'📎':'📝');
