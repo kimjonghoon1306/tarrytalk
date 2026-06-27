@@ -188,8 +188,16 @@ tr:hover td{background:rgba(124,58,237,.04);}
 .rc-name{font-size:13px;font-weight:700;}
 .rc-sub{font-size:11px;color:var(--text3);margin-top:2px;}
 .rc-del{padding:5px 10px;border-radius:8px;background:var(--red-bg);color:var(--red);border:1px solid rgba(255,79,106,.2);font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;transition:all .2s;}
-.rc-watch{padding:5px 10px;border-radius:8px;background:rgba(124,58,237,.1);color:var(--green);border:1px solid var(--border2);font-size:11px;font-weight:800;cursor:pointer;flex-shrink:0;transition:all .2s;margin-right:6px;}
+.rc-watch{padding:5px 10px;border-radius:8px;background:rgba(124,58,237,.1);color:var(--green);border:1px solid var(--border2);font-size:11px;font-weight:800;cursor:pointer;flex-shrink:0;transition:all .2s;}
 .rc-watch:hover{background:var(--green);color:#fff;}
+.rc-acts{display:flex;gap:6px;align-items:center;flex-shrink:0;margin-left:auto;}
+.ann-acts{display:flex;gap:6px;align-items:center;flex-shrink:0;}
+.rc-name,.rc-sub,.ann-text,.ann-meta{word-break:keep-all;overflow-wrap:anywhere;}
+@media(max-width:640px){
+  .room-card,.ann-row{flex-wrap:wrap;}
+  .rc-main,.ann-main{min-width:130px;flex:1 1 130px;}
+  .rc-acts,.ann-acts{width:100%;margin-left:0;margin-top:8px;justify-content:flex-start;flex-wrap:wrap;}
+}
 .rc-del:hover{background:var(--red);color:#fff;}
 
 /* 공지 입력 */
@@ -860,15 +868,17 @@ function renderRooms() {
     const susLabel = suspended ? new Date(r.suspendedUntil).toLocaleString('ko-KR',{month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
     return`<div class="room-card" style="border-left:5px solid ${edgeColor};padding-left:9px;">
       <div class="rc-av" style="background:${typeBg};color:${typeColor};">${isGroup?'👥':'👤'}</div>
-      <div style="flex:1;min-width:0;">
+      <div class="rc-main" style="flex:1;min-width:0;">
         <div class="rc-name"><span style="font-size:10px;font-weight:900;color:${typeColor};background:${typeBg};padding:2px 7px;border-radius:50px;margin-right:5px;">${isGroup?'단톡':'1대1'}</span>${isDup?`<span style="font-size:10px;font-weight:900;color:#fff;background:${dupColor};padding:2px 7px;border-radius:50px;margin-right:5px;">#${ord}</span>`:''}${esc(title)}${suspended?' <span style="font-size:10px;background:rgba(245,158,11,.15);color:#d97706;padding:2px 7px;border-radius:50px;font-weight:800;">⏸ 정지중</span>':''}</div>
         <div class="rc-sub">👑 방장 ${esc(owner)} · 참여 ${esc(memSummary)} · 멤버 ${memCount}명 · 메시지 ${msgCount}개${suspended?` · ${susLabel}까지 정지`:''}</div>
       </div>
-      ${suspended
-        ? `<button class="rc-watch" style="background:rgba(124,58,237,.1)" onclick="unsuspendRoomAdmin('${r.id}',${jsArg(r.name||'')})">▶️ 정지해제</button>`
-        : `<button class="rc-watch" style="background:rgba(245,158,11,.12);color:#d97706;border-color:rgba(245,158,11,.35)" onclick="suspendRoomAdmin('${r.id}',${jsArg(r.name||'')})">⏸ 정지</button>`}
-      <button class="rc-watch" onclick="watchRoom('${r.id}')">👁 모니터링</button>
-      <button class="rc-del" onclick="confirmDeleteRoom('${r.id}',${jsArg(r.name||'')})">삭제</button>
+      <div class="rc-acts">
+        ${suspended
+          ? `<button class="rc-watch" style="background:rgba(124,58,237,.1)" onclick="unsuspendRoomAdmin('${r.id}',${jsArg(r.name||'')})">▶️ 정지해제</button>`
+          : `<button class="rc-watch" style="background:rgba(245,158,11,.12);color:#d97706;border-color:rgba(245,158,11,.35)" onclick="suspendRoomAdmin('${r.id}',${jsArg(r.name||'')})">⏸ 정지</button>`}
+        <button class="rc-watch" onclick="watchRoom('${r.id}')">👁 모니터링</button>
+        <button class="rc-del" onclick="confirmDeleteRoom('${r.id}',${jsArg(r.name||'')})">삭제</button>
+      </div>
     </div>`;
   }).join('');
 }
@@ -1422,9 +1432,11 @@ function renderOfficialAnnouncements() {
         <div class="ann-text">${esc(a.text||'')}</div>
         <div class="ann-meta">${esc(a.by||'운영진')} · ${new Date(a.at||Date.now()).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}${a.imageData?' · 🖼️ 이미지':''} · ${on?'🟢 노출중':'⚪ 숨김'}</div>
       </div>
-      <button class="small-btn ${on?'on':''}" onclick="toggleAnnActive('${a.id}',${on})">${on?'ON':'OFF'}</button>
-      <button class="small-btn" onclick="editOfficialAnnouncement('${a.id}')">✏️ 수정</button>
-      <button class="small-btn" onclick="deleteOfficialAnnouncement('${a.id}')">삭제</button>
+      <div class="ann-acts">
+        <button class="small-btn ${on?'on':''}" onclick="toggleAnnActive('${a.id}',${on})">${on?'ON':'OFF'}</button>
+        <button class="small-btn" onclick="editOfficialAnnouncement('${a.id}')">✏️ 수정</button>
+        <button class="small-btn" onclick="deleteOfficialAnnouncement('${a.id}')">삭제</button>
+      </div>
     </div>`;
   }).join('');
 }
