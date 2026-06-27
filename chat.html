@@ -263,6 +263,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .announce-card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--green);border-radius:16px;padding:14px 16px;box-shadow:0 8px 26px rgba(0,0,0,.08);animation:itemIn .28s ease both;}
 .announce-card:hover,.guide-card:hover,.ad-banner:hover{transform:translateY(-2px);border-color:var(--border2);box-shadow:0 12px 30px var(--glow);}
 .announce-card .ac-meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--text3);font-size:11px;font-weight:800;margin-bottom:8px;}
+.announce-card .ac-img{width:100%;display:block;border-radius:12px;margin:2px 0 10px;max-height:480px;object-fit:cover;background:var(--surface2);}
 .announce-card .ac-text{white-space:pre-wrap;word-break:break-word;color:var(--text);font-size:14px;line-height:1.75;font-weight:600;}
 .announce-empty{align-self:center;text-align:center;color:var(--text3);font-size:13px;line-height:1.8;padding:50px 18px;}
 .readonly-note{display:none;padding:10px 14px;border-top:1px solid var(--border);background:var(--bg2);color:var(--text3);font-size:12px;font-weight:800;text-align:center;flex-shrink:0;}
@@ -1618,6 +1619,7 @@ function renderAnnouncements(){
   el.innerHTML=`<div class="announce-feed">${announcements.map(a=>`
     <div class="announce-card">
       <div class="ac-meta"><span>${esc(a.by||'운영진')}</span><span>${new Date(a.at||Date.now()).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</span></div>
+      ${a.imageData?`<img class="ac-img" src="${esc(a.imageData)}" alt="" loading="lazy">`:''}
       <div class="ac-text">${esc(a.text||'').replace(/\n/g,'<br>')}</div>
     </div>
   `).join('')}</div>`;

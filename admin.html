@@ -430,6 +430,14 @@ tr:hover td{background:rgba(124,58,237,.04);}
       <div class="card-head"><div class="card-title">📢 공식 공지 피드</div><span class="card-action" id="ann-count-lbl">0개</span></div>
       <p style="font-size:13px;color:var(--text3);margin-bottom:14px;line-height:1.7;">회원 채팅 화면의 “공식 공지” 채널에 읽기 전용 공지를 쌓아 보여줍니다.</p>
       <textarea class="notice-area" id="official-ann-text" placeholder="공식 공지 내용을 입력하세요..."></textarea>
+      <div class="ad-file-row" style="margin-top:8px;">
+        <input class="admin-input" type="file" id="official-ann-img-inp" accept="image/*" onchange="onOfficialAnnImage(event)">
+        <img class="ad-img-preview" id="official-ann-img-preview" alt="공지 이미지 미리보기" style="display:none">
+      </div>
+      <div class="ad-help" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0;">공지 상단에 이미지가 표시돼요.
+        <button type="button" class="small-btn on" onclick="fillFeatureNotice()">✨ 새 기능 공지 자동작성</button>
+        <button type="button" class="small-btn" onclick="clearOfficialAnnImage()">이미지 제거</button>
+      </div>
       <button class="notice-send-btn" onclick="saveOfficialAnnouncement()">＋ 공식 공지 등록</button>
       <div id="ann-list" style="margin-top:14px;"><div class="empty-tbl">등록된 공식 공지가 없습니다</div></div>
     </div>
@@ -1377,12 +1385,48 @@ function renderOfficialAnnouncements() {
     </div>
   `).join('');
 }
+let officialAnnImageData = '';
+window.onOfficialAnnImage = function(e){
+  const f = e.target.files?.[0]; if(!f) return;
+  if(f.size > 4*1024*1024){ showToast('이미지는 4MB 이하만 가능합니다','info'); e.target.value=''; return; }
+  const r = new FileReader();
+  r.onload = ev => { officialAnnImageData = ev.target.result; const p=document.getElementById('official-ann-img-preview'); p.src=officialAnnImageData; p.style.display=''; };
+  r.readAsDataURL(f);
+};
+window.clearOfficialAnnImage = function(){ officialAnnImageData=''; const p=document.getElementById('official-ann-img-preview'); p.style.display='none'; p.removeAttribute('src'); const i=document.getElementById('official-ann-img-inp'); if(i)i.value=''; };
+window.fillFeatureNotice = function(){
+  document.getElementById('official-ann-text').value =
+`🎉 온메신저 새 기능 안내
+
+안녕하세요, 회원 여러분! 온메신저가 더 편리해졌어요 😊
+새로 추가된 기능을 소개합니다.
+
+📁 보관함
+채팅방에서 주고받은 사진·영상·파일·링크가 한곳에 자동으로 모여요. (왼쪽 '보관함')
+
+📌 자료실
+교재·안내문 같은 공식 자료를 보관함 안 '자료실'에서 언제든 보고 받을 수 있어요.
+
+📅 일정 · 출석체크
+모임 일정을 한눈에 모아보고 '참석/불참'으로 출석을 표시할 수 있어요. 다가오는 일정은 알림으로 알려드려요.
+
+✏️ 줄바꿈 · 내 프로필
+긴 글도 편하게 쓰고(PC는 Shift+Enter), 내 프로필에서 친구 수·참여 채팅방·가입일을 볼 수 있어요.
+
+🔔 알림도 한 번만 깔끔하게 오도록 정리했어요.
+
+앞으로도 더 편리하게 만들어갈게요. 감사합니다 💜`;
+  officialAnnImageData = '/feature-notice.png';
+  const p=document.getElementById('official-ann-img-preview'); p.src=officialAnnImageData; p.style.display='';
+  showToast('✨ 새 기능 공지를 자동작성했어요. 등록만 누르세요!','ok');
+};
 window.saveOfficialAnnouncement = async function() {
   const text = document.getElementById('official-ann-text').value.trim();
   if(!text){showToast('공식 공지 내용을 입력하세요','info');return;}
-  await set(push(ref(db,'announcements')),{text,at:Date.now(),by:adminSess?.name||'운영진'});
+  await set(push(ref(db,'announcements')),{text,imageData:officialAnnImageData||'',at:Date.now(),by:adminSess?.name||'운영진'});
   sendPushToUsers(allPushTargetUids(),'📢 공식 공지',text.length>60?text.slice(0,60)+'…':text,'/chat.html').catch(()=>{});
   document.getElementById('official-ann-text').value='';
+  clearOfficialAnnImage();
   showToast('📢 공식 공지를 등록했습니다','ok');
 };
 window.deleteOfficialAnnouncement = async function(id) {
