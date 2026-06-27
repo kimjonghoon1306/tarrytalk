@@ -2564,8 +2564,10 @@ window.openRoomSettings=function(){
   document.getElementById('rs-delete-btn').style.display=canManage?'':'none';
   document.getElementById('rs-leave-btn').style.display=isMember?'':'none';
   const suspended=isRoomSuspended(room);
-  document.getElementById('rs-suspend-btn').style.display=(canManage&&!suspended)?'':'none';
-  document.getElementById('rs-unsuspend-btn').style.display=(canManage&&suspended)?'':'none';
+  // 방 정지는 단톡방에서만(1대1 개인 대화엔 의미 없음). 방장·관리자만.
+  const canSuspend=canManage&&room.type==='group';
+  document.getElementById('rs-suspend-btn').style.display=(canSuspend&&!suspended)?'':'none';
+  document.getElementById('rs-unsuspend-btn').style.display=(canSuspend&&suspended)?'':'none';
   // 단톡방 이름 수정(방장·관리자만, 단톡방만)
   const canRename=canManage&&room.type==='group';
   document.getElementById('rs-rename-sec').style.display=canRename?'':'none';
