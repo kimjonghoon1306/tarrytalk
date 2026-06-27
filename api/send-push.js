@@ -99,6 +99,7 @@ module.exports = async (req, res) => {
     let failed = 0;
     const removals = [];
     const link = toAbsoluteUrl(req, url || '/');
+    const roomTag = roomIdFromUrl(url) || 'tarrytalk';
 
     for (const batch of chunk(tokens, MAX_TOKENS)) {
       const result = await admin.messaging().sendEachForMulticast({
@@ -114,6 +115,8 @@ module.exports = async (req, res) => {
           notification: {
             icon: '/icon-192.png',
             badge: '/icon-192.png',
+            tag: roomTag,
+            data: { url: link },
           },
           fcmOptions: { link },
         },

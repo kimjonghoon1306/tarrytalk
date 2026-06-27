@@ -232,7 +232,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .mg.out .mg-sender{display:none;}
 .reply-preview{background:var(--surface2);border-left:2px solid var(--green);border-radius:8px 8px 0 0;padding:6px 10px;font-size:11px;color:var(--text3);margin-bottom:-4px;}
 .reply-preview strong{color:var(--green);font-size:11px;display:block;margin-bottom:1px;}
-.bubble{padding:10px 13px;border-radius:18px;font-size:14px;line-height:1.65;word-break:break-word;}
+.bubble{padding:10px 13px;border-radius:18px;font-size:14px;line-height:1.65;word-break:break-word;white-space:pre-wrap;}
 .link-preview{margin-top:5px;max-width:260px;}
 .uc-act{padding:12px;border-radius:13px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;font-weight:800;cursor:pointer;transition:all .15s;}
 .uc-act:hover{transform:translateY(-1px);box-shadow:0 6px 16px var(--glow);}
@@ -373,7 +373,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .tb2{width:32px;height:32px;border-radius:9px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:all .2s;flex-shrink:0;color:var(--text2);}
 .tb2:hover,.tb2:active{background:var(--green);border-color:var(--green);color:#fff;}
 .inp-row{display:flex;gap:8px;align-items:flex-end;padding:0 12px 12px;}
-.m-inp{flex:1;padding:12px 15px;background:var(--surface);border:1px solid var(--border);border-radius:24px;color:var(--text);font-size:15px;resize:none;max-height:120px;min-height:46px;line-height:1.5;transition:border-color .2s;-webkit-appearance:none;}
+.m-inp{flex:1;padding:12px 15px;background:var(--surface);border:1px solid var(--border);border-radius:24px;color:var(--text);font-size:15px;resize:none;max-height:160px;min-height:46px;line-height:1.5;overflow-y:auto;transition:border-color .2s;-webkit-appearance:none;}
 .m-inp:focus{border-color:var(--green);}
 .m-inp::placeholder{color:var(--text3);}
 .send-btn{width:46px;height:46px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--green),var(--green2));cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 16px var(--glow);transition:all .2s;color:#fff;}
@@ -889,7 +889,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import{getAuth,onAuthStateChanged,signOut}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import{getDatabase,ref,onValue,onChildAdded,onChildChanged,onChildRemoved,push,set,update,remove,get,serverTimestamp,query,orderByChild,equalTo,limitToLast,onDisconnect,increment}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import{getDatabase,ref,onValue,onChildAdded,onChildChanged,onChildRemoved,push,set,update,remove,get,serverTimestamp,query,orderByChild,orderByKey,equalTo,limitToLast,onDisconnect,increment}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import{getMessaging,getToken,onMessage,isSupported}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
 const FC={apiKey:"AIzaSyDC9qSmH-1z778oiI7QbDY_JrKis95z_C4",authDomain:"tarrytalk.firebaseapp.com",databaseURL:"https://tarrytalk-default-rtdb.firebaseio.com",projectId:"tarrytalk",storageBucket:"tarrytalk.firebasestorage.app",messagingSenderId:"322779846377",appId:"1:322779846377:web:12253ee2f2330dd1a04278"};
 const app=initializeApp(FC),auth=getAuth(app),db=getDatabase(app),ADMIN_EMAIL='tarry9653@daum.net';
@@ -1128,7 +1128,7 @@ async function loadStorageMedia(){
   const rooms=await roomsToScan();const now=Date.now();const items=[];
   for(const room of rooms){
     try{
-      const snap=await get(query(ref(db,`messages/${room.id}`),orderByChild('at'),limitToLast(500)));
+      const snap=await get(query(ref(db,`messages/${room.id}`),orderByKey(),limitToLast(500)));
       const data=snap.val()||{};const roomName=roomTitle(room);
       Object.entries(data).forEach(([id,m])=>{
         if(!m||m.deleted||m.type==='deleted')return;
@@ -1164,7 +1164,7 @@ function renderStoreGrid(){
     html+='<div style="margin-top:8px">'+files.map(i=>`<a class="store-row" href="${esc(i.src)}" download="${escAttr(i.name||'file')}"><div class="sr-ico">📎</div><div class="sr-body"><div class="sr-title">${esc(i.name||'파일')}</div><div class="sr-sub">${esc(i.roomName)} · ${storeDateLabel(i.at)}</div></div><span style="font-size:11px;color:var(--green);font-weight:800">받기</span></a>`).join('')+'</div>';
   }
   if(links.length){
-    html+='<div style="margin-top:8px">'+links.map(i=>`<a class="store-row" href="${esc(extractFirstUrl(i.name)||'#')}" target="_blank" rel="noopener"><div class="sr-ico">🔗</div><div class="sr-body"><div class="sr-title">${esc(i.name)}</div><div class="sr-sub">${esc(i.roomName)} · ${storeDateLabel(i.at)}</div></div></a>`).join('')+'</div>';
+    html+='<div style="margin-top:8px">'+links.map(i=>`<a class="store-row" href="${esc(i.url||'#')}" target="_blank" rel="noopener"><div class="sr-ico">🔗</div><div class="sr-body"><div class="sr-title">${esc(i.name)}</div><div class="sr-sub">${esc(i.roomName)} · ${storeDateLabel(i.at)}</div></div></a>`).join('')+'</div>';
   }
   grid.innerHTML=html;
 }
@@ -1241,7 +1241,7 @@ async function loadScheduleHub(){
   const rooms=await roomsToScan();const items=[];
   for(const room of rooms){
     try{
-      const snap=await get(query(ref(db,`messages/${room.id}`),orderByChild('at'),limitToLast(400)));
+      const snap=await get(query(ref(db,`messages/${room.id}`),orderByKey(),limitToLast(500)));
       const data=snap.val()||{};const roomName=roomTitle(room);
       Object.entries(data).forEach(([id,m])=>{if(!m||m.deleted||m.type!=='schedule')return;items.push({id,roomId:room.id,roomName,scheduleTitle:m.scheduleTitle,scheduleDate:m.scheduleDate,scheduleTime:m.scheduleTime,schedulePlace:m.schedulePlace,scheduleMemo:m.scheduleMemo,rsvp:m.rsvp||null});});
     }catch(e){}
@@ -1419,21 +1419,21 @@ async function initPushNotifications(){
   const reg=await navigator.serviceWorker.register('/firebase-messaging-sw.js',{scope:'/firebase-cloud-messaging-push-scope'});
   const messaging=getMessaging(app);
   const token=await getToken(messaging,{vapidKey:VAPID_KEY,serviceWorkerRegistration:reg});
-  if(token)await set(ref(db,`users/${sess.uid}/fcmTokens/${token}`),true);
+  if(token){
+    const prevToken=localStorage.getItem(`tt_fcm_token_${sess.uid}`)||'';
+    if(prevToken&&prevToken!==token)remove(ref(db,`users/${sess.uid}/fcmTokens/${prevToken}`)).catch(()=>{});
+    await set(ref(db,`users/${sess.uid}/fcmTokens/${token}`),true);
+    localStorage.setItem(`tt_fcm_token_${sess.uid}`,token);
+  }
   if(!pushReady){
     onMessage(messaging,payload=>{
       const n=payload.notification||{};
       const title=n.title||payload.data?.title||'새 알림';
       const body=n.body||payload.data?.body||'온메신저 알림이 도착했습니다';
-      showToast(`${title} · ${body}`,'info');
-      playNotifySound();
-      // PC/웹 열려있을 때도 데스크탑 알림 표시
-      try{
-        const url=payload.data?.url||payload.fcmOptions?.link||'chat.html';
-        if(document.visibilityState!=='visible'&&Notification.permission==='granted'){
-          new Notification(title,{body,icon:'/icon-192.png',badge:'/icon-192.png'}).onclick=()=>{window.focus();if(url)location.href=url;};
-        }
-      }catch(e){}
+      if(document.visibilityState==='visible'){
+        showToast(`${title} · ${body}`,'info');
+        playNotifySound();
+      }
     });
     pushReady=true;
   }
@@ -1695,7 +1695,7 @@ function loadMessages(roomId){
     });
   }
   // 변경된 메시지만 받아오는 incremental 리스너 (읽음표시/새 메시지마다 전체 재다운로드 방지 → 로딩 지연 해결)
-  const q=query(ref(db,`messages/${roomId}`),orderByChild('at'),limitToLast(60));
+  const q=query(ref(db,`messages/${roomId}`),orderByKey(),limitToLast(60));
   const msgMap={};
   let _rerenderTimer=null;
   const rerender=()=>{
@@ -1824,8 +1824,8 @@ function buildMsg(m,prev){
     content=`<div class="expired-media">🗑 2주가 지나 자동 삭제된 ${label}입니다</div>`;
   }
   else if(m.type==='image'){const src=esc(m.data||m.url||''),fn=m.fileName||'이미지';content=`<div class="img-bub" onclick="openLightbox(${jsArg(m.data||m.url||'')},${jsArg(fn)})"><img src="${src}" alt="이미지" loading="lazy" class="loading" onload="this.classList.remove('loading')"><div class="img-cap">🖼️ ${esc(fn)} <a href="${src}" download="${escAttr(fn||'image')}" onclick="event.stopPropagation()">다운로드</a></div>${mediaNote}</div>`;}
-  else if(m.type==='document'){const icons={pdf:'📄',doc:'📝',docx:'📝',ppt:'📊',pptx:'📊',xls:'📗',xlsx:'📗',zip:'🗜️',hwp:'📄',txt:'📃'};const ext=(m.fileName||'').split('.').pop().toLowerCase();content=`<div class="file-card"><div class="file-card-body"><div class="file-icon">${icons[ext]||'📎'}</div><div class="file-info"><div class="file-name">${esc(m.fileName||'파일')}</div><div class="file-size">${esc(m.fileSize||'')}</div></div><a class="file-dl" href="${esc(m.data)}" download="${escAttr(m.fileName||'file')}">받기</a></div>${mediaNote}</div>`;}
-  else if(m.type==='video'){content=`<div class="file-card"><video controls src="${esc(m.data)}" style="max-height:200px;width:100%;"></video><div class="file-card-body"><div class="file-icon">🎥</div><div class="file-info"><div class="file-name">${esc(m.fileName||'영상')}</div><div class="file-size">${esc(m.fileSize||'')}</div></div><a class="file-dl" href="${esc(m.data)}" download="${escAttr(m.fileName||'video.mp4')}" onclick="event.stopPropagation()">받기</a></div>${mediaNote}</div>`;}
+  else if(m.type==='document'){const src=esc(m.data||m.url||''),icons={pdf:'📄',doc:'📝',docx:'📝',ppt:'📊',pptx:'📊',xls:'📗',xlsx:'📗',zip:'🗜️',hwp:'📄',txt:'📃'};const ext=(m.fileName||'').split('.').pop().toLowerCase();content=`<div class="file-card"><div class="file-card-body"><div class="file-icon">${icons[ext]||'📎'}</div><div class="file-info"><div class="file-name">${esc(m.fileName||'파일')}</div><div class="file-size">${esc(m.fileSize||'')}</div></div><a class="file-dl" href="${src}" download="${escAttr(m.fileName||'file')}">받기</a></div>${mediaNote}</div>`;}
+  else if(m.type==='video'){const src=esc(m.data||m.url||'');content=`<div class="file-card"><video controls src="${src}" style="max-height:200px;width:100%;"></video><div class="file-card-body"><div class="file-icon">🎥</div><div class="file-info"><div class="file-name">${esc(m.fileName||'영상')}</div><div class="file-size">${esc(m.fileSize||'')}</div></div><a class="file-dl" href="${src}" download="${escAttr(m.fileName||'video.mp4')}" onclick="event.stopPropagation()">받기</a></div>${mediaNote}</div>`;}
   else if(m.type==='schedule'){const ds=new Date(m.scheduleDate).toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});content=`<div class="schedule-card" onclick="openScheduleView('${m.id}')" style="cursor:pointer;"><div class="sch-head"><div class="sch-date">📅 ${ds}${m.scheduleTime?' · '+m.scheduleTime:''}</div><div class="sch-title">${esc(m.scheduleTitle)}</div></div><div class="sch-body">${m.schedulePlace?`<div class="sch-row"><span>📍</span><span>${esc(m.schedulePlace)}</span></div>`:''}${m.scheduleMemo?`<div class="sch-row"><span>📝</span><span>${esc(m.scheduleMemo)}</span></div>`:''}<div class="sch-more">탭하여 크게 보기 →</div></div></div>`;}
   else{const txt=linkify(esc(m.text)).replace(/\n/g,'<br>');const firstUrl=extractFirstUrl(m.text||'');content=`<div class="bubble">${txt}</div>${firstUrl?`<div class="link-preview" data-url="${esc(firstUrl)}"></div>`:''}`;}
   const reactions=m.reactions?Object.entries(m.reactions).reduce((acc,[emoji,users])=>{const uids=Object.keys(users||{});if(uids.length)acc.push({emoji,count:uids.length,mine:sess&&uids.includes(sess.uid)});return acc;},[]):[];
@@ -2645,10 +2645,11 @@ window.nativeShare=function(){if(navigator.share)navigator.share({title:'온메�
 window.doLogout=async function(e){if(e)e.preventDefault();if(isGuest){sessionStorage.removeItem('tt_guest');location.href='index.html';return;}if(sess){await set(ref(db,`users/${sess.uid}/online`),false);if(typingTimer)sendTypingSignal(false);}await signOut(auth);location.href='index.html';};
 window.openSb=()=>{document.getElementById('sidebar').classList.add('open');document.getElementById('drawer-bg').classList.add('show');};
 window.closeSb=()=>{document.getElementById('sidebar').classList.remove('open');document.getElementById('drawer-bg').classList.remove('show');};
-window.addEmoji=emoji=>{const inp=document.getElementById('m-inp');inp.value+=emoji;inp.focus();};
+window.addEmoji=emoji=>{const inp=document.getElementById('m-inp');inp.value+=emoji;inp.focus();autoResize(inp);};
 window.toggleLink=()=>document.getElementById('link-row').classList.toggle('show');
-window.handleKey=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}};
-window.autoResize=el=>{el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';};
+function isMobileInputDevice(){return (window.matchMedia&&window.matchMedia('(pointer: coarse)').matches)||navigator.maxTouchPoints>0;}
+window.handleKey=e=>{if(e.key==='Enter'&&!e.shiftKey&&!isMobileInputDevice()){e.preventDefault();sendMsg();}};
+window.autoResize=el=>{el.style.height='auto';el.style.height=Math.min(el.scrollHeight,160)+'px';};
 function avatarColor(n){const c=['#00a84a','#0087d4','#a855f7','#e85d04','#d62828','#2ec4b6'];let h=0;for(let i=0;i<n.length;i++)h=n.charCodeAt(i)+((h<<5)-h);return c[Math.abs(h)%c.length];}
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function escAttr(s){return esc(s).replace(/'/g,'&#39;');}
