@@ -847,7 +847,6 @@ function renderRooms() {
   const dupSeen = {};
   const DUP_COLORS = ['#7c3aed','#0ea5e9','#f59e0b','#10b981','#ec4899','#6366f1','#ef4444','#14b8a6'];
   el.innerHTML = rooms.map(r=>{
-    const msgCount = Object.keys(allMsgs[r.id]||{}).length;
     const mems = Object.keys(r.members||{});
     const memCount = mems.length;
     const owner = ownerNameOf(r.createdBy);
@@ -870,7 +869,7 @@ function renderRooms() {
       <div class="rc-av" style="background:${typeBg};color:${typeColor};">${isGroup?'👥':'👤'}</div>
       <div class="rc-main" style="flex:1;min-width:0;">
         <div class="rc-name"><span style="font-size:10px;font-weight:900;color:${typeColor};background:${typeBg};padding:2px 7px;border-radius:50px;margin-right:5px;">${isGroup?'단톡':'1대1'}</span>${isDup?`<span style="font-size:10px;font-weight:900;color:#fff;background:${dupColor};padding:2px 7px;border-radius:50px;margin-right:5px;">#${ord}</span>`:''}${esc(title)}${suspended?' <span style="font-size:10px;background:rgba(245,158,11,.15);color:#d97706;padding:2px 7px;border-radius:50px;font-weight:800;">⏸ 정지중</span>':''}</div>
-        <div class="rc-sub">👑 방장 ${esc(owner)} · 참여 ${esc(memSummary)} · 멤버 ${memCount}명 · 메시지 ${msgCount}개${suspended?` · ${susLabel}까지 정지`:''}</div>
+        <div class="rc-sub">👑 방장 ${esc(owner)} · 참여 ${esc(memSummary)} · 멤버 ${memCount}명${suspended?` · ${susLabel}까지 정지`:''}</div>
       </div>
       <div class="rc-acts">
         ${suspended
