@@ -1700,7 +1700,7 @@ window.openAnnouncements=function(){
   const latest=announcements[announcements.length-1]?.at||Date.now();
   localStorage.setItem(`tt_ann_seen_${sess.uid}`,String(latest));
   document.getElementById('tb-av').style.display='flex';document.getElementById('tb-av').textContent='📢';
-  document.getElementById('tb-info').style.display='block';document.getElementById('tb-name').textContent='📢 공식 공지';document.getElementById('tb-sub').textContent=sess.isAdmin?'● 운영진 공지 작성 가능':'● 읽기 전용 공지 채널';
+  document.getElementById('tb-info').style.display='block';document.getElementById('tb-name').textContent='📢 공식 공지';document.getElementById('tb-sub').innerHTML=sess.isAdmin?'<span class="live-dot"></span>운영진 공지 작성 가능':'<span class="live-dot"></span>읽기 전용 공지 채널';
   document.getElementById('secret-badge').classList.remove('show');
   document.getElementById('tb-logo').style.display='none';document.getElementById('tb-onbot-close').style.display='none';document.getElementById('tb-settings').style.display='none';document.getElementById('tb-search-btn').style.display='none';
   document.getElementById('chat-empty').style.display='none';document.getElementById('messages').style.display='flex';document.getElementById('messages').style.filter='';
