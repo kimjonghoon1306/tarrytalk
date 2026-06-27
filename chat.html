@@ -44,6 +44,8 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .space-tabs{display:flex;gap:3px;padding:6px 10px 4px;}
 .sp-tab{flex:1;padding:8px 4px;border-radius:var(--r);background:none;border:1px solid transparent;font-size:11px;font-weight:700;color:var(--text3);transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:2px;}
 .sp-tab .sp-ico{font-size:15px;}
+.sp-tab{position:relative;}
+.sp-tab .sp-dot{position:absolute;top:4px;right:calc(50% - 16px);width:7px;height:7px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 2px var(--bg2);}
 .sp-tab.on{background:var(--surface);border-color:var(--border);color:var(--green);}
 .sp-tab:hover:not(.on){color:var(--text2);}
 .new-btn{margin:4px 10px 6px;padding:11px;border-radius:var(--R);background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 16px var(--glow);transition:all .2s;}
@@ -559,6 +561,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
   </div>
   <div class="space-tabs">
     <button class="sp-tab on" id="spt-chat" onclick="setSpaceTab('chat')"><span class="sp-ico">💬</span>채팅</button>
+    <button class="sp-tab" id="spt-info" onclick="setSpaceTab('info')"><span class="sp-ico">📢</span>공지</button>
     <button class="sp-tab" id="spt-friends" onclick="setSpaceTab('friends')"><span class="sp-ico">👥</span>친구</button>
     <button class="sp-tab" id="spt-storage" onclick="setSpaceTab('storage')"><span class="sp-ico">📁</span>보관함</button>
     <button class="sp-tab" id="spt-schedule" onclick="setSpaceTab('schedule')"><span class="sp-ico">📅</span>일정</button>
@@ -570,6 +573,9 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
     <div class="sb-search"><input type="text" placeholder="채팅방 검색..." oninput="filterRooms(this.value)" id="search-inp"></div>
     <div class="sb-tabs"><div class="sbt on" id="tab-g" onclick="setTab('group')">단체채팅</div><div class="sbt" id="tab-d" onclick="setTab('dm')">1대1 채팅</div></div>
     <div class="room-list" id="room-list"></div>
+  </div>
+  <div id="sp-info" style="display:none;flex-direction:column;flex:1;min-height:0;">
+    <div class="room-list" id="info-list"></div>
   </div>
   <div id="sp-friends" style="display:none;flex-direction:column;flex:1;min-height:0;">
     <div class="how-to-banner" onclick="openInvite()" style="background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;border:none;">👋 친구 초대하기</div>
@@ -1549,11 +1555,8 @@ window.unsuspendRoom=async function(){
   await set(push(ref(db,`messages/${curRoom}`)),{uid:'system',displayName:'system',text:`▶️ 관리자가 채팅방 정지를 해제했습니다`,type:'system',at:Date.now()});
   closeRoomSettings();showToast('▶️ 정지를 해제했습니다','ok');
 };
-function renderRooms(filter=''){
-  const list=document.getElementById('room-list');
-  let rooms=(window._rooms||[]).filter(r=>r.type===curTab);
-  if(filter)rooms=rooms.filter(r=>roomTitle(r).toLowerCase().includes(filter.toLowerCase()));
-  rooms.sort((a,b)=>(b.lastAt||0)-(a.lastAt||0));
+function renderInfoTab(){
+  const list=document.getElementById('info-list');if(!list)return;
   const botItem=`<div class="r-item onbot-fixed${curRoom==='onbot'?' on':''}" onclick="openOnbot()">
     <div class="r-av">${ONBOT_SVG}</div>
     <div style="flex:1;min-width:0;"><div class="r-name">온봇 · 도우미</div><div class="r-prev">온메신저 기능을 물어보세요</div></div>
@@ -1566,8 +1569,19 @@ function renderRooms(filter=''){
     <div style="flex:1;min-width:0;"><div class="r-name">공식 공지</div><div class="r-prev">운영진이 전하는 공지 피드</div></div>
     ${unseenAnn?'<div class="r-badge">N</div>':''}
   </div>`:'';
-  if(!rooms.length){list.innerHTML=botItem+announceItem+`<div class="empty-rooms"><div class="ei">${curTab==='group'?'👥':'💬'}</div><p>${curTab==='group'?'단체채팅방이 없어요\n새 채팅을 만들어보세요':'1대1 채팅이 없어요\n대화를 시작해보세요'}</p></div>`;return;}
-  list.innerHTML=botItem+announceItem+rooms.map(r=>{
+  list.innerHTML=botItem+announceItem;
+  // 공지 탭에 새 공지 알림 점
+  const tab=document.getElementById('spt-info');
+  if(tab){let dot=tab.querySelector('.sp-dot');if(unseenAnn){if(!dot){dot=document.createElement('span');dot.className='sp-dot';tab.appendChild(dot);}}else if(dot){dot.remove();}}
+}
+function renderRooms(filter=''){
+  const list=document.getElementById('room-list');
+  let rooms=(window._rooms||[]).filter(r=>r.type===curTab);
+  if(filter)rooms=rooms.filter(r=>roomTitle(r).toLowerCase().includes(filter.toLowerCase()));
+  rooms.sort((a,b)=>(b.lastAt||0)-(a.lastAt||0));
+  renderInfoTab();
+  if(!rooms.length){list.innerHTML=`<div class="empty-rooms"><div class="ei">${curTab==='group'?'👥':'💬'}</div><p>${curTab==='group'?'단체채팅방이 없어요\n새 채팅을 만들어보세요':'1대1 채팅이 없어요\n대화를 시작해보세요'}</p></div>`;return;}
+  list.innerHTML=rooms.map(r=>{
     const unread=r.unread?.[sess?.uid]||0;
     const title=roomTitle(r);
     return`<div class="r-item${curRoom===r.id?' on':''}" onclick="openRoom('${r.id}')">
@@ -1582,7 +1596,7 @@ function renderRooms(filter=''){
 }
 window.filterRooms=v=>renderRooms(v);
 window.setTab=function(t){curTab=t;document.getElementById('tab-g').classList.toggle('on',t==='group');document.getElementById('tab-d').classList.toggle('on',t==='dm');renderRooms();};
-window.setSpaceTab=function(t){['chat','friends','storage','schedule'].forEach(s=>{document.getElementById('spt-'+s).classList.toggle('on',s===t);const el=document.getElementById('sp-'+s);if(!el)return;el.style.display=s===t?'flex':'none';el.style.flexDirection='column';el.style.flex='1';el.style.minHeight='0';});if(t==='friends')renderFriends(document.getElementById('friend-search')?.value||'');if(t==='storage'&&typeof openStorage==='function')openStorage();if(t==='schedule'&&typeof openScheduleHub==='function')openScheduleHub();};
+window.setSpaceTab=function(t){['chat','info','friends','storage','schedule'].forEach(s=>{document.getElementById('spt-'+s).classList.toggle('on',s===t);const el=document.getElementById('sp-'+s);if(!el)return;el.style.display=s===t?'flex':'none';el.style.flexDirection='column';el.style.flex='1';el.style.minHeight='0';});if(t==='info'&&typeof renderInfoTab==='function')renderInfoTab();if(t==='friends')renderFriends(document.getElementById('friend-search')?.value||'');if(t==='storage'&&typeof openStorage==='function')openStorage();if(t==='schedule'&&typeof openScheduleHub==='function')openScheduleHub();};
 window.renderFriends=function(filter=''){
   const list=document.getElementById('friend-list');if(!list||!sess)return;
   // 친구 = 친구추가했거나 초대로 연결된 회원 (관리자는 전체)
