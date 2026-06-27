@@ -373,7 +373,8 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .tb2{width:32px;height:32px;border-radius:9px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:all .2s;flex-shrink:0;color:var(--text2);}
 .tb2:hover,.tb2:active{background:var(--green);border-color:var(--green);color:#fff;}
 .inp-row{display:flex;gap:8px;align-items:flex-end;padding:0 12px 12px;}
-.m-inp{flex:1;min-width:0;width:100%;box-sizing:border-box;padding:12px 15px;background:var(--surface);border:1px solid var(--border);border-radius:24px;color:var(--text);font-size:15px;resize:none;max-height:160px;min-height:46px;line-height:1.5;overflow-y:auto;transition:border-color .2s;-webkit-appearance:none;}
+.m-inp{flex:1;min-width:0;width:100%;box-sizing:border-box;padding:12px 15px;background:var(--surface);border:1px solid var(--border);border-radius:24px;color:var(--text);font-size:15px;resize:none;max-height:160px;min-height:46px;line-height:1.5;overflow-y:hidden;transition:border-color .2s;-webkit-appearance:none;scrollbar-width:none;}
+.m-inp::-webkit-scrollbar{width:0;height:0;display:none;}
 .m-inp:focus{border-color:var(--green);}
 .m-inp::placeholder{color:var(--text3);}
 .send-btn{width:46px;height:46px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--green),var(--green2));cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 16px var(--glow);transition:all .2s;color:#fff;}
@@ -2643,7 +2644,7 @@ window.addEmoji=emoji=>{const inp=document.getElementById('m-inp');inp.value+=em
 window.toggleLink=()=>document.getElementById('link-row').classList.toggle('show');
 function isMobileInputDevice(){return (window.matchMedia&&window.matchMedia('(pointer: coarse)').matches)||navigator.maxTouchPoints>0;}
 window.handleKey=e=>{if(e.key==='Enter'&&!e.shiftKey&&!isMobileInputDevice()){e.preventDefault();sendMsg();}};
-window.autoResize=el=>{el.style.height='auto';el.style.height=Math.min(el.scrollHeight,160)+'px';};
+window.autoResize=el=>{el.style.height='auto';const sh=el.scrollHeight;el.style.height=Math.min(sh,160)+'px';el.style.overflowY=sh>160?'auto':'hidden';};
 function avatarColor(n){const c=['#00a84a','#0087d4','#a855f7','#e85d04','#d62828','#2ec4b6'];let h=0;for(let i=0;i<n.length;i++)h=n.charCodeAt(i)+((h<<5)-h);return c[Math.abs(h)%c.length];}
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function escAttr(s){return esc(s).replace(/'/g,'&#39;');}
