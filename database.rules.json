@@ -137,7 +137,7 @@
           ".validate": "!newData.exists() || (newData.isString() && newData.val().length >= 1 && newData.val().length <= 5000)"
         },
         "imageData": {
-          ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 6291456 && (newData.val() === '' || newData.val().matches(/^\\/[A-Za-z0-9_.\\/-]+\\.(png|jpg|jpeg|webp|gif)$/) || newData.val().matches(/^https?:\\/\\/.{1,2000}$/) || newData.val().matches(/^data:image\\/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+\\/=]+$/)))"
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 6291456)"
         },
         "active": {
           ".validate": "!newData.exists() || newData.isBoolean()"
@@ -170,10 +170,10 @@
           ".validate": "!newData.exists() || (newData.isString() && newData.val().length >= 1 && newData.val().length <= 120)"
         },
         "url": {
-          ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 2000 && (newData.val() === '' || newData.val().matches(/^(https?:\\/\\/|mailto:|tel:).+/)))"
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 2000)"
         },
         "data": {
-          ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 6291456 && (newData.val() === '' || newData.val().matches(/^data:[A-Za-z0-9.+-]+\\/[A-Za-z0-9.+-]+;base64,[A-Za-z0-9+\\/=]+$/)))"
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 6291456)"
         },
         "fileName": {
           ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 180)"
@@ -199,7 +199,7 @@
         ".validate": "!newData.exists() || (newData.isString() && newData.val().length >= 1 && newData.val().length <= 5000)"
       },
       "imageData": {
-        ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 6291456 && (newData.val() === '' || newData.val().matches(/^\\/[A-Za-z0-9_.\\/-]+\\.(png|jpg|jpeg|webp|gif)$/) || newData.val().matches(/^https?:\\/\\/.{1,2000}$/) || newData.val().matches(/^data:image\\/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+\\/=]+$/)))"
+        ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 6291456)"
       },
       "active": {
         ".validate": "!newData.exists() || newData.isBoolean()"
