@@ -353,9 +353,9 @@ tr:hover td{background:rgba(124,58,237,.04);}
       <div class="stat-lbl">채팅방</div>
     </div>
     <div class="stat-card sc-msgs">
-      <div class="stat-top"><div class="stat-icon si-y">✉️</div><span class="stat-badge" id="badge-msgs">0개</span></div>
+      <div class="stat-top"><div class="stat-icon si-y">🟢</div><span class="stat-badge" id="badge-msgs">0명</span></div>
       <div class="stat-val" id="stat-msgs">0</div>
-      <div class="stat-lbl">전체 메시지</div>
+      <div class="stat-lbl">온라인 회원</div>
     </div>
     <div class="stat-card sc-admins">
       <div class="stat-top"><div class="stat-icon si-r">🔐</div><span class="stat-badge">관리자</span></div>
@@ -385,7 +385,7 @@ tr:hover td{background:rgba(124,58,237,.04);}
       </div>
     </div>
     <div class="card">
-      <div class="card-head"><div class="card-title">채팅방별 메시지 현황</div></div>
+      <div class="card-head"><div class="card-title">채팅방별 멤버 현황</div></div>
       <div class="bar-chart" id="bar-chart"><div class="empty-tbl">데이터 없음</div></div>
     </div>
   </div>
@@ -713,11 +713,7 @@ function loadData() {
   });
   onValue(ref(db,'rooms'), snap => {
     allRooms = snap.val()||{};
-    renderStats(); renderRooms(); renderBarChart();
-  });
-  onValue(ref(db,'messages'), snap => {
-    allMsgs = snap.val()||{};
-    renderStats(); renderBarChart(); renderLog();
+    renderStats(); renderRooms(); renderBarChart(); renderLog();
   });
   onValue(ref(db,'ads'), snap => {
     allAds = snap.val()||{};
@@ -745,15 +741,15 @@ function loadData() {
 function renderStats() {
   const users = Object.values(allUsers);
   const rooms = Object.values(allRooms);
-  const totalMsgs = Object.values(allMsgs).reduce((s,v)=>s+Object.keys(v||{}).length,0);
+  const online = users.filter(u=>u && u.online===true).length;
   const admins = users.filter(u=>u.isAdmin).length;
   document.getElementById('stat-users').textContent = users.length;
   document.getElementById('stat-rooms').textContent = rooms.length;
-  document.getElementById('stat-msgs').textContent = totalMsgs.toLocaleString();
+  document.getElementById('stat-msgs').textContent = online;
   document.getElementById('stat-admins').textContent = Math.max(1,admins);
   document.getElementById('badge-users').textContent = users.length+'명';
   document.getElementById('badge-rooms').textContent = rooms.length+'개';
-  document.getElementById('badge-msgs').textContent = totalMsgs+'개';
+  document.getElementById('badge-msgs').textContent = online+'명';
 }
 
 /* ── 최근 가입 회원 (대시보드) ── */
@@ -865,37 +861,35 @@ function renderRooms() {
 
 /* ── 바 차트 ── */
 function renderBarChart() {
-  const rooms = Object.entries(allRooms).map(([id,v])=>({id,name:v.name,cnt:Object.keys(allMsgs[id]||{}).length})).sort((a,b)=>b.cnt-a.cnt).slice(0,6);
+  // 메시지 수는 전체 읽기 권한이 막혀 못 셈 → 멤버 수 기준으로 채팅방 규모 표시
+  const rooms = Object.entries(allRooms).map(([id,v])=>({id,name:v.name||(v.type==='dm'?'1대1':'채팅방'),cnt:Object.keys(v.members||{}).length})).sort((a,b)=>b.cnt-a.cnt).slice(0,6);
   const barEl = document.getElementById('bar-chart');
   const max = rooms.reduce((m,r)=>Math.max(m,r.cnt),1);
-  if(!rooms.length||max===0){barEl.innerHTML='<div class="empty-tbl">메시지 데이터 없음</div>';return;}
+  if(!rooms.length){barEl.innerHTML='<div class="empty-tbl">채팅방이 없습니다</div>';return;}
   barEl.innerHTML = rooms.map(r=>`
     <div class="bar-row">
       <div class="bar-lbl" title="${esc(r.name)}">${esc(r.name.substring(0,6))}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${Math.max(2,Math.round((r.cnt/max)*100))}%"></div></div>
-      <div class="bar-val">${r.cnt}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.max(4,Math.round((r.cnt/max)*100))}%"></div></div>
+      <div class="bar-val">${r.cnt}명</div>
     </div>`).join('');
 }
 
-/* ── 활동 로그 ── */
+/* ── 활동 로그 (가입·방 생성·최근 활동) ── */
 function renderLog() {
   const logs = [];
-  Object.entries(allUsers).sort((a,b)=>(b[1].joinedAt||0)-(a[1].joinedAt||0)).slice(0,3)
-    .forEach(([,u])=>logs.push({dot:'ld-g',text:`${u.displayName||'사용자'}님이 가입했습니다`,time:relTime(u.joinedAt)}));
-  Object.entries(allRooms).sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0)).slice(0,2)
-    .forEach(([,r])=>logs.push({dot:'ld-y',text:`채팅방 "${r.name}" 생성됨`,time:relTime(r.createdAt)}));
-  const allMsgFlat = [];
-  Object.entries(allMsgs).forEach(([,msgs])=>Object.values(msgs||{}).forEach(m=>allMsgFlat.push(m)));
-  allMsgFlat.sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,3).forEach(m=>{
-    logs.push({dot:'ld-g',text:`새 메시지: "${(m.text||'미디어').substring(0,20)}"`,time:relTime(m.at)});
+  Object.entries(allUsers).forEach(([,u])=>{ if(u && u.joinedAt) logs.push({dot:'ld-g',t:u.joinedAt,text:`${u.displayName||'사용자'}님이 가입했습니다`}); });
+  Object.entries(allRooms).forEach(([,r])=>{
+    if(r && r.createdAt) logs.push({dot:'ld-y',t:r.createdAt,text:`채팅방 "${r.name||(r.type==='dm'?'1대1':'채팅방')}" 생성됨`});
+    if(r && r.lastAt) logs.push({dot:'ld-g',t:r.lastAt,text:`"${r.name||(r.type==='dm'?'1대1':'채팅방')}" ${r.lastMsg?'· '+String(r.lastMsg).substring(0,16):'활동'}`});
   });
+  logs.sort((a,b)=>(b.t||0)-(a.t||0));
   const logEl = document.getElementById('log-list');
   if(!logs.length){logEl.innerHTML='<div class="empty-tbl">활동 기록 없음</div>';return;}
   logEl.innerHTML = logs.slice(0,8).map(l=>`
     <div class="log-item">
       <div class="log-dot ${l.dot}"></div>
       <div class="log-txt">${esc(l.text)}</div>
-      <div class="log-time">${l.time}</div>
+      <div class="log-time">${relTime(l.t)}</div>
     </div>`).join('');
 }
 

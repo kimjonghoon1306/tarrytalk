@@ -265,7 +265,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .announce-card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--green);border-radius:16px;padding:14px 16px;box-shadow:0 8px 26px rgba(0,0,0,.08);animation:itemIn .28s ease both;}
 .announce-card:hover,.guide-card:hover,.ad-banner:hover{transform:translateY(-2px);border-color:var(--border2);box-shadow:0 12px 30px var(--glow);}
 .announce-card .ac-meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--text3);font-size:11px;font-weight:800;margin-bottom:8px;}
-.announce-card .ac-img{width:100%;display:block;border-radius:12px;margin:2px 0 10px;max-height:480px;object-fit:cover;background:var(--surface2);}
+.announce-card .ac-img{width:100%;height:auto;display:block;border-radius:12px;margin:2px 0 10px;background:var(--surface2);}
 .announce-card .ac-text{white-space:pre-wrap;word-break:break-word;color:var(--text);font-size:14px;line-height:1.75;font-weight:600;}
 .announce-empty{align-self:center;text-align:center;color:var(--text3);font-size:13px;line-height:1.8;padding:50px 18px;}
 .readonly-note{display:none;padding:10px 14px;border-top:1px solid var(--border);background:var(--bg2);color:var(--text3);font-size:12px;font-weight:800;text-align:center;flex-shrink:0;}
@@ -341,7 +341,19 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 @keyframes typingPulse{0%,80%,100%{transform:scale(.8);opacity:.4;}40%{transform:scale(1);opacity:1;}}
 @keyframes msgIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes popTap{0%{transform:scale(.88)}70%{transform:scale(1.08)}100%{transform:scale(1)}}
-.scroll-btn{position:absolute;bottom:70px;right:16px;width:36px;height:36px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:none;align-items:center;justify-content:center;font-size:16px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.4);z-index:20;transition:all .2s;color:var(--text2);}
+.scroll-btn{position:absolute;bottom:88px;right:18px;width:36px;height:36px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:none;align-items:center;justify-content:center;font-size:16px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.4);z-index:31;transition:all .2s;color:var(--text2);}
+/* 온봇 플로팅 버튼(FAB) — 오른쪽 하단 둥둥 */
+.onbot-fab{position:absolute;right:14px;bottom:14px;width:58px;height:58px;border-radius:50%;border:none;cursor:pointer;z-index:30;background:linear-gradient(135deg,#7c3aed,#a855f7);box-shadow:0 12px 28px rgba(124,58,237,.55);display:flex;align-items:center;justify-content:center;animation:fabFloat 2.6s ease-in-out infinite;}
+.onbot-fab:hover{transform:scale(1.09);}
+.onbot-fab .fab-bot{width:38px;height:38px;animation:fabWiggle 3.4s ease-in-out infinite;transform-origin:50% 60%;}
+.onbot-fab .fab-ring{position:absolute;inset:0;border-radius:50%;animation:fabPulse 2s ease-out infinite;}
+.onbot-fab .fab-tip{position:absolute;right:66px;background:#7c3aed;color:#fff;font-size:11px;font-weight:800;padding:4px 10px;border-radius:50px;white-space:nowrap;box-shadow:0 4px 12px rgba(124,58,237,.45);opacity:0;pointer-events:none;animation:fabTip 5s ease-in-out infinite;}
+.onbot-fab .fab-tip::after{content:'';position:absolute;right:-5px;top:50%;transform:translateY(-50%);border:5px solid transparent;border-left-color:#7c3aed;}
+@keyframes fabFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes fabWiggle{0%,88%,100%{transform:rotate(0)}91%{transform:rotate(-10deg)}94%{transform:rotate(9deg)}97%{transform:rotate(-4deg)}}
+@keyframes fabPulse{0%{box-shadow:0 0 0 0 rgba(168,85,247,.6)}70%{box-shadow:0 0 0 16px rgba(168,85,247,0)}100%{box-shadow:0 0 0 0 rgba(168,85,247,0)}}
+@keyframes fabTip{0%,35%,100%{opacity:0;transform:translateX(8px)}45%,85%{opacity:1;transform:translateX(0)}}
+@media(max-width:520px){.onbot-fab{width:54px;height:54px;right:12px;bottom:12px}.onbot-fab .fab-bot{width:35px;height:35px}.onbot-fab .fab-tip{display:none}}
 .scroll-btn.show{display:flex;}
 .scroll-btn:hover{background:var(--green);color:#fff;border-color:var(--green);}
 .scroll-badge{position:absolute;top:-5px;right:-5px;background:var(--green);color:#fff;font-size:9px;font-weight:900;padding:1px 5px;border-radius:50px;display:none;min-width:16px;text-align:center;}
@@ -526,7 +538,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .popup-head{padding:20px 22px;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;display:flex;align-items:flex-start;gap:12px;}
 .popup-ico{font-size:28px;line-height:1;}
 .popup-title{font-size:18px;font-weight:900;line-height:1.35;flex:1;}
-.popup-img{width:100%;display:block;max-height:360px;object-fit:cover;background:var(--surface2);}
+.popup-img{width:100%;height:auto;display:block;background:var(--surface2);}
 .popup-body{padding:20px 22px;color:var(--text2);font-size:14px;line-height:1.8;white-space:pre-wrap;}
 .ng-body{white-space:normal;}
 .ng-step{margin-bottom:11px;text-align:left;word-break:keep-all;}
@@ -694,6 +706,20 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
     <div class="messages" id="messages" style="display:none;"></div>
     <div class="typing-bar" id="typing-bar"><div class="typing-dots"><span></span><span></span><span></span></div><span id="typing-text">입력 중...</span></div>
     <button class="scroll-btn" id="scroll-btn" onclick="scrollToBottom(true)">↓<span class="scroll-badge" id="scroll-badge"></span></button>
+    <button class="onbot-fab" id="onbot-fab" onclick="openOnbot()" title="온봇 도우미" aria-label="온봇 도우미">
+      <span class="fab-ring"></span>
+      <span class="fab-tip">온봇에게 물어보세요</span>
+      <svg viewBox="0 0 64 64" class="fab-bot" aria-hidden="true">
+        <path d="M32 9v7" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="32" cy="7" r="4" fill="#ffd166"/>
+        <path d="M13 22c0-5 4-9 9-9h20c5 0 9 4 9 9v17c0 5-4 9-9 9H30l-9 7c-2 1.5-4.5-.2-4-2.7l1.2-5.8C15.1 45 13 42.1 13 39V22z" fill="#fff"/>
+        <circle cx="25" cy="30" r="5" fill="#7c3aed"/>
+        <circle cx="39" cy="30" r="5" fill="#7c3aed"/>
+        <circle cx="26.5" cy="31" r="1.8" fill="#fff"/>
+        <circle cx="37.5" cy="31" r="1.8" fill="#fff"/>
+        <path d="M25 39c3.5 3 10.5 3 14 0" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+    </button>
     <div class="guest-wall" id="guest-wall" style="display:none;"><div class="gw-box"><div style="font-size:40px;margin-bottom:12px;">🔒</div><h3>로그인이 필요합니다</h3><p>채팅 내용을 보고 참여하려면<br>로그인하거나 회원가입하세요</p><button class="gw-login" onclick="location.href='index.html'">로그인 / 회원가입</button></div></div>
   </div>
   <div class="readonly-note" id="readonly-note">관리자 공지 채널입니다. 회원은 읽기만 할 수 있어요.</div>
@@ -1557,10 +1583,6 @@ window.unsuspendRoom=async function(){
 };
 function renderInfoTab(){
   const list=document.getElementById('info-list');if(!list)return;
-  const botItem=`<div class="r-item onbot-fixed${curRoom==='onbot'?' on':''}" onclick="openOnbot()">
-    <div class="r-av">${ONBOT_SVG}</div>
-    <div style="flex:1;min-width:0;"><div class="r-name">온봇 · 도우미</div><div class="r-prev">온메신저 기능을 물어보세요</div></div>
-  </div>`;
   const latestAnn=announcements[announcements.length-1]?.at||0;
   const seenAnn=Number(localStorage.getItem(`tt_ann_seen_${sess?.uid||'guest'}`)||0);
   const unseenAnn=!!(sess&&latestAnn>seenAnn&&curRoom!=='announce');
@@ -1568,8 +1590,8 @@ function renderInfoTab(){
     <div class="r-av">📢</div>
     <div style="flex:1;min-width:0;"><div class="r-name">공식 공지</div><div class="r-prev">운영진이 전하는 공지 피드</div></div>
     ${unseenAnn?'<div class="r-badge">N</div>':''}
-  </div>`:'';
-  list.innerHTML=botItem+announceItem;
+  </div>`:'<div class="empty-rooms"><div class="ei">📢</div><p>로그인 후 공식 공지를 볼 수 있어요</p></div>';
+  list.innerHTML=announceItem;
   // 공지 탭에 새 공지 알림 점
   const tab=document.getElementById('spt-info');
   if(tab){let dot=tab.querySelector('.sp-dot');if(unseenAnn){if(!dot){dot=document.createElement('span');dot.className='sp-dot';tab.appendChild(dot);}}else if(dot){dot.remove();}}
