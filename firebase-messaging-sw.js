@@ -11,20 +11,9 @@ firebase.initializeApp({
   appId: '1:322779846377:web:12253ee2f2330dd1a04278'
 });
 
+// 백그라운드 푸시는 notification 페이로드로 브라우저가 자동으로 1개 표시한다.
+// 여기서 showNotification을 또 호출하면 알림이 2개씩 중복되므로 수동 표시는 하지 않는다.
 const messaging = firebase.messaging();
-
-messaging.onBackgroundMessage(payload => {
-  const title = payload.notification?.title || payload.data?.title || '온메신저';
-  const body = payload.notification?.body || payload.data?.body || '새 알림이 있습니다';
-  const url = payload.fcmOptions?.link || payload.data?.url || '/chat.html';
-
-  self.registration.showNotification(title, {
-    body,
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
-    data: { url }
-  });
-});
 
 self.addEventListener('notificationclick', event => {
   event.notification.close();
