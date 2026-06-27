@@ -585,6 +585,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
         <span class="store-chip" data-f="video" onclick="setStoreFilter('video')">🎥 영상</span>
         <span class="store-chip" data-f="document" onclick="setStoreFilter('document')">📎 파일</span>
         <span class="store-chip" data-f="link" onclick="setStoreFilter('link')">🔗 링크</span>
+        <span class="store-chip" style="margin-left:auto" onclick="refreshStorage()">🔄 새로고침</span>
       </div>
       <div class="store-scroll" id="store-grid"><div class="store-empty">불러오는 중…</div></div>
     </div>
@@ -1103,7 +1104,8 @@ window.handleHeroAdClick=function(e,type){
 window.closeAdBanner=function(){sessionStorage.setItem('ads_closed','1');document.getElementById('ad-banner').classList.remove('show');clearInterval(adTimer);adTimer=null;};
 /* ── 보관함 (모아보기 + 자료실) ── */
 let storeFilter='all',storeMedia=[],_libUnsub=null,libItems=[],_libFileData='',_libFileName='';
-function openStorage(){setStoreView('all');loadStorageMedia();}
+function openStorage(){storeFilter='all';document.querySelectorAll('#store-chips .store-chip').forEach(c=>c.classList.toggle('on',c.dataset.f==='all'));setStoreView('all');loadStorageMedia();}
+window.refreshStorage=function(){loadStorageMedia();showToast('보관함을 새로고침했어요','info');};
 window.setStoreView=function(v){
   document.getElementById('store-st-all').classList.toggle('on',v==='all');
   document.getElementById('store-st-lib').classList.toggle('on',v==='lib');
@@ -1119,7 +1121,7 @@ async function loadStorageMedia(){
   const rooms=(window._rooms||[]).slice();const now=Date.now();const items=[];
   for(const room of rooms){
     try{
-      const snap=await get(query(ref(db,`messages/${room.id}`),orderByChild('at'),limitToLast(300)));
+      const snap=await get(query(ref(db,`messages/${room.id}`),orderByChild('at'),limitToLast(500)));
       const data=snap.val()||{};const roomName=roomTitle(room);
       Object.entries(data).forEach(([id,m])=>{
         if(!m||m.deleted||m.type==='deleted')return;
