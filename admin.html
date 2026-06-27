@@ -753,23 +753,33 @@ function renderRooms() {
   document.getElementById('room-count-lbl').textContent = rooms.length+'개';
   const el = document.getElementById('rooms-list-el');
   if(!rooms.length){el.innerHTML='<div class="empty-tbl">채팅방이 없습니다</div>';return;}
-  // 같은 이름 방이 여러 개일 때 번호·색상으로 구분하기 위한 집계
+  // 방장(createdBy) 기준 제목: 1대1='방장 → 상대', 단톡='방 이름'(+방장/참여요약). DM의 저장된 name이 한쪽만 담겨 헷갈리던 문제 해결.
+  const ownerNameOf = uid => allUsers[uid]?.displayName || '알수없음';
+  const titleOf = r => {
+    if(r.type==='group') return r.name || '(이름 없는 단톡)';
+    const other = Object.keys(r.members||{}).find(u=>u!==r.createdBy);
+    return `${ownerNameOf(r.createdBy)} → ${other?ownerNameOf(other):'상대 없음'}`;
+  };
   const dupTotal = {};
-  rooms.forEach(r=>{const k=(r.name||'').trim(); dupTotal[k]=(dupTotal[k]||0)+1;});
+  rooms.forEach(r=>{const k=titleOf(r); dupTotal[k]=(dupTotal[k]||0)+1;});
   const dupSeen = {};
   const DUP_COLORS = ['#7c3aed','#0ea5e9','#f59e0b','#10b981','#ec4899','#6366f1','#ef4444','#14b8a6'];
   el.innerHTML = rooms.map(r=>{
     const msgCount = Object.keys(allMsgs[r.id]||{}).length;
     const mems = Object.keys(r.members||{});
     const memCount = mems.length;
-    const memNames = mems.map(uid=>allUsers[uid]?.displayName||'알수없음').join(', ');
+    const owner = ownerNameOf(r.createdBy);
     const isGroup = r.type==='group';
+    const others = mems.filter(u=>u!==r.createdBy).map(ownerNameOf);
+    const memSummary = isGroup
+      ? (others.length===0 ? '방장 혼자' : (others.length<=3 ? others.join(', ') : `${others.slice(0,2).join(', ')} 외 ${others.length-2}명`))
+      : (others[0] || '상대 없음');
+    const title = titleOf(r);
     const typeColor = isGroup ? '#7c3aed' : '#0ea5e9';
     const typeBg = isGroup ? 'rgba(124,58,237,.12)' : 'rgba(14,165,233,.12)';
-    const k = (r.name||'').trim();
-    dupSeen[k] = (dupSeen[k]||0)+1;
-    const ord = dupSeen[k];
-    const isDup = dupTotal[k] > 1;
+    dupSeen[title] = (dupSeen[title]||0)+1;
+    const ord = dupSeen[title];
+    const isDup = dupTotal[title] > 1;
     const dupColor = DUP_COLORS[(ord-1)%DUP_COLORS.length];
     const edgeColor = isDup ? dupColor : typeColor;
     const suspended = r.suspendedUntil && r.suspendedUntil > Date.now();
@@ -777,8 +787,8 @@ function renderRooms() {
     return`<div class="room-card" style="border-left:5px solid ${edgeColor};padding-left:9px;">
       <div class="rc-av" style="background:${typeBg};color:${typeColor};">${isGroup?'👥':'👤'}</div>
       <div style="flex:1;min-width:0;">
-        <div class="rc-name"><span style="font-size:10px;font-weight:900;color:${typeColor};background:${typeBg};padding:2px 7px;border-radius:50px;margin-right:5px;">${isGroup?'단톡':'1대1'}</span>${isDup?`<span style="font-size:10px;font-weight:900;color:#fff;background:${dupColor};padding:2px 7px;border-radius:50px;margin-right:5px;">#${ord}</span>`:''}${esc(r.name)}${suspended?' <span style="font-size:10px;background:rgba(245,158,11,.15);color:#d97706;padding:2px 7px;border-radius:50px;font-weight:800;">⏸ 정지중</span>':''}</div>
-        <div class="rc-sub">👤 ${esc(memNames||'없음')} · 멤버 ${memCount}명 · 메시지 ${msgCount}개${suspended?` · ${susLabel}까지 정지`:''}</div>
+        <div class="rc-name"><span style="font-size:10px;font-weight:900;color:${typeColor};background:${typeBg};padding:2px 7px;border-radius:50px;margin-right:5px;">${isGroup?'단톡':'1대1'}</span>${isDup?`<span style="font-size:10px;font-weight:900;color:#fff;background:${dupColor};padding:2px 7px;border-radius:50px;margin-right:5px;">#${ord}</span>`:''}${esc(title)}${suspended?' <span style="font-size:10px;background:rgba(245,158,11,.15);color:#d97706;padding:2px 7px;border-radius:50px;font-weight:800;">⏸ 정지중</span>':''}</div>
+        <div class="rc-sub">👑 방장 ${esc(owner)} · 참여 ${esc(memSummary)} · 멤버 ${memCount}명 · 메시지 ${msgCount}개${suspended?` · ${susLabel}까지 정지`:''}</div>
       </div>
       ${suspended
         ? `<button class="rc-watch" style="background:rgba(124,58,237,.1)" onclick="unsuspendRoomAdmin('${r.id}',${jsArg(r.name||'')})">▶️ 정지해제</button>`

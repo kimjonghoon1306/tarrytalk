@@ -822,6 +822,13 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
     <div class="rs-drag"></div>
     <div class="rs-head"><div class="rs-title" id="rs-title">채팅방 설정</div><div class="rs-x" onclick="closeRoomSettings()">✕</div></div>
     <div class="rs-body">
+      <div class="rs-sec" id="rs-rename-sec" style="display:none;">
+        <div class="rs-sec-title">방 이름</div>
+        <div style="display:flex;gap:7px;">
+          <input id="rs-name-inp" class="rn-inp" style="flex:1;padding:10px 12px;font-size:13px;" placeholder="단톡방 이름" maxlength="80">
+          <button onclick="renameRoom()" style="padding:0 16px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap;">수정</button>
+        </div>
+      </div>
       <div class="rs-sec"><div class="rs-sec-title">멤버 관리</div><div id="rs-members"></div></div>
       <div class="rs-sec" id="rs-invite-sec" style="display:none;">
         <button class="create-btn" type="button" onclick="toggleInviteMembers()" style="margin-bottom:10px;">＋ 멤버 초대</button>
@@ -2559,7 +2566,23 @@ window.openRoomSettings=function(){
   const suspended=isRoomSuspended(room);
   document.getElementById('rs-suspend-btn').style.display=(canManage&&!suspended)?'':'none';
   document.getElementById('rs-unsuspend-btn').style.display=(canManage&&suspended)?'':'none';
+  // 단톡방 이름 수정(방장·관리자만, 단톡방만)
+  const canRename=canManage&&room.type==='group';
+  document.getElementById('rs-rename-sec').style.display=canRename?'':'none';
+  if(canRename)document.getElementById('rs-name-inp').value=room.name||'';
   document.getElementById('rs-overlay').classList.add('show');
+};
+window.renameRoom=async function(){
+  if(!curRoom||!sess)return;
+  const room=currentRoom();if(!room||!canManageRoom(room)){showToast('권한이 없습니다','warn');return;}
+  const name=document.getElementById('rs-name-inp').value.trim();
+  if(!name){showToast('방 이름을 입력하세요','info');return;}
+  if(name===room.name){showToast('이름이 같아요','info');return;}
+  try{
+    await update(ref(db,`rooms/${curRoom}`),{name});
+    await set(push(ref(db,`messages/${curRoom}`)),{uid:'system',displayName:'system',text:`✏️ 방 이름이 "${name}"(으)로 변경되었습니다`,type:'system',at:Date.now()});
+    showToast('✏️ 방 이름을 수정했어요','ok');
+  }catch(e){showToast('수정 실패','err');}
 };
 window.leaveRoom=async function(){
   if(!curRoom||!sess)return;
