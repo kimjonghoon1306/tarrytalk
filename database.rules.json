@@ -106,6 +106,12 @@
               ".write": "auth != null && auth.uid === $uid && root.child('rooms').child($roomId).child('members').child(auth.uid).exists()",
               ".validate": "newData.isBoolean() || !newData.exists()"
             }
+          },
+          "rsvp": {
+            "$uid": {
+              ".write": "auth != null && auth.uid === $uid && root.child('rooms').child($roomId).child('members').child(auth.uid).exists()",
+              ".validate": "newData.val() === 'yes' || newData.val() === 'no' || !newData.exists()"
+            }
           }
         }
       }

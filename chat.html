@@ -593,7 +593,14 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
       <div class="store-scroll" id="lib-list"><div class="store-empty">불러오는 중…</div></div>
     </div>
   </div>
-  <div id="sp-schedule" style="display:none;" class="placeholder-tab"><div class="pt-icon">📅</div><h3>스케줄러</h3><p>팀 일정을 공유하고<br>함께 관리하세요</p><span class="coming-badge">Coming Soon</span></div>
+  <div id="sp-schedule" style="display:none;flex-direction:column;flex:1;min-height:0;">
+    <div id="sched-remind-box"></div>
+    <div class="store-chips" id="sched-chips">
+      <span class="store-chip on" data-sf="upcoming" onclick="setSchedFilter('upcoming')">📌 다가오는</span>
+      <span class="store-chip" data-sf="past" onclick="setSchedFilter('past')">지난 일정</span>
+    </div>
+    <div class="store-scroll" id="sched-list"><div class="store-empty">불러오는 중…</div></div>
+  </div>
   <div class="sb-foot">
     <a href="#" class="fb" onclick="doLogout(event)">🚪 로그아웃</a>
     <a href="admin.html" class="fb" id="admin-link" style="display:none">⚙️ 관리</a>
@@ -1178,6 +1185,84 @@ function renderLibrary(){
     const open=isFile?`href="${esc(it.data)}" download="${escAttr(it.fileName||it.title)}"`:(it.url?`href="${esc(it.url)}" target="_blank" rel="noopener"`:'href="#" onclick="return false"');
     return `<a class="store-row" ${open}><div class="sr-ico">${ico}</div><div class="sr-body"><div class="sr-title">${esc(it.title)}</div><div class="sr-sub">${esc(it.memo||it.fileName||it.url||'')}</div></div>${sess?.isAdmin?`<span onclick="event.preventDefault();event.stopPropagation();deleteLibraryItem('${it.id}')" style="font-size:14px;color:var(--text3);padding:4px">✕</span>`:''}</a>`;
   }).join('');
+}
+/* ── 일정 허브 (모아보기 + 출석체크 + 알림) ── */
+let schedFilter='upcoming',schedItems=[],_schedRemindShown=false;
+function openScheduleHub(){loadScheduleHub();}
+window.setSchedFilter=function(f){schedFilter=f;document.querySelectorAll('#sched-chips .store-chip').forEach(c=>c.classList.toggle('on',c.dataset.sf===f));renderScheduleHub();};
+function schedDateValue(m){
+  if(!m.scheduleDate)return null;
+  const t=(m.scheduleTime&&/^\d{1,2}:\d{2}/.test(m.scheduleTime))?m.scheduleTime:'23:59';
+  const d=new Date(m.scheduleDate+'T'+t);
+  return isNaN(d.getTime())?(isNaN(new Date(m.scheduleDate).getTime())?null:new Date(m.scheduleDate).getTime()):d.getTime();
+}
+function ddayLabel(ms){
+  if(ms==null)return '날짜 미정';
+  const today=new Date();today.setHours(0,0,0,0);
+  const target=new Date(ms);target.setHours(0,0,0,0);
+  const diff=Math.round((target.getTime()-today.getTime())/DAY);
+  if(diff===0)return '오늘';if(diff===1)return '내일';if(diff>1)return 'D-'+diff;if(diff===-1)return '어제';return Math.abs(diff)+'일 전';
+}
+async function loadScheduleHub(){
+  const el=document.getElementById('sched-list');
+  if(!sess||isGuest){el.innerHTML='<div class="store-empty">로그인 후 이용할 수 있어요</div>';return;}
+  el.innerHTML='<div class="store-empty">불러오는 중…</div>';
+  const rooms=(window._rooms||[]).slice();const items=[];
+  for(const room of rooms){
+    try{
+      const snap=await get(query(ref(db,`messages/${room.id}`),orderByChild('at'),limitToLast(400)));
+      const data=snap.val()||{};const roomName=roomTitle(room);
+      Object.entries(data).forEach(([id,m])=>{if(!m||m.deleted||m.type!=='schedule')return;items.push({id,roomId:room.id,roomName,scheduleTitle:m.scheduleTitle,scheduleDate:m.scheduleDate,scheduleTime:m.scheduleTime,schedulePlace:m.schedulePlace,scheduleMemo:m.scheduleMemo,rsvp:m.rsvp||null});});
+    }catch(e){}
+  }
+  schedItems=items;renderScheduleHub();renderSchedRemind();
+}
+function renderScheduleHub(){
+  const el=document.getElementById('sched-list');if(!el)return;const now=Date.now();const cut=now-12*60*60*1000;
+  const list=schedItems.map(m=>({...m,_ms:schedDateValue(m)}));
+  const upcoming=list.filter(m=>m._ms==null||m._ms>=cut).sort((a,b)=>(a._ms==null?Infinity:a._ms)-(b._ms==null?Infinity:b._ms));
+  const past=list.filter(m=>m._ms!=null&&m._ms<cut).sort((a,b)=>(b._ms||0)-(a._ms||0));
+  const show=schedFilter==='past'?past:upcoming;
+  if(!show.length){el.innerHTML='<div class="store-empty">'+(schedFilter==='past'?'지난 일정이 없어요.':'다가오는 일정이 없어요.<br>채팅방에서 📅 버튼으로<br>일정을 공유해 보세요.')+'</div>';return;}
+  el.innerHTML=show.map(renderSchedCard).join('');
+}
+function renderSchedCard(m){
+  const dlabel=m.scheduleDate?new Date(m.scheduleDate).toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'}):'날짜 미정';
+  const past=m._ms!=null&&m._ms<Date.now()-12*60*60*1000;
+  const my=sess&&m.rsvp?m.rsvp[sess.uid]:null;
+  const yes=m.rsvp?Object.values(m.rsvp).filter(v=>v==='yes').length:0;
+  const no=m.rsvp?Object.values(m.rsvp).filter(v=>v==='no').length:0;
+  return `<div class="sched-hub-item${past?' past':''}">
+    <div class="shi-top" onclick="goToRoomFromHub('${m.roomId}')">
+      <span class="shi-dday">${esc(ddayLabel(m._ms))}</span>
+      <div class="shi-title">${esc(m.scheduleTitle||'일정')}</div>
+      <div class="shi-meta">📅 ${esc(dlabel)}${m.scheduleTime?' · '+esc(m.scheduleTime):''}${m.schedulePlace?' · 📍'+esc(m.schedulePlace):''}</div>
+      <div class="shi-meta">💬 ${esc(m.roomName)}</div>
+    </div>
+    ${past?'':`<div class="shi-rsvp">
+      <button class="yes${my==='yes'?' on':''}" onclick="setScheduleRSVP('${m.roomId}','${m.id}','yes')">참석${yes?' '+yes:''}</button>
+      <button class="no${my==='no'?' on':''}" onclick="setScheduleRSVP('${m.roomId}','${m.id}','no')">불참${no?' '+no:''}</button>
+    </div>`}
+  </div>`;
+}
+window.goToRoomFromHub=function(roomId){if(window._rooms?.some(r=>r.id===roomId)){closeSb?.();openRoom(roomId);}};
+window.setScheduleRSVP=async function(roomId,msgId,val){
+  if(!sess||isGuest)return;
+  const cur=schedItems.find(s=>s.id===msgId&&s.roomId===roomId);
+  const had=cur&&cur.rsvp?cur.rsvp[sess.uid]:null;
+  const next=had===val?null:val;
+  try{
+    await set(ref(db,`messages/${roomId}/${msgId}/rsvp/${sess.uid}`),next);
+    if(cur){cur.rsvp=cur.rsvp||{};if(next)cur.rsvp[sess.uid]=next;else delete cur.rsvp[sess.uid];}
+    renderScheduleHub();
+  }catch(e){showToast('출석 체크는 관리자 설정 적용 후 가능해요','warn');}
+};
+function renderSchedRemind(){
+  const box=document.getElementById('sched-remind-box');if(!box)return;
+  const soon=schedItems.map(m=>({...m,_ms:schedDateValue(m)})).filter(m=>m._ms!=null).filter(m=>{const dd=ddayLabel(m._ms);return dd==='오늘'||dd==='내일';}).sort((a,b)=>a._ms-b._ms);
+  if(!soon.length){box.innerHTML='';return;}
+  box.innerHTML='<div class="sched-remind">🔔 다가오는 일정<br>'+soon.slice(0,4).map(m=>`<div style="margin-top:4px">· <b>${esc(ddayLabel(m._ms))}</b> ${esc(m.scheduleTitle||'일정')}${m.scheduleTime?' '+esc(m.scheduleTime):''}</div>`).join('')+'</div>';
+  if(!_schedRemindShown){_schedRemindShown=true;showToast('🔔 다가오는 일정 '+soon.length+'건이 있어요','info');}
 }
 function listenPopupNotice(){
   onValue(ref(db,'popup'),snap=>{
