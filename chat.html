@@ -1315,16 +1315,27 @@ window.closePopupNotice=function(){
   }
   document.getElementById('popup-overlay').classList.remove('show');
 };
+let monitorRoom=null; // 관리자 시크릿 모니터링 중인(멤버 아닌) 방 — _rooms 유지용
 function loadRooms(){
-  const roomsRef=sess?.isAdmin
-    ? ref(db,'rooms')
-    : query(ref(db,'rooms'),orderByChild(`members/${sess.uid}`),equalTo(true));
+  // 관리자 본인 채팅 목록도 '자신이 속한 방'만 본다(관리자 고유 채팅엔 남의 채팅이 보이면 안 됨).
+  // 남의 방 관전은 admin 패널 👁 모니터링(chat.html?room=ID)으로만 진입 → 시크릿 관전.
+  const roomsRef=query(ref(db,'rooms'),orderByChild(`members/${sess.uid}`),equalTo(true));
   onValue(roomsRef,snap=>{
     window._rooms=[];const data=snap.val()||{};
-    Object.entries(data).forEach(([id,v])=>{if(!v)return;if(!sess||v.members?.[sess.uid]||sess.isAdmin||isGuest)window._rooms.push({id,...v});});
+    Object.entries(data).forEach(([id,v])=>{if(!v)return;if(v.members?.[sess.uid])window._rooms.push({id,...v});});
+    // 모니터링 중인 방은 멤버가 아니어도 _rooms에 유지(관전 화면 유지)
+    if(monitorRoom&&!window._rooms.some(r=>r.id===monitorRoom.id))window._rooms.push(monitorRoom);
     renderRooms(document.getElementById('search-inp').value);
     if(curRoom&&curRoom!=='onbot'&&curRoom!=='announce')renderPinnedBanner(currentRoom());
-    if(initialRoomId&&window._rooms.some(r=>r.id===initialRoomId)){const id=initialRoomId;initialRoomId='';openRoom(id);}
+    if(initialRoomId){
+      const id=initialRoomId;
+      if(window._rooms.some(r=>r.id===id)){initialRoomId='';openRoom(id);}
+      else if(sess?.isAdmin){
+        // 관리자 모니터링: 멤버가 아닌 방을 직접 불러와 시크릿 관전
+        initialRoomId='';
+        get(ref(db,`rooms/${id}`)).then(s=>{const r=s.val();if(!r)return;monitorRoom={id,...r};window._rooms.push(monitorRoom);renderRooms(document.getElementById('search-inp').value);openRoom(id);}).catch(()=>{});
+      }
+    }
   });
 }
 function getDmPeer(room){

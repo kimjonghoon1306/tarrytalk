@@ -756,12 +756,17 @@ function renderRooms() {
   el.innerHTML = rooms.map(r=>{
     const msgCount = Object.keys(allMsgs[r.id]||{}).length;
     const memCount = Object.keys(r.members||{}).length;
+    const suspended = r.suspendedUntil && r.suspendedUntil > Date.now();
+    const susLabel = suspended ? new Date(r.suspendedUntil).toLocaleString('ko-KR',{month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
     return`<div class="room-card">
       <div class="rc-av">${r.emoji||'💬'}</div>
       <div style="flex:1;min-width:0;">
-        <div class="rc-name">${esc(r.name)}</div>
-        <div class="rc-sub">${r.type==='group'?'단체채팅':'1대1'} · 멤버 ${memCount}명 · 메시지 ${msgCount}개</div>
+        <div class="rc-name">${esc(r.name)}${suspended?' <span style="font-size:10px;background:rgba(245,158,11,.15);color:#d97706;padding:2px 7px;border-radius:50px;font-weight:800;">⏸ 정지중</span>':''}</div>
+        <div class="rc-sub">${r.type==='group'?'단체채팅':'1대1'} · 멤버 ${memCount}명 · 메시지 ${msgCount}개${suspended?` · ${susLabel}까지 정지`:''}</div>
       </div>
+      ${suspended
+        ? `<button class="rc-watch" style="background:rgba(124,58,237,.1)" onclick="unsuspendRoomAdmin('${r.id}',${jsArg(r.name||'')})">▶️ 정지해제</button>`
+        : `<button class="rc-watch" style="background:rgba(245,158,11,.12);color:#d97706;border-color:rgba(245,158,11,.35)" onclick="suspendRoomAdmin('${r.id}',${jsArg(r.name||'')})">⏸ 정지</button>`}
       <button class="rc-watch" onclick="watchRoom('${r.id}')">👁 모니터링</button>
       <button class="rc-del" onclick="confirmDeleteRoom('${r.id}',${jsArg(r.name||'')})">삭제</button>
     </div>`;
@@ -1157,6 +1162,27 @@ window.toggleManager = function(uid, name, enable) {
 window.watchRoom = function(id){
   // 관리자 시크릿 모니터링: 해당 방을 채팅화면에서 흔적없이 관전 + 제재 가능
   location.href = 'chat.html?room=' + encodeURIComponent(id);
+};
+window.suspendRoomAdmin = async function(id, name){
+  // 카톡식 채팅방 정지: 기간(일) 설정 → suspendedUntil 저장 → 기간 지나면 자동 해제. 정지 중엔 회원이 글 못 보냄(관리자 예외).
+  const days = prompt(`"${name}" 채팅방을 며칠간 정지할까요?\n(예: 7 = 7일 정지, 일주일 뒤 자동 해제 / 정지 중에는 회원이 글을 보낼 수 없습니다)`, '7');
+  if(days===null) return;
+  const n = parseInt(days,10);
+  if(!n || n<1){ showToast('1 이상 숫자를 입력하세요','info'); return; }
+  const until = Date.now() + n*24*60*60*1000;
+  try{
+    await update(ref(db,`rooms/${id}`), { suspendedUntil: until });
+    await set(push(ref(db,`messages/${id}`)), { uid:'system', displayName:'system', text:`⏸ 관리자가 채팅방을 ${n}일간 정지했습니다`, type:'system', at:Date.now() });
+    showToast(`⏸ "${name}" 채팅방을 ${n}일간 정지했습니다`,'ok');
+  }catch(e){ showToast('정지 실패','err'); }
+};
+window.unsuspendRoomAdmin = async function(id, name){
+  if(!confirm(`"${name}" 채팅방 정지를 지금 해제할까요?`)) return;
+  try{
+    await remove(ref(db,`rooms/${id}/suspendedUntil`));
+    await set(push(ref(db,`messages/${id}`)), { uid:'system', displayName:'system', text:`▶️ 관리자가 채팅방 정지를 해제했습니다`, type:'system', at:Date.now() });
+    showToast(`▶️ "${name}" 정지를 해제했습니다`,'ok');
+  }catch(e){ showToast('해제 실패','err'); }
 };
 window.confirmDeleteRoom = function(id, name) {
   pendingAction = async () => {
