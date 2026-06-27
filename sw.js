@@ -1,4 +1,4 @@
-/* build:1782526000 */
+/* build:1782527000 */
 /* ═══════════════════════════════════════════════
    온메신저 Service Worker v1.2
    - 오프라인 캐싱
@@ -6,7 +6,7 @@
    - 네트워크 전략: Cache First (정적) + Network First (API)
 ═══════════════════════════════════════════════ */
 
-const CACHE_NAME = 'tarrytalk-v9.4';
+const CACHE_NAME = 'tarrytalk-v9.5';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

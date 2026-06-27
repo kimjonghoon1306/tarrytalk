@@ -523,6 +523,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .popup-head{padding:20px 22px;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;display:flex;align-items:flex-start;gap:12px;}
 .popup-ico{font-size:28px;line-height:1;}
 .popup-title{font-size:18px;font-weight:900;line-height:1.35;flex:1;}
+.popup-img{width:100%;display:block;max-height:360px;object-fit:cover;background:var(--surface2);}
 .popup-body{padding:20px 22px;color:var(--text2);font-size:14px;line-height:1.8;white-space:pre-wrap;}
 .ng-body{white-space:normal;}
 .ng-step{margin-bottom:11px;text-align:left;word-break:keep-all;}
@@ -879,6 +880,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 <div class="popup-overlay" id="popup-overlay">
   <div class="popup-card">
     <div class="popup-head"><div class="popup-ico">📢</div><div class="popup-title" id="popup-title"></div></div>
+    <img id="popup-img" class="popup-img" alt="" style="display:none">
     <div class="popup-body" id="popup-body"></div>
     <div class="popup-foot">
       <label class="popup-check"><input type="checkbox" id="popup-today"> 오늘 하루 보지 않기</label>
@@ -1317,6 +1319,8 @@ function maybeShowPopupNotice(){
   if(hiddenUntil&&Number(hiddenUntil)>Date.now())return;
   document.getElementById('popup-title').textContent=popupNotice.title||'공지';
   document.getElementById('popup-body').textContent=popupNotice.body||'';
+  const pImg=document.getElementById('popup-img');
+  if(popupNotice.imageData){pImg.src=popupNotice.imageData;pImg.style.display='block';}else{pImg.removeAttribute('src');pImg.style.display='none';}
   document.getElementById('popup-today').checked=false;
   document.getElementById('popup-overlay').classList.add('show');
 }

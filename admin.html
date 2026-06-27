@@ -558,6 +558,14 @@ tr:hover td{background:rgba(124,58,237,.04);}
           <label class="admin-label">내용</label>
           <textarea class="notice-area" id="popup-body-inp" placeholder="회원 접속 시 팝업으로 보여줄 내용"></textarea>
         </div>
+        <div>
+          <label class="admin-label">이미지 (선택)</label>
+          <div class="ad-file-row">
+            <input class="admin-input" type="file" id="popup-img-inp" accept="image/*" onchange="onPopupImageSelected(event)">
+            <img class="ad-img-preview" id="popup-img-preview" alt="미리보기" style="display:none">
+          </div>
+          <div class="ad-help">팝업 상단에 표시돼요. 권장 4MB 이하. <button type="button" class="small-btn" onclick="clearPopupImage()" style="margin-left:6px;">이미지 제거</button></div>
+        </div>
       </div>
       <button class="notice-send-btn" onclick="savePopup()">💾 팝업 저장</button>
       <div class="preview-box">
@@ -1070,6 +1078,9 @@ window.toggleWelcomeActive = async function() {
 function renderPopupForm() {
   document.getElementById('popup-title-inp').value = popupData.title || '';
   document.getElementById('popup-body-inp').value = popupData.body || '';
+  popupImageData = popupData.imageData || '';
+  const p = document.getElementById('popup-img-preview');
+  if(popupImageData){ p.src = popupImageData; p.style.display=''; } else { p.style.display='none'; p.removeAttribute('src'); }
   renderPopupPreview();
   const btn = document.getElementById('popup-active-btn');
   btn.textContent = popupData.active ? '활성' : '비활성';
@@ -1089,12 +1100,21 @@ async function sendPushToUsers(targetUids,title,body,url){
 function allPushTargetUids(){
   return Object.entries(allUsers||{}).filter(([,u])=>u&&u.disabled!==true).map(([uid])=>uid);
 }
+let popupImageData = '';
+window.onPopupImageSelected = function(e){
+  const f = e.target.files?.[0]; if(!f) return;
+  if(f.size > 4*1024*1024){ showToast('이미지는 4MB 이하만 가능합니다','info'); e.target.value=''; return; }
+  const r = new FileReader();
+  r.onload = ev => { popupImageData = ev.target.result; const p=document.getElementById('popup-img-preview'); p.src=popupImageData; p.style.display=''; };
+  r.readAsDataURL(f);
+};
+window.clearPopupImage = function(){ popupImageData=''; const p=document.getElementById('popup-img-preview'); p.style.display='none'; p.removeAttribute('src'); const i=document.getElementById('popup-img-inp'); if(i)i.value=''; showToast('이미지를 제거했습니다','ok'); };
 window.savePopup = async function() {
   const title = document.getElementById('popup-title-inp').value.trim();
   const body = document.getElementById('popup-body-inp').value.trim();
   if(!title||!body){showToast('제목과 내용을 입력하세요','info');return;}
   const active=popupData.active===true;
-  await set(ref(db,'popup'),{title,body,active,updatedAt:Date.now()});
+  await set(ref(db,'popup'),{title,body,imageData:popupImageData||'',active,updatedAt:Date.now()});
   if(active){
     const summary=(title||body).slice(0,60);
     sendPushToUsers(allPushTargetUids(),'📢 공지',summary,'/').catch(()=>{});
