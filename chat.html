@@ -1114,11 +1114,18 @@ window.setStoreView=function(v){
   if(v==='lib')loadLibrary();
 };
 window.setStoreFilter=function(f){storeFilter=f;document.querySelectorAll('#store-chips .store-chip').forEach(c=>c.classList.toggle('on',c.dataset.f===f));renderStoreGrid();};
+// 관리자는 모든 방의 자료/일정을 스캔(오버사이트), 일반 회원은 자신이 속한 방만
+async function roomsToScan(){
+  if(sess?.isAdmin){
+    try{const s=await get(ref(db,'rooms'));const d=s.val()||{};return Object.entries(d).map(([id,v])=>({id,...v}));}catch(e){}
+  }
+  return (window._rooms||[]).slice();
+}
 async function loadStorageMedia(){
   const grid=document.getElementById('store-grid');
   if(!sess||isGuest){grid.innerHTML='<div class="store-empty">로그인 후 이용할 수 있어요</div>';return;}
   grid.innerHTML='<div class="store-empty">불러오는 중…</div>';
-  const rooms=(window._rooms||[]).slice();const now=Date.now();const items=[];
+  const rooms=await roomsToScan();const now=Date.now();const items=[];
   for(const room of rooms){
     try{
       const snap=await get(query(ref(db,`messages/${room.id}`),orderByChild('at'),limitToLast(500)));
@@ -1231,7 +1238,7 @@ async function loadScheduleHub(){
   const el=document.getElementById('sched-list');
   if(!sess||isGuest){el.innerHTML='<div class="store-empty">로그인 후 이용할 수 있어요</div>';return;}
   el.innerHTML='<div class="store-empty">불러오는 중…</div>';
-  const rooms=(window._rooms||[]).slice();const items=[];
+  const rooms=await roomsToScan();const items=[];
   for(const room of rooms){
     try{
       const snap=await get(query(ref(db,`messages/${room.id}`),orderByChild('at'),limitToLast(400)));
