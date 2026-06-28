@@ -110,6 +110,18 @@ module.exports = async (req, res) => {
     }));
 
     const tokens = [...tokenOwners.keys()];
+
+    // [임시 진단] 발송 호출 로그 — 메시지 1개당 send-push가 몇 번 호출되는지 실측. 확인 후 제거.
+    try {
+      await db.ref('_pushlog').push({
+        at: Date.now(),
+        by: decoded.uid,
+        targets: uniqueTargetUids,
+        tokenCount: tokens.length,
+        title: String(title || '').slice(0, 40),
+      });
+    } catch (e) {}
+
     if (!tokens.length) return res.status(200).json({ ok: true, sent: 0, failed: 0 });
 
     let sent = 0;

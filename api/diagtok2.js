@@ -17,6 +17,17 @@ module.exports = async (req, res) => {
     const db = admin.database();
     const do_ = q.do || 'dump';
 
+    if (do_ === 'pushlog') {
+      const ls = await db.ref('_pushlog').get();
+      const log = ls.val() || {};
+      const entries = Object.values(log).sort((a, b) => (a.at || 0) - (b.at || 0));
+      return res.status(200).json({ ok: true, action: 'pushlog', count: entries.length, entries });
+    }
+    if (do_ === 'clearlog') {
+      await db.ref('_pushlog').remove();
+      return res.status(200).json({ ok: true, action: 'clearlog' });
+    }
+
     const snap = await db.ref('users').get();
     const users = snap.val() || {};
     const report = {};
