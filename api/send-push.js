@@ -82,11 +82,28 @@ module.exports = async (req, res) => {
     }
 
     const tokenOwners = new Map();
+    const staleTokensBySentToken = new Map();
 
     await Promise.all(uniqueTargetUids.map(async uid => {
       const snap = await db.ref(`users/${uid}/fcmTokens`).get();
-      const tokens = snap.val() || {};
-      Object.keys(tokens).forEach(token => {
+      const storedTokens = snap.val() || {};
+      const selectedByDevice = new Map();
+
+      Object.entries(storedTokens).forEach(([token, deviceId]) => {
+        const normalizedDeviceId = typeof deviceId === 'string' ? deviceId.trim() : '';
+        const deviceKey = normalizedDeviceId ? `device:${normalizedDeviceId}` : `token:${token}`;
+        const selectedToken = selectedByDevice.get(deviceKey);
+
+        if (!selectedToken) {
+          selectedByDevice.set(deviceKey, token);
+          return;
+        }
+
+        if (!staleTokensBySentToken.has(selectedToken)) staleTokensBySentToken.set(selectedToken, []);
+        staleTokensBySentToken.get(selectedToken).push({ uid, token });
+      });
+
+      selectedByDevice.forEach(token => {
         if (!tokenOwners.has(token)) tokenOwners.set(token, new Set());
         tokenOwners.get(token).add(uid);
       });
@@ -125,8 +142,13 @@ module.exports = async (req, res) => {
       sent += result.successCount;
       failed += result.failureCount;
       result.responses.forEach((r, i) => {
-        if (r.success || !invalidToken(r.error?.code)) return;
         const token = batch[i];
+        if (r.success) {
+          const staleTokens = staleTokensBySentToken.get(token) || [];
+          staleTokens.forEach(item => removals.push(db.ref(`users/${item.uid}/fcmTokens/${item.token}`).remove()));
+          return;
+        }
+        if (!invalidToken(r.error?.code)) return;
         const owners = tokenOwners.get(token) || new Set();
         owners.forEach(uid => removals.push(db.ref(`users/${uid}/fcmTokens/${token}`).remove()));
       });

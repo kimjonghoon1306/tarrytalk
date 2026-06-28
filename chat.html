@@ -1486,15 +1486,13 @@ async function initPushNotifications(){
   const messaging=getMessaging(app);
   const token=await getToken(messaging,{vapidKey:VAPID_KEY,serviceWorkerRegistration:reg});
   if(token){
-    // 디바이스 고유 ID(브라우저 인스턴스별, 계정 무관). 같은 기기가 과거 남긴 옛 토큰을 확실히 제거해 '기기당 토큰 1개'를 보장→푸시 중복 방지.
+    // 이 서비스는 사용자당 1기기 사용을 전제로 하므로, 과거 토큰을 모두 제거해 유저당 현재 토큰 1개만 유지한다.
     let deviceId=localStorage.getItem('tt_device_id');
     if(!deviceId){deviceId=(self.crypto&&crypto.randomUUID?crypto.randomUUID():'d'+Date.now()+Math.random().toString(36).slice(2));localStorage.setItem('tt_device_id',deviceId);}
     try{
       const cur=(await get(ref(db,`users/${sess.uid}/fcmTokens`))).val()||{};
-      await Promise.all(Object.entries(cur).map(([t,v])=>(t!==token&&v===deviceId)?remove(ref(db,`users/${sess.uid}/fcmTokens/${t}`)).catch(()=>{}):null));
+      await Promise.all(Object.keys(cur).map(t=>t!==token?remove(ref(db,`users/${sess.uid}/fcmTokens/${t}`)).catch(()=>{}):null));
     }catch(e){}
-    const prevToken=localStorage.getItem(`tt_fcm_token_${sess.uid}`)||'';
-    if(prevToken&&prevToken!==token)remove(ref(db,`users/${sess.uid}/fcmTokens/${prevToken}`)).catch(()=>{});
     await set(ref(db,`users/${sess.uid}/fcmTokens/${token}`),deviceId);
     localStorage.setItem(`tt_fcm_token_${sess.uid}`,token);
   }
