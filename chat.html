@@ -985,6 +985,13 @@ const urlP=new URLSearchParams(location.search);
 isGuest=urlP.get('guest')==='1'||sessionStorage.getItem('tt_guest')==='1';
 let initialRoomId=urlP.get('room')||'';
 initIntro();
+function updateAppBadge(total=0){
+  try{
+    if(!('setAppBadge'in navigator))return;
+    const p=total>0?navigator.setAppBadge(total):navigator.clearAppBadge();
+    p?.catch?.(()=>{});
+  }catch(e){}
+}
 onAuthStateChanged(auth,async user=>{
   if(user){
     isGuest=false;sessionStorage.removeItem('tt_guest');
@@ -998,7 +1005,7 @@ onAuthStateChanged(auth,async user=>{
     initUI();
     initPushNotifications().catch(()=>{});
     handleInviteRef().catch(()=>{});
-  }else if(isGuest){initUI();}else{location.href='index.html';}
+  }else if(isGuest){updateAppBadge(0);initUI();}else{updateAppBadge(0);location.href='index.html';}
 });
 async function ensureUserProfile(user,profile){
   const email=user.email||profile.email||'';
@@ -1030,7 +1037,7 @@ function initUI(){
     listenPopupNotice();
     listenWelcome();
   }else{document.getElementById('uc-name').textContent='게스트';document.getElementById('uc-role').textContent='👀 둘러보기';document.getElementById('new-btn').style.display='none';}
-  if(sess)loadRooms();else{window._rooms=[];renderRooms('');}
+  if(sess)loadRooms();else{window._rooms=[];updateAppBadge(0);renderRooms('');}
   setupScrollDetect();
   document.addEventListener('click',e=>{if(!document.getElementById('reaction-picker').contains(e.target)){document.getElementById('reaction-picker').classList.remove('show');reactionTarget=null;}});
 }
@@ -1405,6 +1412,8 @@ function loadRooms(){
   onValue(roomsRef,snap=>{
     window._rooms=[];const data=snap.val()||{};
     Object.entries(data).forEach(([id,v])=>{if(!v)return;if(v.members?.[sess.uid])window._rooms.push({id,...v});});
+    const totalUnread=window._rooms.reduce((sum,r)=>sum+Math.max(0,Number(r.unread?.[sess.uid])||0),0);
+    updateAppBadge(totalUnread);
     // 모니터링 중인 방은 멤버가 아니어도 _rooms에 유지(관전 화면 유지)
     if(monitorRoom&&!window._rooms.some(r=>r.id===monitorRoom.id))window._rooms.push(monitorRoom);
     renderRooms(document.getElementById('search-inp').value);
@@ -2742,7 +2751,7 @@ window.openInvite=function(){invLink=location.origin+'/'+(sess?'?ref='+sess.uid:
 window.closeInvite=()=>document.getElementById('inv-overlay').classList.remove('show');
 window.copyInvLink=function(){navigator.clipboard.writeText(invLink).catch(()=>{const t=document.createElement('textarea');t.value=invLink;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);});showToast('🔗 링크 복사됨!','ok');};
 window.nativeShare=function(){if(navigator.share)navigator.share({title:'온메신저 초대',text:'온메신저에서 함께 채팅해요!',url:invLink}).then(()=>closeInvite()).catch(()=>{});else copyInvLink();};
-window.doLogout=async function(e){if(e)e.preventDefault();if(isGuest){sessionStorage.removeItem('tt_guest');location.href='index.html';return;}if(sess){await set(ref(db,`users/${sess.uid}/online`),false);if(typingTimer)sendTypingSignal(false);}await signOut(auth);location.href='index.html';};
+window.doLogout=async function(e){if(e)e.preventDefault();updateAppBadge(0);if(isGuest){sessionStorage.removeItem('tt_guest');location.href='index.html';return;}if(sess){await set(ref(db,`users/${sess.uid}/online`),false);if(typingTimer)sendTypingSignal(false);}await signOut(auth);location.href='index.html';};
 window.openSb=()=>{document.getElementById('sidebar').classList.add('open');document.getElementById('drawer-bg').classList.add('show');};
 window.closeSb=()=>{document.getElementById('sidebar').classList.remove('open');document.getElementById('drawer-bg').classList.remove('show');};
 window.addEmoji=emoji=>{const inp=document.getElementById('m-inp');inp.value+=emoji;inp.focus();autoResize(inp);};

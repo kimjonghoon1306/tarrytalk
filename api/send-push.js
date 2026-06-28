@@ -132,7 +132,8 @@ module.exports = async (req, res) => {
           notification: {
             icon: '/icon-192.png',
             badge: '/icon-192.png',
-            tag: roomTag,
+            tag: `${roomTag}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+            renotify: true,
             data: { url: link },
           },
           fcmOptions: { link },
