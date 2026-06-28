@@ -31,7 +31,7 @@
         "fcmTokens": {
           ".write": "auth != null && auth.uid === $uid",
           "$token": {
-            ".validate": "auth != null && auth.uid === $uid && (newData.val() === true || !newData.exists())"
+            ".validate": "auth != null && auth.uid === $uid && (newData.val() === true || (newData.isString() && newData.val().length <= 100) || !newData.exists())"
           }
         }
       }
