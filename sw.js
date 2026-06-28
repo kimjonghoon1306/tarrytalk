@@ -6,7 +6,7 @@
    - 네트워크 전략: Cache First (정적) + Network First (API)
 ═══════════════════════════════════════════════ */
 
-const CACHE_NAME = 'tarrytalk-v11.7';
+const CACHE_NAME = 'tarrytalk-v11.8';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -83,28 +83,9 @@ self.addEventListener('fetch', event => {
   );
 });
 
-/* ── 푸시 알림 수신 ── */
-self.addEventListener('push', event => {
-  if (!event.data) return;
-  let data;
-  try { data = event.data.json(); }
-  catch { data = { title: '온메신저', body: event.data.text() }; }
-
-  event.waitUntil(
-    self.registration.showNotification(data.title || '온메신저', {
-      body: data.body || '새 메시지가 있습니다',
-      icon: '/icon-192.png',
-      badge: '/icon-192.png',
-      tag: data.roomId || 'tarrytalk',
-      data: { url: data.url || '/chat.html' },
-      vibrate: [200, 100, 200],
-      actions: [
-        { action: 'open', title: '열기' },
-        { action: 'dismiss', title: '닫기' }
-      ]
-    })
-  );
-});
+/* ── 푸시 알림 수신 ──
+   ⚠️ 알림 표시는 FCM 전용 SW(firebase-messaging-sw.js)가 notification 페이로드로 1개만 표시한다.
+   여기서 push를 또 받아 showNotification 하면 알림이 2개씩 중복되므로 이 핸들러는 두지 않는다. */
 
 /* ── 알림 클릭 ── */
 self.addEventListener('notificationclick', event => {

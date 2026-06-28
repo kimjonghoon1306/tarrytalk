@@ -1526,13 +1526,15 @@ function canManageRoom(room){
   return !!(sess&&room&&(room.createdBy===sess.uid||sess.isAdmin));
 }
 function isFriend(uid){return !!(sess&&(sess.friends&&sess.friends[uid]||allUsers[uid]?.invitedBy===sess.uid||uid===sess.invitedBy));}
-window.addFriend=async function(uid){if(!sess||!uid||uid===sess.uid)return;await set(ref(db,`users/${sess.uid}/friends/${uid}`),true);showToast('👥 친구로 추가했습니다','ok');renderUserCard(uid);};
+window.addFriend=async function(uid){if(!sess||!uid||uid===sess.uid)return;if(allUsers[uid]?.isAdmin){showToast('관리자는 친구로 추가할 수 없습니다','warn');return;}const now=Date.now();await set(ref(db,`users/${sess.uid}/friends/${uid}`),now);sess.friends=sess.friends||{};sess.friends[uid]=now;showToast('👥 친구로 추가했습니다','ok');renderUserCard(uid);};
 window.removeFriend=async function(uid){if(!sess||!uid)return;await remove(ref(db,`users/${sess.uid}/friends/${uid}`));showToast('친구에서 삭제했습니다','ok');renderUserCard(uid);};
 window.addFriendInSearch=async function(uid,name){
   if(!sess||!uid||uid===sess.uid)return;
+  if(allUsers[uid]?.isAdmin){showToast('관리자는 친구로 추가할 수 없습니다','warn');return;}
   try{
-    await set(ref(db,`users/${sess.uid}/friends/${uid}`),true);
-    sess.friends=sess.friends||{};sess.friends[uid]=true;
+    const now=Date.now();
+    await set(ref(db,`users/${sess.uid}/friends/${uid}`),now);
+    sess.friends=sess.friends||{};sess.friends[uid]=now;
     showToast(`👥 ${name||'친구'}님을 친구로 추가했어요`,'ok');
     renderMembers(document.getElementById('ms-inp')?.value||'');
   }catch(e){showToast('친구 추가 실패','err');}
@@ -1547,10 +1549,14 @@ function renderUserCard(uid){
   document.getElementById('uc-card-name').textContent=u.displayName||'알 수 없음';
   document.getElementById('uc-card-email').textContent=u.email||'';
   document.getElementById('uc-card-status').textContent=u.online?'● 온라인':'○ 오프라인';
+  const isTargetAdmin=u.isAdmin===true;
+  const since=sess?.friends?.[uid];
+  const sinceTxt=(typeof since==='number'&&since>0)?`👥 친구 추가일 · ${new Date(since).toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'})}`:'';
   document.getElementById('uc-card-actions').innerHTML=
-    `<button class="uc-act" onclick="startChatWithFriend('${uid}',${jsArg(u.displayName||'')});closeUserCard();">💬 1:1 채팅</button>`+
-    (fr?`<button class="uc-act danger" onclick="removeFriend('${uid}')"><span class="uc-pm">－</span> 친구 삭제</button>`
-       :`<button class="uc-act primary" onclick="addFriend('${uid}')"><span class="uc-pm">＋</span> 친구 추가</button>`);
+    (fr&&sinceTxt?`<div style="font-size:12px;color:var(--text3);font-weight:700;text-align:center;margin-bottom:4px;">${sinceTxt}</div>`:'')+
+    `<button class="uc-act" onclick="startChatWithFriend('${uid}',${jsArg(u.displayName||'')});closeUserCard();">💬 1:1 채팅 시작</button>`+
+    (isTargetAdmin?'':(fr?`<button class="uc-act danger" onclick="removeFriend('${uid}')"><span class="uc-pm">－</span> 친구 삭제</button>`
+       :`<button class="uc-act primary" onclick="addFriend('${uid}')"><span class="uc-pm">＋</span> 친구 추가</button>`));
 }
 function canPinRoom(room){
   // 공지 고정/해제: 채팅방 멤버 누구나(카톡처럼) 또는 관리자
@@ -1668,13 +1674,14 @@ window.renderFriends=function(filter=''){
   // 친구 = 친구추가했거나 초대로 연결된 회원 (관리자는 전체)
   let friends=Object.entries(allUsers).filter(([uid,v])=>{
     if(uid===sess.uid||!v||v.disabled)return false;
+    if(v.isAdmin)return false; // 관리자는 친구 목록에 노출하지 않음
     if(sess.isAdmin)return true;
     return isFriend(uid);
   }).map(([uid,v])=>({uid,name:v.displayName||uid,email:v.email||'',online:v.online||false,color:v.avatarColor||avatarColor(v.displayName||uid)}));
   if(filter){const q=filter.toLowerCase();friends=friends.filter(u=>u.name.toLowerCase().includes(q)||u.email.toLowerCase().includes(q));}
   friends.sort((a,b)=>(b.online-a.online)||a.name.localeCompare(b.name));
   if(!friends.length){list.innerHTML=`<div class="empty-rooms"><div class="ei">👥</div><p>친구가 없어요\n👋 친구 초대하기로 추가하세요</p></div>`;return;}
-  list.innerHTML=friends.map(u=>`<div class="r-item" onclick="startChatWithFriend('${u.uid}',${jsArg(u.name)})"><div class="r-av" style="background:${u.color}">${esc(u.name[0]||'?').toUpperCase()}</div><div style="flex:1;min-width:0;"><div class="r-name">${esc(u.name)}${u.online?' <span style="color:var(--green);font-size:10px;">●</span>':''}</div><div class="r-prev">${esc(u.email)}</div></div></div>`).join('');
+  list.innerHTML=friends.map(u=>`<div class="r-item" onclick="openUserCard('${u.uid}')"><div class="r-av" style="background:${u.color}">${esc(u.name[0]||'?').toUpperCase()}</div><div style="flex:1;min-width:0;"><div class="r-name">${esc(u.name)}${u.online?' <span style="color:var(--green);font-size:10px;">●</span>':''}</div><div class="r-prev">${esc(u.email)}</div></div></div>`).join('');
 };
 window.startChatWithFriend=async function(uid,name){
   if(!sess)return;
@@ -2707,7 +2714,10 @@ window.inviteMember=async function(uid){if(!curRoom||!sess)return;const room=(wi
   await set(push(ref(db,`messages/${curRoom}`)),{uid:'system',displayName:'system',text:`${name}님이 초대되었습니다`,type:'system',at:Date.now()});
   showToast(`＋ ${name}님을 초대했습니다`,'ok');renderInviteMembers(document.getElementById('rs-invite-search').value);refreshRoomHeader();};
 window.kickMember=async function(uid,name){if(!curRoom||!sess)return;await remove(ref(db,`rooms/${curRoom}/members/${uid}`));await set(push(ref(db,`messages/${curRoom}`)),{uid:'system',displayName:'system',text:`${name}님이 내보내졌습니다`,type:'system',at:Date.now()});closeRoomSettings();openRoom(curRoom);showToast(`👋 ${name}님을 내보냈습니다`,'ok');};
-window.doDeleteRoom=async function(){if(!curRoom||!sess)return;await remove(ref(db,`rooms/${curRoom}`));await remove(ref(db,`messages/${curRoom}`));await remove(ref(db,`typing/${curRoom}`));curRoom=null;closeRoomSettings();document.getElementById('messages').style.display='none';document.getElementById('input-wrap').style.display='none';document.getElementById('chat-empty').style.display='flex';document.getElementById('tb-logo').style.display='';document.getElementById('tb-av').style.display='none';document.getElementById('tb-info').style.display='none';document.getElementById('secret-badge').classList.remove('show');hidePinnedBanner();document.getElementById('tb-onbot-close').style.display='none';document.getElementById('tb-settings').style.display='none';document.getElementById('tb-search-btn').style.display='none';renderHeroAd();renderAdBanner();renderRooms();showToast('🗑️ 채팅방이 삭제됐습니다','ok');};
+window.doDeleteRoom=async function(){if(!curRoom||!sess)return;if(!confirm('채팅방을 삭제하시겠습니까?\n모든 대화 내용이 사라지며 되돌릴 수 없습니다.'))return;const rid=curRoom;try{await remove(ref(db,`rooms/${rid}`));}catch(e){showToast('삭제 권한이 없습니다 (방장·관리자만 가능)','warn');return;}
+  // 방은 삭제 완료. 메시지·타이핑은 남의 메시지 권한으로 막힐 수 있으니 best-effort(실패 무시) — 방이 없으면 접근 불가하며 cleanup이 정리한다.
+  remove(ref(db,`messages/${rid}`)).catch(()=>{});remove(ref(db,`typing/${rid}`)).catch(()=>{});
+  curRoom=null;closeRoomSettings();document.getElementById('messages').style.display='none';document.getElementById('input-wrap').style.display='none';document.getElementById('chat-empty').style.display='flex';document.getElementById('tb-logo').style.display='';document.getElementById('tb-av').style.display='none';document.getElementById('tb-info').style.display='none';document.getElementById('secret-badge').classList.remove('show');hidePinnedBanner();document.getElementById('tb-onbot-close').style.display='none';document.getElementById('tb-settings').style.display='none';document.getElementById('tb-search-btn').style.display='none';renderHeroAd();renderAdBanner();renderRooms();showToast('🗑️ 채팅방이 삭제됐습니다','ok');};
 window.openSchedule=function(){if(!curRoom||!sess){showToast('채팅방을 먼저 선택하세요','warn');return;}document.getElementById('sch-date').value=new Date().toISOString().split('T')[0];['sch-title','sch-time','sch-place','sch-memo'].forEach(id=>document.getElementById(id).value='');document.getElementById('sch-overlay').classList.add('show');};
 window.closeSchedule=()=>document.getElementById('sch-overlay').classList.remove('show');
 window.sendSchedule=async function(){
