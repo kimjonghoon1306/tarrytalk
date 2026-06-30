@@ -28,9 +28,10 @@ messaging.onBackgroundMessage(payload => {
   return self.registration.showNotification(title, {
     body: d.body || '새 알림이 있습니다',
     icon: d.icon || '/icon-192.png',   // 알림 본문 큰 아이콘(풀컬러)
-    badge: d.badge || '/badge-on-96.png', // 상태바 작은 아이콘(흰색 ON 이니셜)
+    badge: d.badge || '/badge-on2-96.png', // 상태바 작은 아이콘(흰색 ON 이니셜)
     tag: d.tag || ('tarrytalk-' + Date.now()),
     renotify: true,
+    vibrate: [200, 100, 200], // 백그라운드 알림 진동(소리는 OS 알림설정을 따름)
     data: { url: d.url || '/chat.html' },
   });
 });

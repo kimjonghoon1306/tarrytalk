@@ -1442,6 +1442,20 @@ function roomTitle(room){
   return '1대1 채팅';
 }
 let _audioCtx=null;
+// 모바일 브라우저는 사용자 제스처 전엔 오디오를 막는다(AudioContext suspended) → 알림음이 안 울림.
+// 첫 터치/클릭 때 컨텍스트를 미리 깨워두면(무음 버퍼 1회 재생) 이후 playNotifySound가 정상 재생된다.
+function _unlockAudio(){
+  try{
+    _audioCtx=_audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+    if(_audioCtx.state==='suspended')_audioCtx.resume();
+    const b=_audioCtx.createBuffer(1,1,22050),s=_audioCtx.createBufferSource();
+    s.buffer=b;s.connect(_audioCtx.destination);s.start(0);
+  }catch(e){}
+  document.removeEventListener('touchend',_unlockAudio);
+  document.removeEventListener('click',_unlockAudio);
+}
+document.addEventListener('touchend',_unlockAudio);
+document.addEventListener('click',_unlockAudio);
 function playNotifySound(){
   try{
     _audioCtx=_audioCtx||new (window.AudioContext||window.webkitAudioContext)();
