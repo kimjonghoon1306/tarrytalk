@@ -131,7 +131,7 @@ module.exports = async (req, res) => {
         webpush: {
           notification: {
             icon: '/icon-192.png',
-            badge: '/icon-192.png',
+            badge: '/badge-96.png',
             tag: `${roomTag}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
             renotify: true,
             data: { url: link },
