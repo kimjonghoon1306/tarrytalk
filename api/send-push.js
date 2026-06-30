@@ -117,7 +117,7 @@ module.exports = async (req, res) => {
     const removals = [];
     const link = toAbsoluteUrl(req, url || '/');
     const icon = toAbsoluteUrl(req, '/icon-192.png');
-    const badge = toAbsoluteUrl(req, '/badge-96.png');
+    const badge = toAbsoluteUrl(req, '/badge-on-96.png');
     const roomTag = roomIdFromUrl(url) || 'tarrytalk';
     const safeTitle = String(title || '온메신저').slice(0, 80);
     const safeBody = String(body || '새 알림이 있습니다').slice(0, 180);
@@ -136,9 +136,8 @@ module.exports = async (req, res) => {
           badge,
           tag: `${roomTag}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
         },
-        webpush: {
-          fcmOptions: { link },
-        },
+        // webpush.fcmOptions.link 제거: data-only인데 link가 있으면 FCM이 알림을 추가 생성할 수 있음.
+        // 클릭 시 이동은 SW의 notificationclick이 data.url로 처리한다.
       });
 
       sent += result.successCount;

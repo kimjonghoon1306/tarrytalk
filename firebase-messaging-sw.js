@@ -23,10 +23,12 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage(payload => {
   const d = (payload && payload.data) || {};
   const title = d.title || '온메신저';
-  self.registration.showNotification(title, {
+  // ⚠️ 반드시 Promise를 return 해야 한다. 안 하면 FCM SDK가 push 이벤트를 끝내버려
+  //    크롬이 "이 사이트가 백그라운드에서 업데이트되었습니다" 기본 알림을 추가로 띄운다.
+  return self.registration.showNotification(title, {
     body: d.body || '새 알림이 있습니다',
     icon: d.icon || '/icon-192.png',   // 알림 본문 큰 아이콘(풀컬러)
-    badge: d.badge || '/badge-96.png', // 상태바 작은 아이콘(흰색 말풍선 실루엣)
+    badge: d.badge || '/badge-on-96.png', // 상태바 작은 아이콘(흰색 ON 이니셜)
     tag: d.tag || ('tarrytalk-' + Date.now()),
     renotify: true,
     data: { url: d.url || '/chat.html' },
