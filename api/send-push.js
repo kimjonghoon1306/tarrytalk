@@ -119,23 +119,24 @@ module.exports = async (req, res) => {
     const icon = toAbsoluteUrl(req, '/icon-192.png');
     const badge = toAbsoluteUrl(req, '/badge-96.png');
     const roomTag = roomIdFromUrl(url) || 'tarrytalk';
+    const safeTitle = String(title || '온메신저').slice(0, 80);
+    const safeBody = String(body || '새 알림이 있습니다').slice(0, 180);
 
     for (const batch of chunk(tokens, MAX_TOKENS)) {
+      // data-only 메시지: notification 페이로드를 보내지 않아 FCM 자동표시를 끈다.
+      // 알림 표시는 firebase-messaging-sw.js의 onBackgroundMessage가 직접 showNotification으로 1회만 한다.
+      // → 아이콘/배지(상태바 흰네모 문제)를 우리가 완전히 제어하고, 자동표시가 없으므로 중복도 발생하지 않는다.
       const result = await admin.messaging().sendEachForMulticast({
         tokens: batch,
         data: {
+          title: safeTitle,
+          body: safeBody,
           url: link,
+          icon,
+          badge,
+          tag: `${roomTag}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
         },
         webpush: {
-          notification: {
-            title: String(title || '온메신저').slice(0, 80),
-            body: String(body || '새 알림이 있습니다').slice(0, 180),
-            icon,
-            badge,
-            tag: `${roomTag}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-            renotify: true,
-            data: { url: link },
-          },
           fcmOptions: { link },
         },
       });
