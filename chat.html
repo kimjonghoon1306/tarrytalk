@@ -2870,28 +2870,45 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 <script>
 // Service Worker 등록 (PWA) + 자동 업데이트
 if ('serviceWorker' in navigator) {
+  let _swReg = null;
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js', {updateViaCache:'none'}).then(reg => {
+      _swReg = reg;
       reg.update();
-      // 새 버전 감지 → 대기 SW 즉시 활성화
+      // 이미 대기 중인 새 버전이 있으면 안내
+      if (reg.waiting && navigator.serviceWorker.controller) showUpdateBanner();
+      // 새 버전 설치 완료 → 자동 적용 대신 사용자에게 "업데이트" 팝업을 띄운다(채팅 중 갑작스런 새로고침 방지)
       reg.addEventListener('updatefound', () => {
         const nw = reg.installing;
         if (!nw) return;
         nw.addEventListener('statechange', () => {
-          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
-            nw.postMessage && reg.waiting && reg.waiting.postMessage({type:'SKIP_WAITING'});
-          }
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) showUpdateBanner();
         });
       });
       // 포커스 돌아올 때마다 업데이트 체크 (홈화면 앱 최신 유지)
       document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update(); });
     }).catch(err => console.log('SW registration failed:', err));
-    // 새 SW가 제어권 잡으면 자동 새로고침(한 번만)
+    // 사용자가 "지금 업데이트"를 누르면 새 SW가 제어권을 잡고 자동 새로고침(한 번만)
     let _reloaded = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (_reloaded) return; _reloaded = true; location.reload();
     });
   });
+  function showUpdateBanner(){
+    if (document.getElementById('update-banner')) return;
+    const el = document.createElement('div');
+    el.id = 'update-banner';
+    el.style.cssText = 'position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:3000;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;padding:11px 16px 11px 20px;border-radius:50px;box-shadow:0 10px 30px rgba(124,58,237,.45);display:flex;align-items:center;gap:12px;font-weight:800;font-size:14px;';
+    el.innerHTML = '🆕 새 버전이 나왔어요 <button id="update-btn" style="background:#fff;color:#7c3aed;border:none;border-radius:50px;padding:7px 15px;font-weight:800;cursor:pointer;font-size:13px;">지금 업데이트</button>';
+    document.body.appendChild(el);
+    document.getElementById('update-btn').onclick = doUpdate;
+  }
+  function doUpdate(){
+    const btn = document.getElementById('update-btn');
+    if (btn){ btn.textContent = '업데이트 중...'; btn.disabled = true; }
+    if (_swReg && _swReg.waiting) _swReg.waiting.postMessage({type:'SKIP_WAITING'});
+    else location.reload();
+  }
 }
 // SW 메시지 수신 (알림 클릭 → 해당 방 이동)
 if ('serviceWorker' in navigator) {

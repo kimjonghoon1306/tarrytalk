@@ -1,12 +1,12 @@
-/* build:1782793087 */
+/* build:1782793480 */
 /* ═══════════════════════════════════════════════
-   온메신저 Service Worker v11.22
+   온메신저 Service Worker v11.23
    - 오프라인 캐싱
    - 백그라운드 푸시 알림
    - 네트워크 전략: Cache First (정적) + Network First (API)
 ═══════════════════════════════════════════════ */
 
-const CACHE_NAME = 'tarrytalk-v11.22';
+const CACHE_NAME = 'tarrytalk-v11.23';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -30,7 +30,9 @@ self.addEventListener('install', event => {
       return Promise.allSettled(
         STATIC_ASSETS.map(url => cache.add(url).catch(() => {}))
       );
-    }).then(() => self.skipWaiting())
+    })
+    // self.skipWaiting()을 자동 호출하지 않는다 → 새 버전은 대기 상태로 두고,
+    // 사용자가 "지금 업데이트" 팝업을 누를 때만 SKIP_WAITING 메시지로 활성화한다.
   );
 });
 
