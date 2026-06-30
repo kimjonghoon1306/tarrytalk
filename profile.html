@@ -293,6 +293,12 @@ onAuthStateChanged(auth, async user=>{
   userProfile=snap.val()||{};
   renderProfile();
   loadStats();
+  // 알림음: Firebase 값을 기기에 동기화 + 다른 기기 변경 실시간 반영
+  onValue(ref(db,`users/${user.uid}/notifySound`),snap=>{
+    const v=snap.val();
+    if(v)localStorage.setItem('tt_notify_sound',v);
+    renderSounds();
+  });
   document.getElementById('loading-overlay').classList.add('hide');
 });
 
@@ -324,7 +330,11 @@ function renderSounds(){
       ${k==='none'?'':`<button class="secondary-btn" style="width:auto;padding:7px 14px;font-size:13px" onclick="event.stopPropagation();previewSound('${k}')">▶ 듣기</button>`}
     </div>`).join('');
 }
-window.selectSound=function(k){localStorage.setItem('tt_notify_sound',k);renderSounds();_playSound(k);showToast('🔔 알림음이 저장됐어요','ok');};
+window.selectSound=function(k){
+  localStorage.setItem('tt_notify_sound',k);
+  if(currentUser)update(ref(db,`users/${currentUser.uid}`),{notifySound:k}).catch(()=>{});
+  renderSounds();_playSound(k);showToast('🔔 알림음이 저장됐어요','ok');
+};
 window.previewSound=function(k){_playSound(k);};
 renderSounds();
 

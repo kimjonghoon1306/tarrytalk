@@ -798,8 +798,12 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
       <div class="ng-step"><b>4.</b> 설치되면 홈 화면(바탕화면)에 <b>온메신저 앱(보라색 ON 아이콘)</b>이 생겨요. 그 앱으로 여세요.</div>
       <div class="ng-step"><b>5.</b> 로그인 후 <b>알림 허용</b> 누르기</div>
       <div class="ng-step"><b>6.</b> 폰 <b>설정 → 애플리케이션 → 온메신저 → 배터리 → 제한 없음</b><br><span class="ng-sub">꺼져 있어도 알림이 바로 오게 해줘요</span></div>
-      <div style="font-weight:900;color:var(--green);margin:16px 0 8px;">💻 PC</div>
-      <div class="ng-step">아래 <b>"알림 켜기"</b> 버튼 → <b>허용</b><br><span class="ng-sub">(브라우저 탭이 열려 있을 때 알림+소리)</span></div>
+      <div style="font-weight:900;color:var(--green);margin:16px 0 8px;">💻 PC (윈도우·맥) — 앱 설치</div>
+      <div class="ng-step"><b>1.</b> <b>크롬·엣지</b>로 <b>talk.온종일.com</b> 접속</div>
+      <div class="ng-step"><b>2.</b> 주소창 <b>맨 오른쪽 끝의 설치 아이콘</b>(⊕ 또는 모니터에 ↓ 모양) 클릭<br><span class="ng-sub">안 보이면 <b>⋮ 메뉴 → "온메신저 설치..."</b></span></div>
+      <div class="ng-step"><b>3.</b> <b>"설치"</b>를 누르면 앱 창으로 떠요 (독·작업표시줄에 추가)</div>
+      <div class="ng-step"><b>4.</b> <b>알림 허용</b> + 화면을 한 번 클릭<br><span class="ng-sub">설치하면 다른 창을 봐도, 앱을 닫아도 알림과 소리가 와요</span></div>
+      <div class="ng-step">🍎 <b>맥 사파리</b>는 상단 <b>공유 버튼 → 독에 추가</b></div>
     </div>
     <div class="popup-foot" style="flex-direction:column;gap:8px;">
       <button class="popup-close" style="width:100%;" onclick="requestNotifyPermission()">🔔 이 기기에서 알림 켜기</button>
@@ -1004,6 +1008,7 @@ onAuthStateChanged(auth,async user=>{
     onDisconnect(ref(db,`users/${user.uid}/lastSeen`)).set(serverTimestamp());
     initUI();
     initPushNotifications().catch(()=>{});
+    syncNotifySound(user.uid);
     handleInviteRef().catch(()=>{});
   }else if(isGuest){updateAppBadge(0);initUI();}else{updateAppBadge(0);location.href='index.html';}
 });
@@ -1472,6 +1477,16 @@ function playNotifySound(){
     const ctx=_audioCtx;if(ctx.state==='suspended')ctx.resume();
     (NOTIFY_SOUNDS[key]||NOTIFY_SOUNDS.tok).play(ctx,ctx.currentTime);
   }catch(e){}
+}
+// 알림음 설정을 Firebase에서 실시간 구독 → 다른 기기(PC↔모바일)에서 바꾸면 즉시 이 기기에도 반영.
+let _notifySoundUnsub=null;
+function syncNotifySound(uid){
+  if(!uid)return;
+  try{_notifySoundUnsub&&_notifySoundUnsub();}catch(e){}
+  _notifySoundUnsub=onValue(ref(db,`users/${uid}/notifySound`),snap=>{
+    const v=snap.val();
+    if(v&&NOTIFY_SOUNDS[v])localStorage.setItem('tt_notify_sound',v);
+  });
 }
 window.openNotifyGuide=function(){
   const st=document.getElementById('notify-status');
@@ -2266,6 +2281,8 @@ function onbotAnswer(q){
   if(has('온봇 어디','온봇 위치','온봇 버튼','도우미 어디','너 어디','챗봇 어디'))return '저는 화면 오른쪽 아래 둥근 보라색 버튼이에요 🤖 둥둥 떠 있는 그 버튼을 누르면 언제든 저를 부를 수 있어요. 궁금한 기능을 편하게 물어보세요!';
   if(has('사진','이미지','파일','영상','다운로드','라이트박스'))return "사진은 📷, 문서는 📎, 영상은 🎥 버튼으로 보낼 수 있어요. 이미지 메시지를 누르면 크게 보는 라이트박스가 열리고, 파일과 이미지는 다운로드 버튼으로 받을 수 있습니다. 일반 회원의 사진·영상·파일은 2주 후 자동 삭제되고, 관리자는 중요한 미디어에 메시지의 '📌 보관'을 눌러 영구 보관할 수 있어요(누르지 않으면 2주 후 삭제). 텍스트와 일정은 계속 남아요.";
   if(has('이모지','반응','답장','수정','삭제'))return '입력창 아래 😊 이모지 버튼을 누르면 카톡처럼 표정·손짓·하트·축하·동물·음식·활동·기호 카테고리로 골라 넣을 수 있어요. 그리고 메시지를 우클릭(모바일은 길게 누르기)하면 😊 반응, ↩ 답장, ✏️ 수정, 🗑 삭제를 쓸 수 있어요. 내 글은 10분 안에 수정 가능해요.';
+  if(has('알림음','알림 소리','소리 설정','벨소리','톡톡','알림소리'))return '🔔 알림음은 프로필에서 바꿀 수 있어요. 오른쪽 위 👤 프로필 → "알림음"에서 톡톡·딩동·물방울·차임·무음 중에 고르고 ▶로 미리 들어보세요. 고른 소리는 PC·모바일에 실시간으로 같이 적용돼요. (앱을 켜둔 동안 울리는 소리예요. 앱을 닫았을 때 나는 소리는 휴대폰 알림 설정을 따라요)';
+  if(has('설치','앱 설치','데스크탑','컴퓨터에 설치','홈 화면','pc 설치','피씨'))return '💻 PC(윈도우·맥): 크롬·엣지로 talk.온종일.com 접속 → 주소창 오른쪽 끝 설치 아이콘(⊕) 또는 ⋮ 메뉴 → "온메신저 설치". 맥 사파리는 공유 → 독에 추가.\n📱 갤럭시: 크롬으로 접속 → ⋮ → 홈 화면에 추가 → "앱 설치"(바로가기 X). 설치하면 앱을 닫아도 알림·소리가 와요. 자세한 그림 안내는 🔔 "알림 켜기" 배너를 눌러보세요.';
   if(has('프로필','내 정보','가입일','친구 수','내 프로필'))return '왼쪽 위 내 이름을 누르면 프로필이 열려요. 거기서 이름·프로필 색을 바꾸고, 친구 수·참여 중인 채팅방·가입일을 볼 수 있어요.';
   if(has('검색','읽음','안읽음','입력중','입력 중'))return '상단 🔍로 현재 방 메시지를 검색할 수 있어요. 사이드바에는 안읽음 배지가 표시되고, 내가 보낸 메시지에는 ✓✓가 보입니다. 상대가 입력 중이면 하단에 입력중 표시가 잠깐 나타나요.';
   if(has('공지','팝업','광고','배너'))return admin

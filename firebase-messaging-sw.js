@@ -31,6 +31,7 @@ messaging.onBackgroundMessage(payload => {
     badge: d.badge || '/badge-on2-96.png', // 상태바 작은 아이콘(흰색 ON 이니셜)
     tag: d.tag || ('tarrytalk-' + Date.now()),
     renotify: true,
+    silent: false, // 무음 방지(소리/진동 OS 알림설정을 따르되 명시적으로 켬)
     vibrate: [200, 100, 200], // 백그라운드 알림 진동(소리는 OS 알림설정을 따름)
     data: { url: d.url || '/chat.html' },
   });
