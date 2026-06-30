@@ -1,12 +1,12 @@
-/* build:1782787710 */
+/* build:1782788301 */
 /* ═══════════════════════════════════════════════
-   온메신저 Service Worker v11.12
+   온메신저 Service Worker v11.13
    - 오프라인 캐싱
    - 백그라운드 푸시 알림
    - 네트워크 전략: Cache First (정적) + Network First (API)
 ═══════════════════════════════════════════════ */
 
-const CACHE_NAME = 'tarrytalk-v11.12';
+const CACHE_NAME = 'tarrytalk-v11.13';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

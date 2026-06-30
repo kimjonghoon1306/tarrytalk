@@ -116,22 +116,22 @@ module.exports = async (req, res) => {
     let failed = 0;
     const removals = [];
     const link = toAbsoluteUrl(req, url || '/');
+    const icon = toAbsoluteUrl(req, '/icon-192.png');
+    const badge = toAbsoluteUrl(req, '/badge-96.png');
     const roomTag = roomIdFromUrl(url) || 'tarrytalk';
 
     for (const batch of chunk(tokens, MAX_TOKENS)) {
       const result = await admin.messaging().sendEachForMulticast({
         tokens: batch,
-        notification: {
-          title: String(title || '온메신저').slice(0, 80),
-          body: String(body || '새 알림이 있습니다').slice(0, 180),
-        },
         data: {
           url: link,
         },
         webpush: {
           notification: {
-            icon: '/icon-192.png',
-            badge: '/badge-96.png',
+            title: String(title || '온메신저').slice(0, 80),
+            body: String(body || '새 알림이 있습니다').slice(0, 180),
+            icon,
+            badge,
             tag: `${roomTag}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
             renotify: true,
             data: { url: link },
