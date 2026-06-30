@@ -20,15 +20,21 @@ self.addEventListener('activate', event => event.waitUntil(self.clients.claim())
 // 따라서 아래 onBackgroundMessage에서 우리가 직접 1회만 표시한다(아이콘/배지 완전 제어, 중복 없음).
 const messaging = firebase.messaging();
 
-messaging.onBackgroundMessage(payload => {
+messaging.onBackgroundMessage(async payload => {
   const d = (payload && payload.data) || {};
   const title = d.title || '온메신저';
+  // 앱(창)이 살아 있으면(PC 최소화 등) 클라이언트에 알림음 재생을 요청한다 → 창을 내려도 톡톡이 울림.
+  // (모바일은 백그라운드에서 JS가 멈추므로 이 신호 대신 아래 시스템 알림 소리가 울린다.)
+  try{
+    const cs = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    cs.forEach(c => c.postMessage({ type: 'PLAY_SOUND' }));
+  }catch(e){}
   // ⚠️ 반드시 Promise를 return 해야 한다. 안 하면 FCM SDK가 push 이벤트를 끝내버려
   //    크롬이 "이 사이트가 백그라운드에서 업데이트되었습니다" 기본 알림을 추가로 띄운다.
   return self.registration.showNotification(title, {
     body: d.body || '새 알림이 있습니다',
     icon: d.icon || '/icon-192.png',   // 알림 본문 큰 아이콘(풀컬러)
-    badge: d.badge || '/badge-on2-96.png', // 상태바 작은 아이콘(흰색 ON 이니셜)
+    badge: d.badge || '/badge-on3-96.png', // 상태바 작은 아이콘(흰색 ON 이니셜)
     tag: d.tag || ('tarrytalk-' + Date.now()),
     renotify: true,
     silent: false, // 무음 방지(소리/진동 OS 알림설정을 따르되 명시적으로 켬)

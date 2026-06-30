@@ -117,7 +117,7 @@ module.exports = async (req, res) => {
     const removals = [];
     const link = toAbsoluteUrl(req, url || '/');
     const icon = toAbsoluteUrl(req, '/icon-192.png');
-    const badge = toAbsoluteUrl(req, '/badge-on2-96.png');
+    const badge = toAbsoluteUrl(req, '/badge-on3-96.png');
     const roomTag = roomIdFromUrl(url) || 'tarrytalk';
     const safeTitle = String(title || '온메신저').slice(0, 80);
     const safeBody = String(body || '새 알림이 있습니다').slice(0, 180);

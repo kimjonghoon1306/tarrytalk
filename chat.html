@@ -2899,6 +2899,10 @@ if ('serviceWorker' in navigator) {
     if (e.data?.type === 'NOTIFICATION_CLICK' && e.data.url) {
       location.href = e.data.url;
     }
+    // 앱이 백그라운드(최소화 등)일 때 서비스워커가 알림음 재생을 요청 → PC에서 창을 내려도 톡톡이 울린다.
+    if (e.data?.type === 'PLAY_SOUND' && typeof playNotifySound === 'function') {
+      playNotifySound();
+    }
   });
 }
 </script>
