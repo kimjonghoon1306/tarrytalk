@@ -1527,9 +1527,11 @@ async function initPushNotifications(){
       const n=payload.notification||{};
       const title=n.title||payload.data?.title||'새 알림';
       const body=n.body||payload.data?.body||'온메신저 알림이 도착했습니다';
+      // 앱(탭)이 살아 있으면 onMessage가 호출된다. 탭을 직접 보고 있지 않아도(다른 탭/최소화)
+      // 설정한 알림음은 울려야 하므로 visibilityState와 무관하게 재생한다. 토스트는 보고 있을 때만.
+      playNotifySound();
       if(document.visibilityState==='visible'){
         showToast(`${title} · ${body}`,'info');
-        playNotifySound();
       }
     });
     pushReady=true;
