@@ -11,6 +11,11 @@ firebase.initializeApp({
   appId: '1:322779846377:web:12253ee2f2330dd1a04278'
 });
 
+// 새 서비스워커를 즉시 활성화한다. 이게 없으면 옛 SW가 계속 푸시를 처리해 onBackgroundMessage가
+// 반영되지 않고, 크롬이 "이 사이트가 백그라운드에서 업데이트되었습니다"라는 기본 알림(종 아이콘)을 띄운다.
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
+
 // 서버(send-push.js)는 notification 없이 data-only 메시지를 보낸다 → FCM 자동표시가 일어나지 않는다.
 // 따라서 아래 onBackgroundMessage에서 우리가 직접 1회만 표시한다(아이콘/배지 완전 제어, 중복 없음).
 const messaging = firebase.messaging();
