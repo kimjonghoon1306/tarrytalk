@@ -811,6 +811,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
       <div class="ng-step"><b>3.</b> 독에 생긴 앱으로 열고 <b>알림 허용</b></div>
     </div>
     <div class="popup-foot" style="flex-direction:column;gap:8px;">
+      <button id="install-app-btn" class="popup-close" style="width:100%;display:none;background:linear-gradient(135deg,#22c55e,#16a34a);" onclick="installApp()">📲 지금 앱 설치</button>
       <button class="popup-close" style="width:100%;" onclick="requestNotifyPermission()">🔔 이 기기에서 알림 켜기</button>
       <button class="popup-close" style="width:100%;background:var(--surface);color:var(--text2);" onclick="closeNotifyGuide()">닫기</button>
     </div>
@@ -1500,9 +1501,26 @@ window.openNotifyGuide=function(){
   else if(perm==='denied')st.innerHTML='⛔ 알림이 <b>차단</b>됨. 브라우저 주소창 자물쇠 → 알림 → 허용으로 바꿔주세요.';
   else if(perm==='unsupported')st.innerHTML='⚠️ 이 브라우저는 알림 미지원. 크롬/삼성인터넷을 쓰세요.';
   else st.innerHTML='🔔 아직 알림이 꺼져 있어요. 아래 버튼을 눌러 켜세요.';
+  // 설치 가능한 상태(크롬이 설치 프롬프트를 제공 + 아직 앱으로 안 열림)면 "지금 앱 설치" 버튼 노출
+  const ib=document.getElementById('install-app-btn');
+  if(ib){
+    const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+    ib.style.display=(_deferredPrompt&&!standalone)?'block':'none';
+  }
   document.getElementById('notify-overlay').classList.add('show');
 };
 window.closeNotifyGuide=function(){document.getElementById('notify-overlay').classList.remove('show');};
+// PWA 설치 프롬프트: 크롬은 자동 배너를 한 번만 띄우므로, 이벤트를 가로채 두었다가 우리 버튼으로 직접 띄운다.
+let _deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();_deferredPrompt=e;});
+window.addEventListener('appinstalled',()=>{_deferredPrompt=null;const b=document.getElementById('install-app-btn');if(b)b.style.display='none';showToast('📲 앱이 설치됐어요!','ok');});
+window.installApp=async function(){
+  if(!_deferredPrompt){showToast('크롬 ⋮ 메뉴 → "앱 설치"(또는 홈 화면에 추가)를 눌러주세요','info');return;}
+  _deferredPrompt.prompt();
+  try{await _deferredPrompt.userChoice;}catch(e){}
+  _deferredPrompt=null;
+  const b=document.getElementById('install-app-btn');if(b)b.style.display='none';
+};
 window.requestNotifyPermission=async function(){
   if(!('Notification'in window)){showToast('이 브라우저는 알림을 지원하지 않아요','warn');return;}
   try{
