@@ -442,6 +442,9 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .theme-sw:active .theme-prev{transform:scale(.94);}
 .theme-sw.on .theme-prev{border-color:var(--green);box-shadow:0 4px 14px var(--glow);}
 .theme-nm{font-size:10px;color:var(--text2);margin-top:4px;font-weight:700;}
+/* 메시지 번역 박스 */
+.tr-box{margin-top:5px;padding:8px 11px;background:var(--surface);border:1px dashed var(--border2);border-radius:11px;font-size:13px;line-height:1.45;color:var(--text);max-width:100%;word-break:break-word;animation:menuPop .16s ease both;}
+.tr-lbl{font-size:10px;font-weight:800;color:var(--green);margin-bottom:3px;letter-spacing:.3px;}
 .mute-notice{display:none;margin:8px 12px 0;padding:9px 12px;border-radius:12px;border:1px solid rgba(255,79,106,.22);background:var(--red-bg);color:var(--red);font-size:12px;font-weight:800;line-height:1.5;}
 .mute-notice.show{display:block;}
 .reply-bar{display:none;align-items:center;gap:8px;padding:7px 14px;background:var(--surface);border-bottom:1px solid var(--border);}
@@ -2185,6 +2188,7 @@ function menuCapabilities(m){
   const mine=sess&&m.uid===sess.uid;
   return {
     copy:m.type==='text'&&!!m.text,
+    translate:m.type==='text'&&!!m.text&&!m.deleted,
     forward:!!sess&&!isGuest&&!m.expired&&!['system','deleted'].includes(m.type),
     reply:!!sess&&!isGuest,
     react:!!sess&&!isGuest,
@@ -2202,6 +2206,7 @@ window.showMsgMenu=function(msgId,x,y){
   const c=menuCapabilities(m);
   const items=[
     c.copy&&['복사','📋','copyMsgText'],
+    c.translate&&['번역','🌐','contextTranslate'],
     c.forward&&['전달','↗','openForwardModal'],
     c.reply&&['답장','↩','contextReply'],
     c.react&&['반응','😊','contextReact'],
@@ -2225,6 +2230,21 @@ window.copyMsgText=function(msgId){
   navigator.clipboard?.writeText(m.text).then(()=>showToast('복사했습니다','ok')).catch(()=>{
     const t=document.createElement('textarea');t.value=m.text;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);showToast('복사했습니다','ok');
   });
+};
+window.contextTranslate=async function(msgId){
+  const m=msgById(msgId);closeMsgMenu();if(!m||!m.text)return;
+  const body=document.querySelector(`.mg[data-msg-id="${msgId}"] .mg-body`);
+  if(!body)return;
+  const existing=body.querySelector('.tr-box');
+  if(existing){existing.remove();return;} // 다시 누르면 번역 닫기(토글)
+  const box=document.createElement('div');box.className='tr-box';box.textContent='🌐 번역 중…';
+  body.appendChild(box);
+  try{
+    const r=await fetch('/api/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:m.text})});
+    const j=await r.json();
+    if(j&&j.translated){box.innerHTML=`<div class="tr-lbl">🌐 번역 <span style="opacity:.7">${esc((j.src||'').toUpperCase())} → ${esc((j.tl||'').toUpperCase())}</span></div>${esc(j.translated).replace(/\n/g,'<br>')}`;}
+    else box.textContent='번역을 가져오지 못했어요';
+  }catch(e){box.textContent='번역 실패 — 잠시 후 다시 시도해 주세요';}
 };
 window.contextReply=function(msgId){const m=msgById(msgId);closeMsgMenu();if(!m)return;replyToMsg(msgId,m.displayName||'알 수 없음',msgSummary(m));};
 window.contextEdit=function(msgId){const m=msgById(msgId);closeMsgMenu();if(!m)return;editMsg(msgId,m.text||'');};
