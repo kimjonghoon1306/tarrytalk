@@ -385,6 +385,21 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .typing-dots span:nth-child(2){animation-delay:.2s;}
 .typing-dots span:nth-child(3){animation-delay:.4s;}
 @keyframes typingPulse{0%,80%,100%{transform:scale(.8);opacity:.4;}40%{transform:scale(1);opacity:1;}}
+/* 카톡식+ 무지개 그래프 일렁이는 타이핑 표시 + 아바타 */
+.typing-avs{display:flex;flex-shrink:0;}
+.typing-avs .tav{width:22px;height:22px;border-radius:50%;color:#fff;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg2);margin-left:-7px;box-shadow:0 2px 6px rgba(0,0,0,.25);animation:tavPop .3s ease both;}
+.typing-avs .tav:first-child{margin-left:0;}
+@keyframes tavPop{from{transform:scale(0)}to{transform:scale(1)}}
+.rainbow-wave{display:flex;align-items:center;gap:2.5px;height:20px;flex-shrink:0;}
+.rainbow-wave span{width:3.5px;height:5px;border-radius:4px;animation:rwave 1s ease-in-out infinite;box-shadow:0 1px 4px rgba(0,0,0,.28);}
+.rainbow-wave span:nth-child(1){background:linear-gradient(180deg,#ff6b81,#ff2d55);animation-delay:0s;}
+.rainbow-wave span:nth-child(2){background:linear-gradient(180deg,#ffa751,#ff5e3a);animation-delay:.09s;}
+.rainbow-wave span:nth-child(3){background:linear-gradient(180deg,#ffe259,#ffb300);animation-delay:.18s;}
+.rainbow-wave span:nth-child(4){background:linear-gradient(180deg,#5ee7a0,#28a745);animation-delay:.27s;}
+.rainbow-wave span:nth-child(5){background:linear-gradient(180deg,#5ac8fa,#007aff);animation-delay:.36s;}
+.rainbow-wave span:nth-child(6){background:linear-gradient(180deg,#7b78ff,#5e5ce6);animation-delay:.45s;}
+.rainbow-wave span:nth-child(7){background:linear-gradient(180deg,#c86bff,#c644fc);animation-delay:.54s;}
+@keyframes rwave{0%,100%{height:5px;transform:scaleY(.7) perspective(30px) rotateX(0);opacity:.6}50%{height:20px;transform:scaleY(1.15) perspective(30px) rotateX(12deg);opacity:1}}
 @keyframes msgIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes popTap{0%{transform:scale(.88)}70%{transform:scale(1.08)}100%{transform:scale(1)}}
 .scroll-btn{position:absolute;bottom:88px;right:18px;width:36px;height:36px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:none;align-items:center;justify-content:center;font-size:16px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.4);z-index:31;transition:all .2s;color:var(--text2);}
@@ -842,7 +857,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
       <div class="intro-caption">왼쪽에서 채팅방을 선택하거나 <b>새로운 채팅 시작</b>을 눌러보세요</div>
     </div>
     <div class="messages" id="messages" style="display:none;"></div>
-    <div class="typing-bar" id="typing-bar"><div class="typing-dots"><span></span><span></span><span></span></div><span id="typing-text">입력 중...</span></div>
+    <div class="typing-bar" id="typing-bar"><div class="typing-avs" id="typing-avs"></div><div class="rainbow-wave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><span id="typing-text">입력 중...</span></div>
     <button class="scroll-btn" id="scroll-btn" onclick="scrollToBottom(true)">↓<span class="scroll-badge" id="scroll-badge"></span></button>
     <button class="onbot-fab" id="onbot-fab" onclick="openOnbot()" title="온봇 도우미" aria-label="온봇 도우미">
       <span class="fab-ring"></span>
@@ -2582,7 +2597,12 @@ function listenTyping(roomId){
   _typingUnsub=onValue(ref(db,`typing/${roomId}`),snap=>{
     const data=snap.val()||{};const others=Object.entries(data).filter(([uid,v])=>uid!==sess?.uid&&v?.active&&(Date.now()-v.at<5000));
     const bar=document.getElementById('typing-bar');
-    if(others.length){document.getElementById('typing-text').textContent=`${others.map(([uid])=>allUsers[uid]?.displayName||'누군가').join(', ')} 입력 중...`;bar.classList.add('show');}
+    if(others.length){
+      const avs=others.slice(0,3).map(([uid])=>{const u=allUsers[uid]||{};const nm=u.displayName||'?';return `<div class="tav" style="background:${u.avatarColor||avatarColor(nm)}">${esc((nm[0]||'?').toUpperCase())}</div>`;}).join('');
+      document.getElementById('typing-avs').innerHTML=avs;
+      document.getElementById('typing-text').textContent=`${others.map(([uid])=>allUsers[uid]?.displayName||'누군가').join(', ')} 입력 중...`;
+      bar.classList.add('show');
+    }
     else bar.classList.remove('show');
   });
 }
@@ -2969,16 +2989,8 @@ window.saveAllImages=async function(){
   if(!_lbImgs.length)return;
   const blobs=(await Promise.all(_lbImgs.map(u=>urlToBlob(u).catch(()=>null)))).filter(Boolean);
   if(!blobs.length){showToast('사진을 불러오지 못했어요','warn');return;}
-  const files=blobs.map((b,i)=>new File([b],fileNameWithExt('',b,i+1),{type:b.type||'image/jpeg'}));
-  // ── 모바일(안드로이드·iOS): 공유 시트로 갤러리에 여러 장 저장(압축 없음) ──
-  // navigator.canShare가 보수적으로 막는 경우가 있어 직접 share를 시도한다(실제로는 갤러리 저장됨).
-  if(isAndroidDev()||isIOSDev()){
-    if(navigator.share){
-      try{await navigator.share({files});return;}
-      catch(e){if(e&&e.name==='AbortError')return;}
-    }
-  }
-  // ── PC: 사진을 ZIP 하나로 묶어 위치 지정 저장 ──
+  // ── 사진을 ZIP 한 파일로 묶어 파일 관리자에서 폴더 선택 → 저장(안드로이드·PC) ──
+  // 파일이 하나라 "저장?" 확인이 한 번만 뜬다(여러 파일일 때 12번 뜨던 문제 없음).
   if(window.showSaveFilePicker){
     try{
       showToast('📦 사진을 묶는 중...','info');
@@ -2987,13 +2999,24 @@ window.saveAllImages=async function(){
       const zipBlob=await zip.generateAsync({type:'blob'});
       const h=await window.showSaveFilePicker({suggestedName:'온메신저사진_'+Date.now()+'.zip',types:[{description:'ZIP 압축',accept:{'application/zip':['.zip']}}]});
       const w=await h.createWritable();await w.write(zipBlob);await w.close();
-      showToast('✅ 저장했어요','ok');return;
+      showToast('✅ 저장했어요 · 압축을 풀면 사진 '+blobs.length+'장','ok');return;
     }catch(e){if(e&&e.name==='AbortError')return;}
   }
-  // 폴백: 순차 다운로드
-  showToast(`📁 ${blobs.length}장 저장 중...`,'info');
-  for(let i=0;i<blobs.length;i++){dlBlob(blobs[i],fileNameWithExt('',blobs[i],i+1));await new Promise(r=>setTimeout(r,350));}
-  showToast('📥 다운로드 폴더에 저장했어요','ok');
+  // ── 파일 관리자 저장 미지원(iOS 등): 공유 시트 ──
+  if(navigator.share){
+    try{
+      const files=blobs.map((b,i)=>new File([b],fileNameWithExt('',b,i+1),{type:b.type||'image/jpeg'}));
+      await navigator.share({files});return;
+    }catch(e){if(e&&e.name==='AbortError')return;}
+  }
+  // 폴백: ZIP 다운로드
+  try{
+    const {default:JSZip}=await import('https://esm.sh/jszip@3.10.1');
+    const zip=new JSZip();blobs.forEach((b,i)=>zip.file(fileNameWithExt('',b,i+1),b));
+    const zipBlob=await zip.generateAsync({type:'blob'});
+    dlBlob(zipBlob,'온메신저사진_'+Date.now()+'.zip');
+    showToast('📥 ZIP으로 저장했어요 · 압축을 풀면 사진','ok');
+  }catch(e){showToast('저장 실패 — 다시 시도해 주세요','warn');}
 };
 window.openLightbox=function(src,name){
   _lbImgs=collectRoomImages();
@@ -3108,12 +3131,13 @@ function renderMembers(filter){
   if(sess?.isAdmin){
     f=q?allList.filter(u=>u.name.toLowerCase().includes(q)||u.email.toLowerCase().includes(q)):allList;
   }else if(q){
-    f=allList.filter(u=>u.email.toLowerCase()===q);
+    // 이메일을 전부 안 쳐도 됨: 이메일 일부(앞부분)나 이름 일부로 부분검색(2글자 이상)
+    f=q.length>=2?allList.filter(u=>u.email.toLowerCase().includes(q)||u.name.toLowerCase().includes(q)):[];
   }else{
     f=allList.filter(u=>u.invitedBy===sess?.uid||u.uid===sess?.invitedBy||(sess?.friends&&sess.friends[u.uid]));
   }
   const list=document.getElementById('m-list');
-  if(!f.length){list.innerHTML=`<div class="no-m">${q?'이메일을 정확히 입력하면 찾을 수 있어요':'친구를 초대하거나 이메일로 검색하세요'}</div>`;return;}
+  if(!f.length){list.innerHTML=`<div class="no-m">${q?'이메일 일부(앞부분)나 이름으로 검색하세요 (2글자 이상)':'친구를 초대하거나 이메일·이름으로 검색하세요'}</div>`;return;}
   list.innerHTML=f.map((u,i)=>{const on=selUsers.includes(u.uid);const fr=isFriend(u.uid);return`<div class="m-item${on?' on':''}" onclick="toggleMember('${u.uid}',${jsArg(u.name)})">\n<div class="m-av" style="background:${u.color}">${esc(u.name[0]||'?').toUpperCase()}</div>\n<div style="flex:1;min-width:0;"><div class="m-nm">${esc(u.name)}</div><div class="m-em">${esc(u.email)}</div></div>\n${u.online?'<div class="m-online"></div>':''}\n${fr?'<span class="m-fr is-fr">✓ 친구</span>':`<button class="m-fr" onclick="event.stopPropagation();addFriendInSearch('${u.uid}',${jsArg(u.name)})">＋ 친구추가</button>`}\n<div class="m-check">${on?'✓':''}</div>\n</div>`;}).join('');
 }
 window.toggleMember=function(uid,name){if(selType==='dm')selUsers=selUsers.includes(uid)?[]:[uid];else selUsers.includes(uid)?selUsers=selUsers.filter(e=>e!==uid):selUsers.push(uid);updateChips();renderMembers(document.getElementById('ms-inp').value);updateBtn();};
@@ -3303,7 +3327,7 @@ window.leaveRoom=async function(){
 window.closeRoomSettings=()=>document.getElementById('rs-overlay').classList.remove('show');
 window.rsOutside=e=>{if(e.target.classList.contains('rs-overlay'))closeRoomSettings();};
 window.toggleInviteMembers=function(){const box=document.getElementById('rs-invite-box');const show=box.style.display==='none';box.style.display=show?'block':'none';if(show){document.getElementById('rs-invite-search').focus();renderInviteMembers('');}};
-window.renderInviteMembers=function(filter=''){const room=(window._rooms||[]).find(r=>r.id===curRoom);const list=document.getElementById('rs-invite-list');if(!room||!list)return;const memberSet=new Set(Object.keys(room.members||{}));let users=Object.entries(allUsers).filter(([uid,u])=>!memberSet.has(uid)&&!u.disabled).map(([uid,u])=>({uid,name:u.displayName||uid,email:u.email||'',online:u.online||false,color:u.avatarColor||avatarColor(u.displayName||uid),invitedBy:u.invitedBy||''}));const q=(filter||'').trim().toLowerCase();if(sess?.isAdmin){if(q)users=users.filter(u=>u.name.toLowerCase().includes(q)||u.email.toLowerCase().includes(q));}else if(q){users=users.filter(u=>u.email.toLowerCase()===q);}else{users=users.filter(u=>u.invitedBy===sess?.uid||u.uid===sess?.invitedBy||(sess?.friends&&sess.friends[u.uid]));}if(!users.length){list.innerHTML='<div class="no-m">이메일을 정확히 입력하면 찾을 수 있어요</div>';return;}list.innerHTML=users.map(u=>`<div class="m-item" onclick="inviteMember('${u.uid}')"><div class="m-av" style="background:${u.color}">${u.name[0].toUpperCase()}</div><div style="flex:1;min-width:0;"><div class="m-nm">${esc(u.name)}</div><div class="m-em">${esc(u.email)}</div></div>${u.online?'<div class="m-online"></div>':''}<div class="m-check">＋</div></div>`).join('');};
+window.renderInviteMembers=function(filter=''){const room=(window._rooms||[]).find(r=>r.id===curRoom);const list=document.getElementById('rs-invite-list');if(!room||!list)return;const memberSet=new Set(Object.keys(room.members||{}));let users=Object.entries(allUsers).filter(([uid,u])=>!memberSet.has(uid)&&!u.disabled).map(([uid,u])=>({uid,name:u.displayName||uid,email:u.email||'',online:u.online||false,color:u.avatarColor||avatarColor(u.displayName||uid),invitedBy:u.invitedBy||''}));const q=(filter||'').trim().toLowerCase();if(sess?.isAdmin){if(q)users=users.filter(u=>u.name.toLowerCase().includes(q)||u.email.toLowerCase().includes(q));}else if(q){users=q.length>=2?users.filter(u=>u.email.toLowerCase().includes(q)||u.name.toLowerCase().includes(q)):[];}else{users=users.filter(u=>u.invitedBy===sess?.uid||u.uid===sess?.invitedBy||(sess?.friends&&sess.friends[u.uid]));}if(!users.length){list.innerHTML='<div class="no-m">이메일 일부나 이름으로 검색하세요 (2글자 이상)</div>';return;}list.innerHTML=users.map(u=>`<div class="m-item" onclick="inviteMember('${u.uid}')"><div class="m-av" style="background:${u.color}">${u.name[0].toUpperCase()}</div><div style="flex:1;min-width:0;"><div class="m-nm">${esc(u.name)}</div><div class="m-em">${esc(u.email)}</div></div>${u.online?'<div class="m-online"></div>':''}<div class="m-check">＋</div></div>`).join('');};
 window.inviteMember=async function(uid){if(!curRoom||!sess)return;const room=(window._rooms||[]).find(r=>r.id===curRoom);if(!room)return;if(!(sess.isAdmin||room.createdBy===sess.uid||room.members?.[sess.uid])){showToast('초대 권한이 없습니다','warn');return;}const u=allUsers[uid];const name=u?.displayName||uid;const updates={};
   // 1:1방에 초대하면 단톡으로 전환
   if(room.type==='dm'){updates[`rooms/${curRoom}/type`]='group';updates[`rooms/${curRoom}/emoji`]='👥';const cur=Object.keys(room.members||{}).map(id=>allUsers[id]?.displayName||'').filter(Boolean);updates[`rooms/${curRoom}/name`]=[...cur,name].slice(0,3).join(', ')+(cur.length>=3?' 외':'');room.type='group';}
