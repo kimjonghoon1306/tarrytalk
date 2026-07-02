@@ -421,6 +421,20 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .bubble .mention{color:var(--green);font-weight:800;background:rgba(124,58,237,.1);padding:0 3px;border-radius:4px;}
 .mg.out .bubble .mention{color:#fff;background:rgba(255,255,255,.22);}
 .mg.mentioned .bubble{box-shadow:0 0 0 2px var(--green),0 2px 10px var(--glow);}
+/* 음성 녹음 바 */
+.voice-bar{display:none;align-items:center;gap:10px;padding:10px 14px;margin:0 10px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:16px;}
+.voice-bar.show{display:flex;animation:menuPop .18s ease both;}
+.vb-dot{width:11px;height:11px;border-radius:50%;background:var(--red);flex-shrink:0;animation:dotPulse 1s infinite;}
+.vb-time{font-size:14px;font-weight:800;color:var(--text);font-variant-numeric:tabular-nums;min-width:38px;}
+.vb-label{flex:1;font-size:12px;color:var(--text3);}
+.vb-cancel{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 13px;font-size:12px;font-weight:700;color:var(--text2);cursor:pointer;}
+.vb-send{background:linear-gradient(135deg,var(--green),var(--green2));border:none;border-radius:10px;padding:8px 15px;font-size:12px;font-weight:800;color:#fff;cursor:pointer;}
+/* 음성 메시지 말풍선 */
+.voice-msg{display:flex;align-items:center;gap:8px;padding:9px 13px;background:var(--in-bubble);border:1px solid var(--border);border-radius:16px;border-bottom-left-radius:5px;}
+.mg.out .voice-msg{background:var(--out-bubble);border:none;border-bottom-left-radius:16px;border-bottom-right-radius:5px;}
+.voice-msg audio{height:34px;max-width:190px;}
+.vm-dur{font-size:11px;font-weight:800;color:var(--text2);flex-shrink:0;}
+.mg.out .vm-dur{color:rgba(255,255,255,.9);}
 .mute-notice{display:none;margin:8px 12px 0;padding:9px 12px;border-radius:12px;border:1px solid rgba(255,79,106,.22);background:var(--red-bg);color:var(--red);font-size:12px;font-weight:800;line-height:1.5;}
 .mute-notice.show{display:block;}
 .reply-bar{display:none;align-items:center;gap:8px;padding:7px 14px;background:var(--surface);border-bottom:1px solid var(--border);}
@@ -812,6 +826,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
       <div class="tb2" onclick="pickImage()"><span class="tb-ic">📷</span><span class="tb-lb">사진</span></div>
       <div class="tb2" onclick="pickVideo()"><span class="tb-ic">🎥</span><span class="tb-lb">영상</span></div>
       <div class="tb2" onclick="pickFile()"><span class="tb-ic">📎</span><span class="tb-lb">파일</span></div>
+      <div class="tb2" onclick="startVoiceRec()"><span class="tb-ic">🎤</span><span class="tb-lb">음성</span></div>
       <div class="tb2" onclick="toggleLink()"><span class="tb-ic">🔗</span><span class="tb-lb">링크</span></div>
       <div class="tb2" onclick="openSchedule()"><span class="tb-ic">📅</span><span class="tb-lb">일정</span></div>
       <div class="tb2" onclick="openPoll()"><span class="tb-ic">📊</span><span class="tb-lb">투표</span></div>
@@ -821,6 +836,13 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
     <input type="file" id="pick-file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.zip,.hwp" style="display:none" onchange="onFileSelected(event,'document')">
     <input type="file" id="pick-video" accept="video/*" style="display:none" onchange="onFileSelected(event,'video')">
     <div class="mention-pop" id="mention-pop"></div>
+    <div class="voice-bar" id="voice-bar">
+      <div class="vb-dot"></div>
+      <div class="vb-time" id="vb-time">0:00</div>
+      <div class="vb-label">녹음 중… 최대 1분</div>
+      <button class="vb-cancel" onclick="cancelVoiceRec()">취소</button>
+      <button class="vb-send" onclick="stopVoiceRec()">전송 ➤</button>
+    </div>
     <div class="inp-row">
       <textarea class="m-inp" id="m-inp" placeholder="메시지를 입력하세요..." rows="1" onkeydown="handleKey(event)" oninput="handleInput(this)"></textarea>
       <button class="send-btn" id="send-btn" onclick="sendMsg()">➤</button>
@@ -1065,7 +1087,7 @@ const BOT_CHIPS=['채팅 시작하기','회원 초대','단톡방 만들기','�
 let onbotMessages=[];
 const isAdminUser=()=>sess?.isAdmin===true;
 const MEDIA_TTL=14*24*60*60*1000;
-const MEDIA_TYPES=new Set(['image','video','document']);
+const MEDIA_TYPES=new Set(['image','video','document','voice']);
 const DAY=24*60*60*1000;
 // 처음 화면 시작은 항상 라이트로(이전 다크 선택과 무관). 다크는 ☀️/🌙 버튼으로 그때그때 전환.
 sessionStorage.removeItem('tt_theme');
@@ -2085,7 +2107,7 @@ function buildMsg(m,prev,isNew){
   const mediaNote=m.keep===true?'<div class="media-keep-note">📌 영구 보관 자료</div>':`<div class="media-ttl-note">📅 미디어는 2주 후 자동 삭제돼요${sess?.isAdmin?' · 보관하려면 📌':''}</div>`;
   if(m.expired&&MEDIA_TYPES.has(m.mediaKind||m.type)){
     const kind=m.mediaKind||m.type;
-    const label=kind==='image'?'사진':kind==='video'?'영상':'파일';
+    const label=kind==='image'?'사진':kind==='video'?'영상':kind==='voice'?'음성':'파일';
     content=`<div class="expired-media">🗑 2주가 지나 자동 삭제된 ${label}입니다</div>`;
   }
   else if(m.type==='sticker'){content=`<div class="sticker-bub">${STICKERS[m.text]||'<span style="font-size:60px">🌱</span>'}</div>`;}
@@ -2093,6 +2115,7 @@ function buildMsg(m,prev,isNew){
   else if(m.type==='image'){const src=esc(m.data||m.url||''),fn=m.fileName||'이미지';content=`<div class="img-bub" onclick="openLightbox(${jsArg(m.data||m.url||'')},${jsArg(fn)})"><img src="${src}" alt="이미지" loading="lazy" class="loading" onload="this.classList.remove('loading')"><div class="img-cap">🖼️ ${esc(fn)} <a href="${src}" download="${escAttr(fn||'image')}" onclick="event.stopPropagation()">다운로드</a></div>${mediaNote}</div>`;}
   else if(m.type==='document'){const src=esc(m.data||m.url||''),icons={pdf:'📄',doc:'📝',docx:'📝',ppt:'📊',pptx:'📊',xls:'📗',xlsx:'📗',zip:'🗜️',hwp:'📄',txt:'📃'};const ext=(m.fileName||'').split('.').pop().toLowerCase();content=`<div class="file-card"><div class="file-card-body"><div class="file-icon">${icons[ext]||'📎'}</div><div class="file-info"><div class="file-name">${esc(m.fileName||'파일')}</div><div class="file-size">${esc(m.fileSize||'')}</div></div><a class="file-dl" href="${src}" download="${escAttr(m.fileName||'file')}">받기</a></div>${mediaNote}</div>`;}
   else if(m.type==='video'){const src=esc(m.data||m.url||'');content=`<div class="file-card"><video controls src="${src}" style="max-height:200px;width:100%;"></video><div class="file-card-body"><div class="file-icon">🎥</div><div class="file-info"><div class="file-name">${esc(m.fileName||'영상')}</div><div class="file-size">${esc(m.fileSize||'')}</div></div><a class="file-dl" href="${src}" download="${escAttr(m.fileName||'video.mp4')}" onclick="event.stopPropagation()">받기</a></div>${mediaNote}</div>`;}
+  else if(m.type==='voice'){const src=esc(m.data||'');const dur=m.voiceDur||0;const dl=`${Math.floor(dur/60)}:${String(dur%60).padStart(2,'0')}`;content=`<div class="voice-msg"><span style="font-size:16px;">🎤</span><audio controls preload="none" src="${src}"></audio><span class="vm-dur">${dl}</span></div>${mediaNote}`;}
   else if(m.type==='schedule'){const ds=new Date(m.scheduleDate).toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});content=`<div class="schedule-card" onclick="openScheduleView('${m.id}')" style="cursor:pointer;"><div class="sch-head"><div class="sch-date">📅 ${ds}${m.scheduleTime?' · '+m.scheduleTime:''}</div><div class="sch-title">${esc(m.scheduleTitle)}</div></div><div class="sch-body">${m.schedulePlace?`<div class="sch-row"><span>📍</span><span>${esc(m.schedulePlace)}</span></div>`:''}${m.scheduleMemo?`<div class="sch-row"><span>📝</span><span>${esc(m.scheduleMemo)}</span></div>`:''}<div class="sch-more">탭하여 크게 보기 →</div></div></div>`;}
   else if(m.type==='poll'){
     const opts=Array.isArray(m.pollOpts)?m.pollOpts:Object.values(m.pollOpts||{});
@@ -2135,6 +2158,7 @@ function msgSummary(m){
   if(!m)return'메시지';
   if(m.type==='text')return (m.text||'').replace(/\s+/g,' ').slice(0,80)||'텍스트 메시지';
   if(m.type==='image')return '사진';
+  if(m.type==='voice')return '음성 메시지';
   if(m.type==='sticker')return '스티커';
   if(m.type==='video')return '영상';
   if(m.type==='document')return m.fileName||'파일';
@@ -3077,6 +3101,52 @@ window.votePoll=async function(msgId,optIdx){
     if(already){await remove(ref(db,base));}
     else{await set(ref(db,base),{[optIdx]:true});}
   }
+};
+/* ── 음성 메시지 (MediaRecorder) ── */
+let _mediaRec=null,_voiceChunks=[],_voiceStream=null,_voiceTimer=null,_voiceStart=0,_voiceMime='';
+function cleanupVoice(){clearInterval(_voiceTimer);_voiceTimer=null;if(_voiceStream){_voiceStream.getTracks().forEach(t=>t.stop());_voiceStream=null;}const b=document.getElementById('voice-bar');if(b)b.classList.remove('show');}
+function updateVoiceTime(){const s=Math.floor((Date.now()-_voiceStart)/1000);const el=document.getElementById('vb-time');if(el)el.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+window.startVoiceRec=async function(){
+  if(!curRoom||!sess){showToast('채팅방을 먼저 선택하세요','warn');return;}
+  if(curRoom==='onbot'||curRoom==='announce'){showToast('여기서는 음성을 보낼 수 없어요','warn');return;}
+  if(isSecretWatch(currentRoom())){showToast('시크릿 관전 중에는 음성을 보낼 수 없습니다','warn');return;}
+  if(blockIfMuted()||blockIfRoomSuspended())return;
+  if(_mediaRec)return;
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||typeof MediaRecorder==='undefined'){showToast('이 브라우저는 녹음을 지원하지 않아요','warn');return;}
+  try{_voiceStream=await navigator.mediaDevices.getUserMedia({audio:true});}catch(e){showToast('마이크 권한이 필요해요 (설정에서 허용)','warn');return;}
+  _voiceMime=MediaRecorder.isTypeSupported('audio/mp4')?'audio/mp4':(MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'');
+  try{_mediaRec=_voiceMime?new MediaRecorder(_voiceStream,{mimeType:_voiceMime}):new MediaRecorder(_voiceStream);}catch(e){try{_mediaRec=new MediaRecorder(_voiceStream);_voiceMime='';}catch(e2){showToast('녹음을 시작할 수 없어요','warn');cleanupVoice();return;}}
+  _voiceChunks=[];
+  _mediaRec.ondataavailable=e=>{if(e.data&&e.data.size)_voiceChunks.push(e.data);};
+  _mediaRec.start();
+  _voiceStart=Date.now();
+  document.getElementById('voice-bar').classList.add('show');
+  updateVoiceTime();
+  _voiceTimer=setInterval(()=>{updateVoiceTime();if(Date.now()-_voiceStart>60000)stopVoiceRec();},250);
+};
+window.cancelVoiceRec=function(){if(_mediaRec&&_mediaRec.state!=='inactive'){_mediaRec.onstop=null;try{_mediaRec.stop();}catch(e){}}cleanupVoice();_mediaRec=null;_voiceChunks=[];showToast('녹음을 취소했어요','info');};
+window.stopVoiceRec=function(){
+  if(!_mediaRec){cleanupVoice();return;}
+  const dur=Math.round((Date.now()-_voiceStart)/1000);
+  _mediaRec.onstop=async()=>{
+    cleanupVoice();
+    const chunks=_voiceChunks;_voiceChunks=[];const mime=_voiceMime;_mediaRec=null;
+    if(!chunks.length){showToast('녹음이 비어 있어요','warn');return;}
+    if(dur<1){showToast('너무 짧아요 (1초 이상)','info');return;}
+    const blob=new Blob(chunks,{type:mime||'audio/webm'});
+    if(blob.size>8*1024*1024){showToast('음성이 너무 길어요 (8MB 초과)','warn');return;}
+    showToast('📤 음성 보내는 중...','info');
+    try{
+      const dataUrl=await readFileAsDataURL(blob);
+      const rr=push(ref(db,`messages/${curRoom}`));
+      await set(rr,{uid:sess.uid,displayName:sess.name,type:'voice',data:dataUrl,voiceDur:dur,mediaKind:'voice',at:Date.now()});
+      await update(ref(db),{[`rooms/${curRoom}/lastMsg`]:'🎤 음성 메시지',[`rooms/${curRoom}/lastAt`]:Date.now()});
+      notifyRoomMembers(currentRoom(),'음성 메시지를 보냈어요');
+      scrollToBottom();
+      showToast('🎤 음성을 보냈어요 · 2주 후 자동 삭제','ok');
+    }catch(e){showToast('전송 실패 — 다시 시도해 주세요','warn');}
+  };
+  try{_mediaRec.stop();}catch(e){cleanupVoice();_mediaRec=null;}
 };
 let invLink='';
 window.openInvite=function(){invLink=location.origin+'/'+(sess?'?ref='+sess.uid:'');document.getElementById('inv-link-txt').textContent=invLink;document.getElementById('inv-overlay').classList.add('show');};
