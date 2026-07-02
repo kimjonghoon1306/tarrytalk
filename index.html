@@ -137,6 +137,13 @@ body::after{content:'';position:fixed;width:500px;height:500px;
 </head>
 <body>
 
+<style>
+#boot-gate{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#c084fc 0%,#7c3aed 45%,#6d28d9 100%);display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+[data-theme="dark"] #boot-gate{background:linear-gradient(135deg,#1a1622 0%,#221c2e 50%,#312642 100%);}
+#boot-gate.show{display:flex;}
+</style>
+<div id="boot-gate"><div class="spinner"></div><div style="color:#fff;font-weight:800;font-size:14px;">온메신저 여는 중…</div></div>
+
 <div class="loading-overlay" id="loading-overlay">
   <div class="spinner"></div>
 </div>
@@ -287,7 +294,8 @@ body::after{content:'';position:fixed;width:500px;height:500px;
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
-         updateProfile, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+         updateProfile, onAuthStateChanged, signOut,
+         setPersistence, indexedDBLocalPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getDatabase, ref, set, get, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
@@ -303,6 +311,8 @@ const firebaseConfig = {
 const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getDatabase(app);
+// 로그인 상태를 기기에 영구 유지(카톡처럼). 앱을 껐다 켜도 자동 로그인.
+setPersistence(auth, indexedDBLocalPersistence).catch(() => setPersistence(auth, browserLocalPersistence)).catch(() => {});
 const ADMIN_EMAIL = 'tarry9653@daum.net';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 let adminLoginInProgress = false;
@@ -311,6 +321,7 @@ let signupInProgress = false;
 /* 이미 로그인 시 바로 이동 */
 onAuthStateChanged(auth, user => {
   if (user) {
+    localStorage.setItem('tt_had_session', '1');
     sessionStorage.removeItem('tt_guest');
     if (!adminLoginInProgress && !signupInProgress) {
       // 초대링크(?ref=)로 이미 로그인된 사람이 들어오면 ref를 chat으로 전달해 친구연결
@@ -319,6 +330,14 @@ onAuthStateChanged(auth, user => {
     }
   }
 });
+/* 로그인 이력이 있으면(=자동 로그인 대상) 앱 재실행 시 auth 복원을 기다리는 로딩 게이트를 띄운다.
+   iOS PWA가 복원 중 잠깐 비로그인 상태가 돼 로그인 폼이 깜빡이며 뜨는 것을 막는다(카톡처럼). */
+if (localStorage.getItem('tt_had_session') && !new URLSearchParams(location.search).get('guest')) {
+  const g = document.getElementById('boot-gate');
+  if (g) g.classList.add('show');
+  // 4.5초 안에 복원 안 되면(정말 로그아웃 상태) 게이트를 내리고 로그인 폼을 보여준다.
+  setTimeout(() => { if (!auth.currentUser) { const g2 = document.getElementById('boot-gate'); if (g2) g2.classList.remove('show'); } }, 4500);
+}
 
 /* ── 테마 ── */
 window.toggleTheme = function() {
