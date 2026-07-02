@@ -2942,17 +2942,22 @@ async function urlToBlob(url){const res=await fetch(url);if(!res.ok)throw new Er
 function extOf(blob){const t=(blob&&blob.type||'').toLowerCase();if(t==='image/png')return'.png';if(t==='image/webp')return'.webp';if(t==='image/gif')return'.gif';return'.jpg';}
 function fileNameWithExt(name,blob,i=1){const ext=extOf(blob);const base=(name||`photo_${i}`).replace(/[\\/:*?"<>|]+/g,'_').replace(/\.(jpe?g|png|webp|gif)$/i,'');return base+ext;}
 function preferNativeShare(){const ua=navigator.userAgent||'';return /Android|iPhone|iPad|iPod/i.test(ua)||(/Macintosh/i.test(ua)&&navigator.maxTouchPoints>1);}
+function isIOSDev(){const ua=navigator.userAgent||'';return /iPhone|iPad|iPod/i.test(ua)||(/Macintosh/i.test(ua)&&navigator.maxTouchPoints>1);}
+function isAndroidDev(){return /Android/i.test(navigator.userAgent||'');}
+function dlBlob(blob,name){const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500);}
 async function saveImage(url,name){
   let blob=null;try{blob=await urlToBlob(url);}catch(e){}
   const fileName=blob?fileNameWithExt(name,blob,1):(name||('photo_'+Date.now()+'.jpg'));
-  // 1) 모바일: 네이티브 공유 시트(사진 앨범/파일 위치 선택)
-  if(blob&&preferNativeShare()&&navigator.canShare&&navigator.share){
-    try{
-      const file=new File([blob],fileName,{type:blob.type||'image/jpeg'});
-      if(navigator.canShare({files:[file]})){await navigator.share({files:[file]});return;}
-    }catch(e){if(e&&e.name==='AbortError')return;}
+  // iOS: 사진 앨범(공유 시트) — iOS는 그냥 다운로드하면 사진 앱에 안 들어감
+  if(blob&&isIOSDev()&&navigator.canShare&&navigator.share){
+    try{const file=new File([blob],fileName,{type:blob.type||'image/jpeg'});if(navigator.canShare({files:[file]})){await navigator.share({files:[file]});return;}}catch(e){if(e&&e.name==='AbortError')return;}
   }
-  // 2) PC(크롬·엣지): 저장 위치를 직접 고르는 다이얼로그
+  // 안드로이드(갤럭시): 다운로드 → 기본 갤러리에 자동 표시(카톡식)
+  if(isAndroidDev()){
+    if(blob)dlBlob(blob,fileName);else downloadDataUrl(url,fileName);
+    showToast('📥 갤러리에 저장했어요','ok');return;
+  }
+  // PC(크롬·엣지): 저장 위치를 직접 고르는 다이얼로그
   if(blob&&window.showSaveFilePicker){
     try{
       const handle=await window.showSaveFilePicker({suggestedName:fileName,types:[{description:'이미지',accept:{[blob.type||'image/jpeg']:[extOf(blob)]}}]});
@@ -2960,33 +2965,44 @@ async function saveImage(url,name){
       showToast('✅ 저장했어요','ok');return;
     }catch(e){if(e&&e.name==='AbortError')return;}
   }
-  // 3) 공유 가능한 환경에서는 PC에서도 공유 폴백 허용
-  if(blob&&navigator.canShare&&navigator.share){
-    try{
-      const file=new File([blob],fileName,{type:blob.type||'image/jpeg'});
-      if(navigator.canShare({files:[file]})){await navigator.share({files:[file]});return;}
-    }catch(e){if(e&&e.name==='AbortError')return;}
-  }
-  // 4) 폴백: 다운로드 폴더
-  downloadDataUrl(url,fileName);showToast('📥 다운로드 폴더에 저장했어요','ok');
+  // 폴백: 다운로드 폴더
+  if(blob)dlBlob(blob,fileName);else downloadDataUrl(url,fileName);
+  showToast('📥 다운로드 폴더에 저장했어요','ok');
 }
 window.saveCurrentImage=function(){const i=_lbIdx;saveImage(_lbImgs[i],'photo_'+(i+1)+'.jpg');};
 window.saveAllImages=async function(){
   if(!_lbImgs.length)return;
-  // 모바일: 공유 시트로 여러 장 저장(사진 앨범/파일 위치 선택)
-  if(preferNativeShare()&&navigator.canShare&&navigator.share){
+  const blobs=(await Promise.all(_lbImgs.map(u=>urlToBlob(u).catch(()=>null)))).filter(Boolean);
+  if(!blobs.length){showToast('사진을 불러오지 못했어요','warn');return;}
+  // iOS: 공유 시트(사진 앨범)
+  if(isIOSDev()&&navigator.canShare&&navigator.share){
     try{
-      const files=await Promise.all(_lbImgs.map(async(u,i)=>{const b=await urlToBlob(u);return new File([b],fileNameWithExt('',b,i+1),{type:b.type||'image/jpeg'});}));
+      const files=blobs.map((b,i)=>new File([b],fileNameWithExt('',b,i+1),{type:b.type||'image/jpeg'}));
       if(navigator.canShare({files})){await navigator.share({files});return;}
     }catch(e){if(e&&e.name==='AbortError')return;}
   }
-  // 3) 폴백: 순차 다운로드
-  showToast(`📁 ${_lbImgs.length}장 저장 중...`,'info');
-  for(let i=0;i<_lbImgs.length;i++){
-    let nm='photo_'+(i+1)+'.jpg';
-    try{const b=await urlToBlob(_lbImgs[i]);nm=fileNameWithExt('',b,i+1);}catch(e){}
-    downloadDataUrl(_lbImgs[i],nm);await new Promise(r=>setTimeout(r,400));
+  // 안드로이드(갤럭시): 순차 다운로드 → 기본 갤러리에 자동 표시(카톡식)
+  if(isAndroidDev()){
+    showToast(`📁 ${blobs.length}장 갤러리에 저장 중...`,'info');
+    for(let i=0;i<blobs.length;i++){dlBlob(blobs[i],fileNameWithExt('',blobs[i],i+1));await new Promise(r=>setTimeout(r,350));}
+    showToast('📥 갤러리에 저장했어요','ok');return;
   }
+  // PC: 21장을 ZIP 한 파일로 묶어 "저장 위치 선택 창"으로 저장(데스크탑 등 원하는 위치)
+  if(window.showSaveFilePicker){
+    try{
+      showToast('📦 사진을 압축하는 중...','info');
+      const {default:JSZip}=await import('https://esm.sh/jszip@3.10.1');
+      const zip=new JSZip();
+      blobs.forEach((b,i)=>zip.file(fileNameWithExt('',b,i+1),b));
+      const zipBlob=await zip.generateAsync({type:'blob'});
+      const h=await window.showSaveFilePicker({suggestedName:'photos_'+Date.now()+'.zip',types:[{description:'ZIP 압축',accept:{'application/zip':['.zip']}}]});
+      const w=await h.createWritable();await w.write(zipBlob);await w.close();
+      showToast('✅ 저장했어요 · 압축을 풀면 사진이에요','ok');return;
+    }catch(e){if(e&&e.name==='AbortError')return;}
+  }
+  // 폴백: 순차 다운로드
+  showToast(`📁 ${blobs.length}장 저장 중...`,'info');
+  for(let i=0;i<blobs.length;i++){dlBlob(blobs[i],fileNameWithExt('',blobs[i],i+1));await new Promise(r=>setTimeout(r,350));}
   showToast('📥 다운로드 폴더에 저장했어요','ok');
 };
 window.openLightbox=function(src,name){
