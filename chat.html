@@ -435,6 +435,13 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .voice-msg audio{height:34px;max-width:190px;}
 .vm-dur{font-size:11px;font-weight:800;color:var(--text2);flex-shrink:0;}
 .mg.out .vm-dur{color:rgba(255,255,255,.9);}
+/* 채팅방 배경 테마 스와치 */
+.theme-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;}
+.theme-sw{cursor:pointer;text-align:center;}
+.theme-prev{height:52px;border-radius:12px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--green);font-size:18px;font-weight:900;transition:transform .12s,border-color .15s;}
+.theme-sw:active .theme-prev{transform:scale(.94);}
+.theme-sw.on .theme-prev{border-color:var(--green);box-shadow:0 4px 14px var(--glow);}
+.theme-nm{font-size:10px;color:var(--text2);margin-top:4px;font-weight:700;}
 .mute-notice{display:none;margin:8px 12px 0;padding:9px 12px;border-radius:12px;border:1px solid rgba(255,79,106,.22);background:var(--red-bg);color:var(--red);font-size:12px;font-weight:800;line-height:1.5;}
 .mute-notice.show{display:block;}
 .reply-bar{display:none;align-items:center;gap:8px;padding:7px 14px;background:var(--surface);border-bottom:1px solid var(--border);}
@@ -988,6 +995,10 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
       <div class="rs-sec">
         <div class="rs-sec-title">알림</div>
         <button class="del-room-btn" id="rs-mute-btn" onclick="toggleRoomMute()" style="background:var(--surface);color:var(--text);border-color:var(--border2);"></button>
+      </div>
+      <div class="rs-sec">
+        <div class="rs-sec-title">채팅방 배경 (나에게만 적용)</div>
+        <div class="theme-grid" id="rs-theme"></div>
       </div>
       <div class="rs-sec"><div class="rs-sec-title">멤버 관리</div><div id="rs-members"></div></div>
       <div class="rs-sec" id="rs-invite-sec" style="display:none;">
@@ -1961,6 +1972,7 @@ window.openRoom=async function(id){
   clearReply();
   if(isGuest){document.getElementById('messages').style.filter='blur(7px)';document.getElementById('guest-wall').style.display='flex';document.getElementById('input-wrap').style.display='none';}
   else{document.getElementById('messages').style.filter='';document.getElementById('guest-wall').style.display='none';document.getElementById('input-wrap').style.display=secret?'none':'block';loadMessages(id);if(!secret)listenTyping(id);else document.getElementById('typing-bar').classList.remove('show');updateMuteNotice();}
+  applyRoomTheme(id);
   renderRooms();closeSb();
 };
 function loadMessages(roomId){
@@ -2987,9 +2999,38 @@ window.openRoomSettings=function(){
   const muted=isRoomMuted(curRoom);
   const mb=document.getElementById('rs-mute-btn');
   if(mb){mb.textContent=muted?'🔔 알림 켜기 (지금 꺼져 있어요)':'🔕 이 방 알림 끄기';mb.style.color=muted?'var(--green)':'var(--text)';}
+  renderThemeSwatches();
   document.getElementById('rs-overlay').classList.add('show');
 };
 function isRoomMuted(id){return !!(sess&&sess.mutedRooms&&sess.mutedRooms[id]);}
+/* ── 채팅방 배경 테마 (나에게만, localStorage) ── */
+const CHAT_THEMES=[
+  {id:'',name:'기본',bg:''},
+  {id:'lav',name:'라벤더',bg:'linear-gradient(160deg,#efe9ff,#f7f4ff)'},
+  {id:'sky',name:'하늘',bg:'linear-gradient(160deg,#e2f2ff,#f2f9ff)'},
+  {id:'sunset',name:'노을',bg:'linear-gradient(160deg,#ffe6ea,#fef1d6)'},
+  {id:'mint',name:'민트',bg:'linear-gradient(160deg,#d6f7e8,#f0fdf8)'},
+  {id:'peach',name:'복숭아',bg:'linear-gradient(160deg,#ffe4f0,#ffe9d6)'},
+  {id:'forest',name:'숲',bg:'linear-gradient(160deg,#ddf7e3,#eefcd6)'},
+  {id:'night',name:'밤하늘',bg:'linear-gradient(160deg,#252248,#3a3570)'}
+];
+function applyRoomTheme(roomId){
+  const el=document.getElementById('messages');if(!el)return;
+  const id=(roomId&&localStorage.getItem('tt_roomtheme_'+roomId))||'';
+  const t=CHAT_THEMES.find(x=>x.id===id)||CHAT_THEMES[0];
+  el.style.background=t.bg||'';
+}
+window.setRoomTheme=function(id){
+  if(!curRoom)return;
+  if(id)localStorage.setItem('tt_roomtheme_'+curRoom,id);else localStorage.removeItem('tt_roomtheme_'+curRoom);
+  applyRoomTheme(curRoom);renderThemeSwatches();
+  showToast('🎨 채팅방 배경을 바꿨어요','ok');
+};
+function renderThemeSwatches(){
+  const box=document.getElementById('rs-theme');if(!box||!curRoom)return;
+  const cur=localStorage.getItem('tt_roomtheme_'+curRoom)||'';
+  box.innerHTML=CHAT_THEMES.map(t=>`<div class="theme-sw${t.id===cur?' on':''}" onclick="setRoomTheme('${t.id}')"><div class="theme-prev" style="background:${t.bg||'var(--surface)'}">${t.id===cur?'✓':''}</div><div class="theme-nm">${t.name}</div></div>`).join('');
+}
 window.toggleRoomMute=async function(){
   if(!curRoom||!sess)return;
   const muted=isRoomMuted(curRoom);
