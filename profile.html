@@ -211,6 +211,16 @@ button:active,.section:active,.info-row:active{transform:scale(.98);}
     <button class="primary-btn" onclick="updateName()">이름 저장</button>
   </div>
 
+  <!-- 상태 한마디 -->
+  <div class="section">
+    <div class="sec-title">상태 한마디</div>
+    <div class="field">
+      <label>지금 기분·소개 (친구 목록/프로필에 보여요)</label>
+      <input type="text" id="status-inp" maxlength="60" placeholder="예) 오늘도 화이팅! 🌱">
+    </div>
+    <button class="primary-btn" onclick="updateStatus()">상태 저장</button>
+  </div>
+
   <!-- 비밀번호 변경 -->
   <div class="section">
     <div class="sec-title">비밀번호 변경</div>
@@ -351,6 +361,7 @@ function renderProfile(){
   document.getElementById('prof-email').textContent=email;
   document.getElementById('prof-badge').textContent=isAdmin?'⚙️ 관리자':'● 회원';
   document.getElementById('name-inp').value=name;
+  const si=document.getElementById('status-inp');if(si)si.value=userProfile.statusMsg||'';
 
   const joinedMs=userProfile.joinedAt||(currentUser.metadata?.creationTime?new Date(currentUser.metadata.creationTime).getTime():0);
   if(joinedMs){
@@ -417,6 +428,16 @@ window.updateName=async function(){
     document.getElementById('av-big').textContent=name[0].toUpperCase();
     showToast('✅ 이름이 변경됐습니다','ok');
   }catch(e){showToast('변경 실패: '+e.message,'err');}
+};
+
+window.updateStatus=async function(){
+  if(!currentUser)return;
+  const s=document.getElementById('status-inp').value.trim().slice(0,60);
+  try{
+    await update(ref(db,`users/${currentUser.uid}`),{statusMsg:s});
+    userProfile.statusMsg=s;
+    showToast(s?'💬 상태 한마디를 저장했어요':'상태 한마디를 지웠어요','ok');
+  }catch(e){showToast('저장 실패: '+e.message,'err');}
 };
 
 window.updatePassword=async function(){

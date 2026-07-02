@@ -1753,7 +1753,9 @@ function renderUserCard(uid){
   const isTargetAdmin=u.isAdmin===true;
   const since=sess?.friends?.[uid];
   const sinceTxt=(typeof since==='number'&&since>0)?`👥 친구 추가일 · ${new Date(since).toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'})}`:'';
+  const statusLine=u.statusMsg?`<div style="font-size:13px;color:var(--text);font-weight:600;text-align:center;margin-bottom:8px;background:var(--surface);padding:8px 12px;border-radius:11px;">💬 ${esc(u.statusMsg)}</div>`:'';
   document.getElementById('uc-card-actions').innerHTML=
+    statusLine+
     (fr&&sinceTxt?`<div style="font-size:12px;color:var(--text3);font-weight:700;text-align:center;margin-bottom:4px;">${sinceTxt}</div>`:'')+
     `<button class="uc-act" onclick="startChatWithFriend('${uid}',${jsArg(u.displayName||'')});closeUserCard();">💬 1:1 채팅 시작</button>`+
     (isTargetAdmin?'':(fr?`<button class="uc-act danger" onclick="removeFriend('${uid}')"><span class="uc-pm">－</span> 친구 삭제</button>`
@@ -1879,11 +1881,11 @@ window.renderFriends=function(filter=''){
     if(v.isAdmin)return false; // 관리자는 친구 목록에 노출하지 않음
     if(sess.isAdmin)return true;
     return isFriend(uid);
-  }).map(([uid,v])=>({uid,name:v.displayName||uid,email:v.email||'',online:v.online||false,color:v.avatarColor||avatarColor(v.displayName||uid)}));
+  }).map(([uid,v])=>({uid,name:v.displayName||uid,email:v.email||'',statusMsg:v.statusMsg||'',online:v.online||false,color:v.avatarColor||avatarColor(v.displayName||uid)}));
   if(filter){const q=filter.toLowerCase();friends=friends.filter(u=>u.name.toLowerCase().includes(q)||u.email.toLowerCase().includes(q));}
   friends.sort((a,b)=>(b.online-a.online)||a.name.localeCompare(b.name));
   if(!friends.length){list.innerHTML=`<div class="empty-rooms"><div class="ei">👥</div><p>친구가 없어요\n👋 친구 초대하기로 추가하세요</p></div>`;return;}
-  list.innerHTML=friends.map(u=>`<div class="r-item" onclick="openUserCard('${u.uid}')"><div class="r-av" style="background:${u.color}">${esc(u.name[0]||'?').toUpperCase()}</div><div style="flex:1;min-width:0;"><div class="r-name">${esc(u.name)}${u.online?' <span style="color:var(--green);font-size:10px;">●</span>':''}</div><div class="r-prev">${esc(u.email)}</div></div></div>`).join('');
+  list.innerHTML=friends.map(u=>`<div class="r-item" onclick="openUserCard('${u.uid}')"><div class="r-av" style="background:${u.color}">${esc(u.name[0]||'?').toUpperCase()}</div><div style="flex:1;min-width:0;"><div class="r-name">${esc(u.name)}${u.online?' <span style="color:var(--green);font-size:10px;">●</span>':''}</div><div class="r-prev">${u.statusMsg?'💬 '+esc(u.statusMsg):esc(u.email)}</div></div></div>`).join('');
 };
 window.startChatWithFriend=async function(uid,name){
   if(!sess)return;
