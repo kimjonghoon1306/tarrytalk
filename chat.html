@@ -1936,7 +1936,14 @@ function renderInfoTab(){
 function renderRooms(filter=''){
   const list=document.getElementById('room-list');
   let rooms=(window._rooms||[]).filter(r=>r.type===curTab);
-  if(filter)rooms=rooms.filter(r=>roomTitle(r).toLowerCase().includes(filter.toLowerCase()));
+  if(filter){
+    const q=filter.toLowerCase();
+    rooms=rooms.filter(r=>{
+      if(roomTitle(r).toLowerCase().includes(q))return true;
+      // 방 제목이 '1대1 채팅' 등으로 나올 때도 찾도록, 참여 멤버(상대방) 이름으로도 검색
+      return Object.keys(r.members||{}).some(uid=>uid!==sess?.uid&&(allUsers[uid]?.displayName||'').toLowerCase().includes(q));
+    });
+  }
   rooms.sort((a,b)=>(b.lastAt||0)-(a.lastAt||0));
   renderInfoTab();
   if(!rooms.length){list.innerHTML=`<div class="empty-rooms"><div class="ei">${curTab==='group'?'👥':'💬'}</div><p>${curTab==='group'?'단체채팅방이 없어요\n새 채팅을 만들어보세요':'1대1 채팅이 없어요\n대화를 시작해보세요'}</p></div>`;return;}
