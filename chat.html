@@ -506,6 +506,20 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .send-btn{width:46px;height:46px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--green),var(--green2));cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 16px var(--glow);transition:all .2s;color:#fff;}
 .send-btn:hover,.send-btn:active{transform:scale(1.08);}
 .send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+/* 입력줄 좌/우 버튼 — PC에선 숨기고(기존 도구줄 사용), 모바일에서만 카톡식으로 표시 */
+.io-btn{display:none;flex-shrink:0;width:42px;height:42px;border-radius:50%;background:var(--surface);border:1px solid var(--border);align-items:center;justify-content:center;color:var(--green);cursor:pointer;font-size:19px;transition:transform .15s,background .15s;}
+.io-btn:active{transform:scale(.9);}
+.io-btn.tool-toggle.open{background:var(--green);color:#fff;}
+@media(max-width:700px){
+  .io-btn{display:flex;}
+  .tool-row{display:none!important;}
+  .tool-row.sheet-open{display:grid!important;grid-template-columns:repeat(4,1fr);gap:5px;padding:12px 10px 8px;animation:sheetUp .22s cubic-bezier(.16,1,.3,1) both;}
+  .tool-row.sheet-open .tb2{flex-direction:column;gap:4px;padding:12px 4px;background:var(--surface);border-radius:15px;width:auto;}
+  .tool-row.sheet-open .tb-ic{font-size:23px;}
+  .tool-row.sheet-open .tb-lb{font-size:11px;font-weight:700;}
+  .tool-row.sheet-open #emoji-toggle{display:none;}
+}
+@keyframes sheetUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
 /* REACTION PICKER */
 .reaction-picker{position:fixed;background:var(--bg3);border:1px solid var(--border);border-radius:50px;padding:6px 10px;z-index:500;display:none;gap:4px;box-shadow:0 8px 32px rgba(0,0,0,.6);animation:popIn .15s ease;}
@@ -873,7 +887,9 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
       <button class="vb-send" onclick="stopVoiceRec()">전송 ➤</button>
     </div>
     <div class="inp-row">
+      <button class="io-btn tool-toggle" id="tool-toggle" onclick="toggleToolSheet()" aria-label="기능 열기"><svg viewBox="0 0 24 24" width="21" height="21"><rect x="3" y="3" width="7.2" height="7.2" rx="2.2" fill="currentColor"/><rect x="13.8" y="3" width="7.2" height="7.2" rx="2.2" fill="currentColor"/><rect x="3" y="13.8" width="7.2" height="7.2" rx="2.2" fill="currentColor"/><rect x="13.8" y="13.8" width="7.2" height="7.2" rx="2.2" fill="currentColor"/></svg></button>
       <textarea class="m-inp" id="m-inp" placeholder="메시지를 입력하세요..." rows="1" onkeydown="handleKey(event)" oninput="handleInput(this)"></textarea>
+      <button class="io-btn emoji-inline" id="emoji-inline" onclick="toggleEmoji()" aria-label="이모티콘">😊</button>
       <button class="send-btn" id="send-btn" onclick="sendMsg()">➤</button>
     </div>
   </div>
@@ -2006,7 +2022,7 @@ window.openRoom=async function(id){
   document.getElementById('chat-empty').style.display='none';document.getElementById('messages').style.display='flex';
   renderPinnedBanner(room);
   renderHeroAd();renderAdBanner();
-  document.getElementById('tool-row').style.display='flex';
+  document.getElementById('tool-row').style.display='flex';closeToolSheet();{const _tt=document.getElementById('tool-toggle');if(_tt)_tt.style.display='';}
   closeEmoji();
   document.getElementById('m-inp').placeholder='메시지를 입력하세요...';
   clearReply();
@@ -2434,7 +2450,7 @@ window.openOnbot=function(opts={}){
   renderHeroAd();renderAdBanner();
   document.getElementById('guest-wall').style.display='none';document.getElementById('typing-bar').classList.remove('show');
   document.getElementById('readonly-note').classList.remove('show');
-  document.getElementById('input-wrap').style.display='block';document.getElementById('tool-row').style.display='none';document.getElementById('link-row').classList.remove('show');
+  document.getElementById('input-wrap').style.display='block';document.getElementById('tool-row').style.display='none';document.getElementById('link-row').classList.remove('show');{const _tt=document.getElementById('tool-toggle');if(_tt)_tt.style.display='none';}closeToolSheet();
   closeEmoji();document.getElementById('m-inp').placeholder='메시지를 입력하세요...';
   clearReply();
   if(!onbotMessages.length)onbotMessages=[onbotMsg('안녕하세요, 저는 온메신저 도우미 온봇이에요. 아래 버튼을 누르거나 궁금한 기능을 편하게 입력해 주세요. 사진·영상·파일 보관기간도 바로 안내해 드릴게요.')];
@@ -3366,8 +3382,19 @@ window.toggleEmoji=function(){
   const show=!p.classList.contains('show');
   p.classList.toggle('show',show);
   document.getElementById('emoji-toggle')?.classList.toggle('on',show);
+  document.getElementById('emoji-inline')?.classList.toggle('on',show);
+  if(show){closeToolSheet();}
   if(show&&!_emojiReady){_emojiReady=true;renderEmojiCats();setEmojiCat(0);}
 };
+// 모바일 카톡식: 왼쪽 격자 버튼 → 기능 시트(도구줄) 펼침/접기
+window.toggleToolSheet=function(){
+  const tr=document.getElementById('tool-row');const tt=document.getElementById('tool-toggle');
+  if(!tr)return;
+  const open=tr.classList.toggle('sheet-open');
+  tt&&tt.classList.toggle('open',open);
+  if(open)closeEmoji();
+};
+function closeToolSheet(){document.getElementById('tool-row')?.classList.remove('sheet-open');document.getElementById('tool-toggle')?.classList.remove('open');}
 window.closeEmoji=function(){const p=document.getElementById('emoji-panel');if(p){p.classList.remove('show');document.getElementById('emoji-toggle')?.classList.remove('on');}};
 function renderEmojiCats(){
   const el=document.getElementById('emoji-cats');if(!el)return;
