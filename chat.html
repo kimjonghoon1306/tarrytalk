@@ -534,7 +534,12 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9000;display:none;align-items:center;justify-content:center;flex-direction:column;backdrop-filter:blur(4px);}
 .lightbox.show{display:flex;}
 .lightbox img{max-width:92vw;max-height:82vh;border-radius:12px;object-fit:contain;box-shadow:0 24px 64px rgba(0,0,0,.8);}
-.lb-close{position:fixed;top:20px;right:20px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;color:#fff;}
+.lb-close{position:fixed;top:20px;right:20px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;color:#fff;z-index:2;}
+.lb-count{position:fixed;top:24px;left:50%;transform:translateX(-50%);color:#fff;font-size:14px;font-weight:800;background:rgba(0,0,0,.4);padding:5px 14px;border-radius:50px;display:none;}
+.lb-nav{position:fixed;top:50%;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:28px;line-height:1;display:none;align-items:center;justify-content:center;cursor:pointer;z-index:2;padding-bottom:3px;}
+.lb-nav:active{background:rgba(255,255,255,.3);}
+.lb-prev{left:14px;}.lb-next{right:14px;}
+@media(max-width:520px){.lb-nav{width:42px;height:42px;font-size:25px;}.lb-prev{left:8px;}.lb-next{right:8px;}}
 .lb-name{color:rgba(255,255,255,.5);font-size:12px;margin-top:14px;}
 .lb-save{margin-top:16px;display:inline-flex;align-items:center;gap:6px;padding:11px 24px;border-radius:50px;background:var(--green);color:#fff;font-size:14px;font-weight:800;text-decoration:none;box-shadow:0 8px 24px var(--glow);cursor:pointer;}
 .lb-save:hover{transform:translateY(-2px);}
@@ -966,7 +971,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 </div>
 
 <!-- 라이트박스 -->
-<div class="lightbox" id="lightbox" onclick="closeLightbox()"><div class="lb-close" onclick="closeLightbox()">✕</div><img id="lb-img" src="" alt=""><div class="lb-name" id="lb-name"></div><a id="lb-save" class="lb-save" download onclick="event.stopPropagation()">💾 이미지 저장</a></div>
+<div class="lightbox" id="lightbox" onclick="closeLightbox()"><div class="lb-close" onclick="closeLightbox()">✕</div><div class="lb-count" id="lb-count"></div><button class="lb-nav lb-prev" id="lb-prev" onclick="lbPrev(event)" aria-label="이전">‹</button><img id="lb-img" src="" alt="" onclick="event.stopPropagation()"><button class="lb-nav lb-next" id="lb-next" onclick="lbNext(event)" aria-label="다음">›</button><div class="lb-name" id="lb-name"></div><a id="lb-save" class="lb-save" download onclick="event.stopPropagation()">💾 이미지 저장</a></div>
 <div class="lightbox" id="vlightbox" onclick="if(event.target.id==='vlightbox')closeStoreVideo()"><div class="lb-close" onclick="closeStoreVideo()">✕</div><video id="vlb-video" controls playsinline style="max-width:92vw;max-height:82vh;border-radius:12px;background:#000;"></video></div>
 <div class="popup-overlay" id="schedule-view-overlay" onclick="if(event.target.id==='schedule-view-overlay')closeScheduleView()">
   <div class="popup-card" style="max-width:400px;">
@@ -2893,8 +2898,44 @@ window.openScheduleView=function(msgId){
   document.getElementById('schedule-view-overlay').classList.add('show');
 };
 window.closeScheduleView=function(){document.getElementById('schedule-view-overlay').classList.remove('show');};
-window.openLightbox=function(src,name){document.getElementById('lb-img').src=src;document.getElementById('lb-name').textContent=name;const s=document.getElementById('lb-save');if(s){s.href=src;s.download=name||'image';}document.getElementById('lightbox').classList.add('show');};
+/* ── 이미지 라이트박스: 방 안 모든 사진을 좌우로 넘겨보기(카톡식 갤러리) ── */
+let _lbImgs=[],_lbIdx=0;
+function collectRoomImages(){
+  const arr=[];
+  (currentMessages||[]).forEach(m=>{
+    if(!m||m.expired||m.type!=='image')return;
+    if(m.images){const list=Array.isArray(m.images)?m.images:Object.values(m.images||{});list.forEach(s=>{if(s)arr.push(s);});}
+    else if(m.data||m.url)arr.push(m.data||m.url);
+  });
+  return arr;
+}
+function showLightboxAt(i){
+  if(!_lbImgs.length)return;
+  i=Math.max(0,Math.min(i,_lbImgs.length-1));_lbIdx=i;
+  const src=_lbImgs[i];
+  document.getElementById('lb-img').src=src;
+  const s=document.getElementById('lb-save');if(s){s.href=src;s.download='image';}
+  const multi=_lbImgs.length>1;
+  document.getElementById('lb-prev').style.display=(multi&&i>0)?'flex':'none';
+  document.getElementById('lb-next').style.display=(multi&&i<_lbImgs.length-1)?'flex':'none';
+  const c=document.getElementById('lb-count');c.textContent=multi?`${i+1} / ${_lbImgs.length}`:'';c.style.display=multi?'block':'none';
+  document.getElementById('lb-name').textContent='';
+}
+window.openLightbox=function(src,name){
+  _lbImgs=collectRoomImages();
+  _lbIdx=_lbImgs.indexOf(src);
+  if(_lbIdx<0){_lbImgs=[src];_lbIdx=0;}
+  showLightboxAt(_lbIdx);
+  document.getElementById('lightbox').classList.add('show');
+};
+window.lbPrev=function(e){e&&e.stopPropagation();showLightboxAt(_lbIdx-1);};
+window.lbNext=function(e){e&&e.stopPropagation();showLightboxAt(_lbIdx+1);};
 window.closeLightbox=function(){document.getElementById('lightbox').classList.remove('show');};
+(function(){
+  const lb=document.getElementById('lightbox');if(!lb)return;let sx=0,sy=0;
+  lb.addEventListener('touchstart',e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;},{passive:true});
+  lb.addEventListener('touchend',e=>{const t=e.changedTouches[0];const dx=t.clientX-sx,dy=t.clientY-sy;if(Math.abs(dx)>48&&Math.abs(dx)>Math.abs(dy)){dx<0?lbNext():lbPrev();}},{passive:true});
+})();
 window.toggleSearchBar=function(){const bar=document.getElementById('search-bar');bar.classList.toggle('show');if(bar.classList.contains('show'))document.getElementById('msg-search-inp').focus();else{document.getElementById('msg-search-inp').value='';searchMessages('');}};
 window.closeSearchBar=function(){document.getElementById('search-bar').classList.remove('show');document.getElementById('msg-search-inp').value='';searchMessages('');};
 window.searchMessages=function(q){if(!q.trim()){document.querySelectorAll('.mg').forEach(el=>el.style.display='');return;}const lower=q.toLowerCase();document.querySelectorAll('.mg').forEach(el=>{const bubble=el.querySelector('.bubble');const txt=bubble?bubble.textContent.toLowerCase():'';el.style.display=txt.includes(lower)?'':'none';});};
@@ -3464,7 +3505,7 @@ function linkify(escaped){
 function fmtTime(ts){if(!ts)return'';const d=new Date(ts),h=d.getHours(),m=String(d.getMinutes()).padStart(2,'0');return`${h>=12?'오후':'오전'} ${h>12?h-12:h||12}:${m}`;}
 let _t;window.showToast=function(msg,type='ok'){const el=document.getElementById('toast-el');el.textContent=msg;el.className=`toast show t-${type}`;clearTimeout(_t);_t=setTimeout(()=>el.className='toast',2600);};
 document.addEventListener('click',e=>{if(!document.getElementById('msg-menu')?.contains(e.target))closeMsgMenu();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeLightbox();closeRoomSettings();closeSearchBar();closeMsgMenu();closeForwardModal();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeLightbox();closeRoomSettings();closeSearchBar();closeMsgMenu();closeForwardModal();}if(document.getElementById('lightbox')?.classList.contains('show')){if(e.key==='ArrowLeft')lbPrev();else if(e.key==='ArrowRight')lbNext();}});
 // 화면을 다시 보면(앱 복귀) 현재 방 메시지 읽음 처리
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&curRoom&&curRoom!=='onbot'&&curRoom!=='announce')markMessagesRead(curRoom,currentMessages);});
 </script>
