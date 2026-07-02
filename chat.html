@@ -1404,9 +1404,15 @@ async function loadStorageMedia(){
       Object.entries(data).forEach(([id,m])=>{
         if(!m||m.deleted||m.type==='deleted')return;
         if(MEDIA_TYPES.has(m.type)){
-          const src=m.data||m.url||'';
-          const alive=src&&!m.expired&&(m.keep===true||!m.at||now-(m.at||0)<=MEDIA_TTL);
-          if(alive)items.push({kind:m.type,id,roomId:room.id,roomName,src,name:m.fileName||'',at:m.at||0});
+          const aliveBase=!m.expired&&(m.keep===true||!m.at||now-(m.at||0)<=MEDIA_TTL);
+          if(m.type==='image'&&m.images){
+            // 앨범(여러 장 묶음)은 각 이미지를 개별로 보관함에 넣는다
+            const list=Array.isArray(m.images)?m.images:Object.values(m.images||{});
+            if(aliveBase)list.forEach((s,idx)=>{if(s)items.push({kind:'image',id:id+'_'+idx,roomId:room.id,roomName,src:s,name:m.fileName||'',at:m.at||0});});
+          }else{
+            const src=m.data||m.url||'';
+            if(src&&aliveBase)items.push({kind:m.type,id,roomId:room.id,roomName,src,name:m.fileName||'',at:m.at||0});
+          }
         }else if(m.type==='text'&&m.text){
           const url=extractFirstUrl(m.text);
           if(url)items.push({kind:'link',id,roomId:room.id,roomName,url,name:(m.text||'').slice(0,80),at:m.at||0});
@@ -2903,6 +2909,12 @@ window.closeScheduleView=function(){document.getElementById('schedule-view-overl
 /* ── 이미지 라이트박스: 방 안 모든 사진을 좌우로 넘겨보기(카톡식 갤러리) ── */
 let _lbImgs=[],_lbIdx=0;
 function collectRoomImages(){
+  // 보관함 탭이 열려 있으면 보관함의 모든 이미지를 갤러리로 묶는다(전체 저장도 여기 기준)
+  const spStore=document.getElementById('sp-storage');
+  if(spStore&&spStore.style.display!=='none'&&typeof storeMedia!=='undefined'&&Array.isArray(storeMedia)){
+    const imgs=storeMedia.filter(i=>i.kind==='image'&&i.src).map(i=>i.src);
+    if(imgs.length)return imgs;
+  }
   const arr=[];
   (currentMessages||[]).forEach(m=>{
     if(!m||m.expired||m.type!=='image')return;
