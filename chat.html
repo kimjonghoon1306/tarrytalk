@@ -2969,8 +2969,8 @@ window.saveAllImages=async function(){
   if(!_lbImgs.length)return;
   const blobs=(await Promise.all(_lbImgs.map(u=>urlToBlob(u).catch(()=>null)))).filter(Boolean);
   if(!blobs.length){showToast('사진을 불러오지 못했어요','warn');return;}
-  // ① 폴더를 직접 선택 → 그 폴더에 사진들을 그대로 개별 저장(압축 없음). 안드로이드 크롬·PC 지원
-  if(window.showDirectoryPicker){
+  // ── 안드로이드: 폴더를 직접 선택 → 그 폴더에 사진 개별 저장(압축 없음) ──
+  if(isAndroidDev()&&window.showDirectoryPicker){
     try{
       const dir=await window.showDirectoryPicker();
       showToast(`📁 ${blobs.length}장 저장 중...`,'info');
@@ -2981,14 +2981,26 @@ window.saveAllImages=async function(){
       showToast(`✅ ${blobs.length}장 저장 완료`,'ok');return;
     }catch(e){if(e&&e.name==='AbortError')return;}
   }
-  // ② 폴더 선택 미지원(iOS 등): 공유 시트로 여러 장 저장
+  // ── PC: 21장을 ZIP 한 파일로 묶어 위치 선택 저장(기존 v14.8 그대로, 폴더 안 엶) ──
+  if(!isAndroidDev()&&window.showSaveFilePicker){
+    try{
+      showToast('📦 사진을 압축하는 중...','info');
+      const {default:JSZip}=await import('https://esm.sh/jszip@3.10.1');
+      const zip=new JSZip();blobs.forEach((b,i)=>zip.file(fileNameWithExt('',b,i+1),b));
+      const zipBlob=await zip.generateAsync({type:'blob'});
+      const h=await window.showSaveFilePicker({suggestedName:'photos_'+Date.now()+'.zip',types:[{description:'ZIP 압축',accept:{'application/zip':['.zip']}}]});
+      const w=await h.createWritable();await w.write(zipBlob);await w.close();
+      showToast('✅ 저장했어요 · 압축을 풀면 사진이에요','ok');return;
+    }catch(e){if(e&&e.name==='AbortError')return;}
+  }
+  // ── iOS 등: 공유 시트로 여러 장 저장 ──
   if(navigator.canShare&&navigator.share){
     try{
       const files=blobs.map((b,i)=>new File([b],fileNameWithExt('',b,i+1),{type:b.type||'image/jpeg'}));
       if(navigator.canShare({files})){await navigator.share({files});return;}
     }catch(e){if(e&&e.name==='AbortError')return;}
   }
-  // ③ 폴백: 순차 다운로드
+  // 폴백: 순차 다운로드
   showToast(`📁 ${blobs.length}장 저장 중...`,'info');
   for(let i=0;i<blobs.length;i++){dlBlob(blobs[i],fileNameWithExt('',blobs[i],i+1));await new Promise(r=>setTimeout(r,350));}
   showToast('📥 다운로드 폴더에 저장했어요','ok');
