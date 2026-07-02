@@ -2948,16 +2948,7 @@ function dlBlob(blob,name){const u=URL.createObjectURL(blob);const a=document.cr
 async function saveImage(url,name){
   let blob=null;try{blob=await urlToBlob(url);}catch(e){}
   const fileName=blob?fileNameWithExt(name,blob,1):(name||('photo_'+Date.now()+'.jpg'));
-  // ── 모바일: 공유 시트만 사용(다운로드 폴백 금지 = "다시 다운로드?" 팝업 원천 차단) ──
-  if(preferNativeShare()){
-    if(blob&&navigator.canShare&&navigator.share){
-      try{const file=new File([blob],fileName,{type:blob.type||'image/jpeg'});if(navigator.canShare({files:[file]})){await navigator.share({files:[file]});return;}}catch(e){if(e&&e.name==='AbortError')return;}
-    }
-    // 공유가 안 되는 기기: 이미지를 새 탭으로 열어 길게 눌러 저장하도록 안내(팝업 반복 없음)
-    try{if(blob){const u=URL.createObjectURL(blob);window.open(u,'_blank');setTimeout(()=>URL.revokeObjectURL(u),5000);}else window.open(url,'_blank');}catch(e){}
-    showToast('사진을 길게 눌러 "이미지 저장"을 선택해 주세요','info');return;
-  }
-  // ── PC: 저장 위치를 직접 고르는 다이얼로그 ──
+  // ① 저장 위치 선택 다이얼로그(안드로이드 크롬·PC 크롬·엣지 모두 지원) → 내가 위치 지정
   if(blob&&window.showSaveFilePicker){
     try{
       const handle=await window.showSaveFilePicker({suggestedName:fileName,types:[{description:'이미지',accept:{[blob.type||'image/jpeg']:[extOf(blob)]}}]});
@@ -2965,7 +2956,11 @@ async function saveImage(url,name){
       showToast('✅ 저장했어요','ok');return;
     }catch(e){if(e&&e.name==='AbortError')return;}
   }
-  // PC 폴백: 다운로드 폴더
+  // ② 위치 선택 미지원(iOS 사파리 등): 공유 시트로 사진 앨범 저장
+  if(blob&&navigator.canShare&&navigator.share){
+    try{const file=new File([blob],fileName,{type:blob.type||'image/jpeg'});if(navigator.canShare({files:[file]})){await navigator.share({files:[file]});return;}}catch(e){if(e&&e.name==='AbortError')return;}
+  }
+  // ③ 폴백: 다운로드
   if(blob)dlBlob(blob,fileName);else downloadDataUrl(url,fileName);
   showToast('📥 다운로드 폴더에 저장했어요','ok');
 }
@@ -2974,18 +2969,7 @@ window.saveAllImages=async function(){
   if(!_lbImgs.length)return;
   const blobs=(await Promise.all(_lbImgs.map(u=>urlToBlob(u).catch(()=>null)))).filter(Boolean);
   if(!blobs.length){showToast('사진을 불러오지 못했어요','warn');return;}
-  // ── 모바일: 공유 시트만 사용(다운로드/ZIP 폴백 금지 = 팝업 반복 차단) ──
-  if(preferNativeShare()){
-    if(navigator.canShare&&navigator.share){
-      try{
-        const files=blobs.map((b,i)=>new File([b],fileNameWithExt('',b,i+1),{type:b.type||'image/jpeg'}));
-        if(navigator.canShare({files})){await navigator.share({files});return;}
-      }catch(e){if(e&&e.name==='AbortError')return;}
-    }
-    // 여러 장 공유가 안 되는 기기: 한 장씩 저장 안내(팝업 반복 방지)
-    showToast('이 기기는 여러 장 한번에 저장이 안 돼요. 사진을 한 장씩 눌러 저장해 주세요','warn');return;
-  }
-  // ── PC: 21장을 ZIP 한 파일로 묶어 "저장 위치 선택 창"으로 저장 ──
+  // ① 저장 위치 선택(안드로이드 크롬·PC): 21장을 ZIP 한 파일로 묶어 위치 지정 저장
   if(window.showSaveFilePicker){
     try{
       showToast('📦 사진을 압축하는 중...','info');
@@ -2998,7 +2982,14 @@ window.saveAllImages=async function(){
       showToast('✅ 저장했어요 · 압축을 풀면 사진이에요','ok');return;
     }catch(e){if(e&&e.name==='AbortError')return;}
   }
-  // PC 폴백(구형 브라우저): 순차 다운로드
+  // ② 위치 선택 미지원(iOS 등): 공유 시트로 여러 장 저장
+  if(navigator.canShare&&navigator.share){
+    try{
+      const files=blobs.map((b,i)=>new File([b],fileNameWithExt('',b,i+1),{type:b.type||'image/jpeg'}));
+      if(navigator.canShare({files})){await navigator.share({files});return;}
+    }catch(e){if(e&&e.name==='AbortError')return;}
+  }
+  // ③ 폴백: 순차 다운로드
   showToast(`📁 ${blobs.length}장 저장 중...`,'info');
   for(let i=0;i<blobs.length;i++){dlBlob(blobs[i],fileNameWithExt('',blobs[i],i+1));await new Promise(r=>setTimeout(r,350));}
   showToast('📥 다운로드 폴더에 저장했어요','ok');
