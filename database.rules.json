@@ -37,7 +37,7 @@
       }
     },
     "rooms": {
-      ".read": "auth != null",
+      ".read": "auth != null && ((query.orderByChild === 'members/' + auth.uid && query.equalTo === true) || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')",
       "$roomId": {
         ".read": "auth != null && (data.child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')",
         ".write": "auth != null && ((!data.exists() && newData.exists()) || (!newData.exists() && (data.child('createdBy').val() === auth.uid || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')) || (data.exists() && newData.exists() && (data.child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')))",
@@ -55,7 +55,7 @@
         },
         "members": {
           "$uid": {
-            ".write": "auth != null && ((!newData.exists() && data.exists() && auth.uid === $uid) || root.child('rooms').child($roomId).child('createdBy').val() === auth.uid || root.child('rooms').child($roomId).child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')",
+            ".write": "auth != null && ((!newData.exists() && data.exists() && auth.uid === $uid) || (auth.uid === $uid && !data.exists() && newData.val() === true && root.child('rooms').child($roomId).child('type').val() === 'group') || root.child('rooms').child($roomId).child('createdBy').val() === auth.uid || root.child('rooms').child($roomId).child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')",
             ".validate": "newData.val() === true || !newData.exists()"
           }
         },

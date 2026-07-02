@@ -318,15 +318,25 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 let adminLoginInProgress = false;
 let signupInProgress = false;
 
+function inviteChatUrl() {
+  const src = new URLSearchParams(location.search);
+  const dst = new URLSearchParams();
+  ['ref','room'].forEach(k => {
+    const v = src.get(k);
+    if (v) dst.set(k, v);
+  });
+  const q = dst.toString();
+  return q ? `chat.html?${q}` : 'chat.html';
+}
+
 /* 이미 로그인 시 바로 이동 */
 onAuthStateChanged(auth, user => {
   if (user) {
     localStorage.setItem('tt_had_session', '1');
     sessionStorage.removeItem('tt_guest');
     if (!adminLoginInProgress && !signupInProgress) {
-      // 초대링크(?ref=)로 이미 로그인된 사람이 들어오면 ref를 chat으로 전달해 친구연결
-      const ref = new URLSearchParams(location.search).get('ref');
-      location.replace(ref ? ('chat.html?ref=' + encodeURIComponent(ref)) : 'chat.html');
+      // 초대링크(?ref=&room=)로 이미 로그인된 사람이 들어오면 chat에서 친구연결/방입장 처리
+      location.replace(inviteChatUrl());
     }
   }
 });
@@ -454,7 +464,7 @@ window.doLogin = async function() {
     await set(ref(db, `users/${cred.user.uid}/lastSeen`), serverTimestamp());
     sessionStorage.setItem('tt_theme','light');
     showToast('👋 반갑습니다!', 'ok');
-    setTimeout(() => location.replace('chat.html'), 800);
+    setTimeout(() => location.replace(inviteChatUrl()), 800);
   } catch(e) {
     showLoading(false); btn.disabled = false; btn.textContent = '로그인';
     const c = e.code||'';
@@ -494,7 +504,7 @@ window.doSignup = async function() {
     });
     sessionStorage.setItem('tt_theme','light');
     showToast('🎉 가입 완료! 환영합니다', 'ok');
-    location.replace('chat.html');
+    location.replace(inviteChatUrl());
   } catch(e) {
     signupInProgress = false;
     showLoading(false); btn.disabled = false; btn.textContent = '회원가입 완료';

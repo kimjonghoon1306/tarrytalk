@@ -882,7 +882,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
       <div class="tb2" onclick="openSchedule()"><span class="tb-ic">📅</span><span class="tb-lb">일정</span></div>
       <div class="tb2" onclick="openPoll()"><span class="tb-ic">📊</span><span class="tb-lb">투표</span></div>
       <div class="tb2" onclick="openScheduledSend()"><span class="tb-ic">⏰</span><span class="tb-lb">예약</span></div>
-      <div class="tb2" onclick="openInvite()"><span class="tb-ic">👋</span><span class="tb-lb">초대</span></div>
+      <div class="tb2" onclick="openInvite(true)"><span class="tb-ic">👋</span><span class="tb-lb">초대</span></div>
     </div>
     <input type="file" id="pick-img" accept="image/*" multiple style="display:none" onchange="onFileSelected(event,'image')">
     <input type="file" id="pick-file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.zip,.hwp" style="display:none" onchange="onFileSelected(event,'document')">
@@ -2926,41 +2926,55 @@ function showLightboxAt(i){
   const sv=document.getElementById('lb-save');if(sv)sv.textContent=multi?'💾 이 사진 저장':'💾 이미지 저장';
 }
 function downloadDataUrl(url,name){const a=document.createElement('a');a.href=url;a.download=name||('photo_'+Date.now()+'.jpg');document.body.appendChild(a);a.click();a.remove();}
-async function urlToBlob(url){return await(await fetch(url)).blob();}
-function extOf(blob){return (blob&&blob.type==='image/png')?'.png':'.jpg';}
+async function urlToBlob(url){const res=await fetch(url);if(!res.ok)throw new Error('image fetch failed');return await res.blob();}
+function extOf(blob){const t=(blob&&blob.type||'').toLowerCase();if(t==='image/png')return'.png';if(t==='image/webp')return'.webp';if(t==='image/gif')return'.gif';return'.jpg';}
+function fileNameWithExt(name,blob,i=1){const ext=extOf(blob);const base=(name||`photo_${i}`).replace(/[\\/:*?"<>|]+/g,'_').replace(/\.(jpe?g|png|webp|gif)$/i,'');return base+ext;}
+function preferNativeShare(){const ua=navigator.userAgent||'';return /Android|iPhone|iPad|iPod/i.test(ua)||(/Macintosh/i.test(ua)&&navigator.maxTouchPoints>1);}
 async function saveImage(url,name){
   let blob=null;try{blob=await urlToBlob(url);}catch(e){}
-  // 1) PC(크롬·엣지): 저장 위치를 직접 고르는 다이얼로그
+  const fileName=blob?fileNameWithExt(name,blob,1):(name||('photo_'+Date.now()+'.jpg'));
+  // 1) 모바일: 네이티브 공유 시트(사진 앨범/파일 위치 선택)
+  if(blob&&preferNativeShare()&&navigator.canShare&&navigator.share){
+    try{
+      const file=new File([blob],fileName,{type:blob.type||'image/jpeg'});
+      if(navigator.canShare({files:[file]})){await navigator.share({files:[file]});return;}
+    }catch(e){if(e&&e.name==='AbortError')return;}
+  }
+  // 2) PC(크롬·엣지): 저장 위치를 직접 고르는 다이얼로그
   if(blob&&window.showSaveFilePicker){
     try{
-      const handle=await window.showSaveFilePicker({suggestedName:name,types:[{description:'이미지',accept:{[blob.type||'image/jpeg']:[extOf(blob)]}}]});
+      const handle=await window.showSaveFilePicker({suggestedName:fileName,types:[{description:'이미지',accept:{[blob.type||'image/jpeg']:[extOf(blob)]}}]});
       const w=await handle.createWritable();await w.write(blob);await w.close();
       showToast('✅ 저장했어요','ok');return;
     }catch(e){if(e&&e.name==='AbortError')return;}
   }
-  // 2) 모바일: 네이티브 공유 시트(사진 앨범/파일 위치 선택)
-  if(blob&&navigator.canShare){
+  // 3) 공유 가능한 환경에서는 PC에서도 공유 폴백 허용
+  if(blob&&navigator.canShare&&navigator.share){
     try{
-      const file=new File([blob],name,{type:blob.type||'image/jpeg'});
+      const file=new File([blob],fileName,{type:blob.type||'image/jpeg'});
       if(navigator.canShare({files:[file]})){await navigator.share({files:[file]});return;}
     }catch(e){if(e&&e.name==='AbortError')return;}
   }
-  // 3) 폴백: 다운로드 폴더
-  downloadDataUrl(url,name);showToast('📥 다운로드 폴더에 저장했어요','ok');
+  // 4) 폴백: 다운로드 폴더
+  downloadDataUrl(url,fileName);showToast('📥 다운로드 폴더에 저장했어요','ok');
 }
 window.saveCurrentImage=function(){const i=_lbIdx;saveImage(_lbImgs[i],'photo_'+(i+1)+'.jpg');};
 window.saveAllImages=async function(){
   if(!_lbImgs.length)return;
   // 모바일: 공유 시트로 여러 장 저장(사진 앨범/파일 위치 선택)
-  if(navigator.canShare){
+  if(preferNativeShare()&&navigator.canShare&&navigator.share){
     try{
-      const files=await Promise.all(_lbImgs.map(async(u,i)=>{const b=await urlToBlob(u);return new File([b],'photo_'+(i+1)+extOf(b),{type:b.type||'image/jpeg'});}));
+      const files=await Promise.all(_lbImgs.map(async(u,i)=>{const b=await urlToBlob(u);return new File([b],fileNameWithExt('',b,i+1),{type:b.type||'image/jpeg'});}));
       if(navigator.canShare({files})){await navigator.share({files});return;}
     }catch(e){if(e&&e.name==='AbortError')return;}
   }
   // 3) 폴백: 순차 다운로드
   showToast(`📁 ${_lbImgs.length}장 저장 중...`,'info');
-  for(let i=0;i<_lbImgs.length;i++){downloadDataUrl(_lbImgs[i],'photo_'+(i+1)+'.jpg');await new Promise(r=>setTimeout(r,400));}
+  for(let i=0;i<_lbImgs.length;i++){
+    let nm='photo_'+(i+1)+'.jpg';
+    try{const b=await urlToBlob(_lbImgs[i]);nm=fileNameWithExt('',b,i+1);}catch(e){}
+    downloadDataUrl(_lbImgs[i],nm);await new Promise(r=>setTimeout(r,400));
+  }
   showToast('📥 다운로드 폴더에 저장했어요','ok');
 };
 window.openLightbox=function(src,name){
@@ -3108,7 +3122,9 @@ window.doCreate=async function(){
 window.goExist=()=>{document.getElementById('exist-ov').classList.remove('show');if(existId)openRoom(existId);};
 window.closeExist=()=>document.getElementById('exist-ov').classList.remove('show');
 async function handleInviteRef(){
-  const refUid=new URLSearchParams(location.search).get('ref');
+  const params=new URLSearchParams(location.search);
+  const refUid=params.get('ref');
+  const inviteRoom=params.get('room')||'';
   if(!refUid||!sess||refUid===sess.uid)return;
   // URL 정리(중복 처리 방지)
   history.replaceState(null,'',location.pathname);
@@ -3118,6 +3134,37 @@ async function handleInviteRef(){
   // 서로 친구 연결: 내 invitedBy가 없으면 초대자로 설정
   const me=await get(ref(db,`users/${sess.uid}/invitedBy`));
   if(!me.exists())await set(ref(db,`users/${sess.uid}/invitedBy`),refUid).catch(()=>{});
+  await set(ref(db,`users/${sess.uid}/friends/${refUid}`),Date.now()).catch(()=>{});
+  // 단톡 초대 링크: 방 ID는 추측이 어려운 push key만 받고, 규칙에서 group 방 자가입장만 허용한다.
+  if(inviteRoom&&/^[A-Za-z0-9_-]{8,80}$/.test(inviteRoom)){
+    let alreadyMember=false;
+    try{
+      const before=await get(ref(db,`rooms/${inviteRoom}`));
+      const beforeRoom=before.val();
+      alreadyMember=!!beforeRoom?.members?.[sess.uid];
+      if(beforeRoom&&beforeRoom.type!=='group')throw new Error('not group');
+    }catch(e){}
+    try{
+      await set(ref(db,`rooms/${inviteRoom}/members/${sess.uid}`),true);
+      const roomSnap=await get(ref(db,`rooms/${inviteRoom}`));
+      const room=roomSnap.val();
+      if(room?.type==='group'){
+        if(!alreadyMember){
+          const text=`${sess.name}님이 초대로 입장했습니다`;
+          await update(ref(db),{[`rooms/${inviteRoom}/lastMsg`]:text,[`rooms/${inviteRoom}/lastAt`]:Date.now()}).catch(()=>{});
+          await set(push(ref(db,`messages/${inviteRoom}`)),{uid:'system',displayName:'system',text,type:'system',at:Date.now()}).catch(()=>{});
+        }
+        if(!window._rooms?.some(r=>r.id===inviteRoom))window._rooms.push({id:inviteRoom,...room,members:{...(room.members||{}),[sess.uid]:true}});
+        showToast(`👋 ${inviter.displayName||'친구'}님의 채팅방에 입장했습니다`,'ok');
+        setTab('group');
+        initialRoomId='';
+        setTimeout(()=>openRoom(inviteRoom),400);
+        return;
+      }
+    }catch(e){
+      showToast('초대된 채팅방에 입장하지 못했습니다','warn');
+    }
+  }
   // 이미 둘만의 DM 있으면 그 방으로, 없으면 생성
   let room=(window._rooms||[]).find(r=>r.type==='dm'&&r.members?.[sess.uid]&&r.members?.[refUid]&&Object.keys(r.members||{}).length===2);
   let roomId;
