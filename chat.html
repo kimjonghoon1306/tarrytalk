@@ -2969,46 +2969,17 @@ window.saveAllImages=async function(){
   if(!_lbImgs.length)return;
   const blobs=(await Promise.all(_lbImgs.map(u=>urlToBlob(u).catch(()=>null)))).filter(Boolean);
   if(!blobs.length){showToast('사진을 불러오지 못했어요','warn');return;}
-  // ── 안드로이드: 파일 관리자에서 폴더 선택 → 개별 저장(압축 없음). 권한요청/mode 옵션 없이 = InvalidStateError 회피(원래 되던 방식) ──
-  if(isAndroidDev()&&window.showDirectoryPicker){
+  // ── 위치 지정 저장(안드로이드 크롬·PC): 사진을 ZIP 하나로 묶어 파일 관리자에서 위치 지정 → 저장 ──
+  // (안드로이드는 폴더 개별저장 showDirectoryPicker가 InvalidStateError로 막혀서, 단일저장이 되는 방식(showSaveFilePicker)+파일 하나로)
+  if(window.showSaveFilePicker){
     try{
-      const dir=await window.showDirectoryPicker();
-      showToast(`📁 ${blobs.length}장 저장 중...`,'info');
-      for(let i=0;i<blobs.length;i++){
-        const fh=await dir.getFileHandle(fileNameWithExt('',blobs[i],i+1),{create:true});
-        const w=await fh.createWritable();await w.write(blobs[i]);await w.close();
-      }
-      showToast(`✅ ${blobs.length}장 저장 완료`,'ok');
-    }catch(e){
-      if(e&&e.name==='AbortError')return;
-      showToast('저장 실패 ['+((e&&e.name)||'오류')+'] — 알려주세요','warn');
-    }
-    return;
-  }
-  // 안드로이드인데 폴더 선택 미지원(구형): 공유 시트
-  if(isAndroidDev()){
-    if(navigator.canShare&&navigator.share){
-      try{const files=blobs.map((b,i)=>new File([b],fileNameWithExt('',b,i+1),{type:b.type||'image/jpeg'}));if(navigator.canShare({files})){await navigator.share({files});return;}}catch(e){if(e&&e.name==='AbortError')return;}
-    }
-    showToast('저장하려면 사진을 한 장씩 눌러 주세요','info');return;
-  }
-  // 안드로이드인데 폴더 선택 미지원(구형): 공유 시트
-  if(isAndroidDev()){
-    if(navigator.canShare&&navigator.share){
-      try{const files=blobs.map((b,i)=>new File([b],fileNameWithExt('',b,i+1),{type:b.type||'image/jpeg'}));if(navigator.canShare({files})){await navigator.share({files});return;}}catch(e){if(e&&e.name==='AbortError')return;}
-    }
-    showToast('저장하려면 사진을 한 장씩 눌러 저장해 주세요','info');return;
-  }
-  // ── PC: 21장을 ZIP 한 파일로 묶어 위치 선택 저장(기존 v14.8 그대로, 폴더 안 엶) ──
-  if(!isAndroidDev()&&window.showSaveFilePicker){
-    try{
-      showToast('📦 사진을 압축하는 중...','info');
+      showToast('📦 사진을 묶는 중...','info');
       const {default:JSZip}=await import('https://esm.sh/jszip@3.10.1');
       const zip=new JSZip();blobs.forEach((b,i)=>zip.file(fileNameWithExt('',b,i+1),b));
       const zipBlob=await zip.generateAsync({type:'blob'});
-      const h=await window.showSaveFilePicker({suggestedName:'photos_'+Date.now()+'.zip',types:[{description:'ZIP 압축',accept:{'application/zip':['.zip']}}]});
+      const h=await window.showSaveFilePicker({suggestedName:'온메신저사진_'+Date.now()+'.zip',types:[{description:'ZIP 압축',accept:{'application/zip':['.zip']}}]});
       const w=await h.createWritable();await w.write(zipBlob);await w.close();
-      showToast('✅ 저장했어요 · 압축을 풀면 사진이에요','ok');return;
+      showToast('✅ 저장했어요 · 압축을 풀면 사진 '+blobs.length+'장','ok');return;
     }catch(e){if(e&&e.name==='AbortError')return;}
   }
   // ── iOS 등: 공유 시트로 여러 장 저장 ──
