@@ -7,7 +7,7 @@ if (!admin.apps.length) {
     databaseURL: DB_URL,
   });
 }
-const NEW_ROOMS_READ = "auth != null && ((query.orderByChild === 'members/' + auth.uid && query.equalTo === true) || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')";
+const NEW_ROOMS_READ = "auth != null";
 const NEW_MEMBERS_WRITE = "auth != null && ((!newData.exists() && data.exists() && auth.uid === $uid) || (auth.uid === $uid && !data.exists() && newData.val() === true && root.child('rooms').child($roomId).child('type').val() === 'group') || root.child('rooms').child($roomId).child('createdBy').val() === auth.uid || root.child('rooms').child($roomId).child('members').child(auth.uid).exists() || root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')";
 module.exports = async (req, res) => {
   try {
