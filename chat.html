@@ -230,7 +230,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .mg.pop-in{animation:msgPop .5s cubic-bezier(.22,1.4,.5,1) both;}
 .mg.pop-in .bubble,.mg.pop-in .img-bub,.mg.pop-in .file-card,.mg.pop-in .schedule-card,.mg.pop-in .sticker-bub,.mg.pop-in .album{animation:bubbleSquish .5s cubic-bezier(.22,1.4,.5,1) both;}
 /* 사진 앨범(여러 장 모아보기) — 카톡식 그리드 */
-.album{display:grid;gap:3px;border-radius:14px;overflow:hidden;max-width:252px;}
+.album{display:grid;gap:3px;border-radius:14px;overflow:hidden;max-width:282px;width:100%;}
 .album-2{grid-template-columns:1fr 1fr;}
 .album-3{grid-template-columns:1fr 1fr 1fr;}
 .album-4{grid-template-columns:1fr 1fr;}
@@ -2179,7 +2179,7 @@ function buildMsg(m,prev,isNew){
     content=`<div class="expired-media">🗑 2주가 지나 자동 삭제된 ${label}입니다</div>`;
   }
   else if(m.type==='sticker'){content=`<div class="sticker-bub">${STICKERS[m.text]||'<span style="font-size:60px">🌱</span>'}</div>`;}
-  else if(m.type==='image'&&m.images){const imgs=Array.isArray(m.images)?m.images:Object.values(m.images||{});const n=imgs.length;const show=imgs.slice(0,4);const cells=show.map((src,idx)=>`<div class="album-cell" onclick="openLightbox(${jsArg(src)},'이미지')"><img src="${esc(src)}" loading="lazy">${(idx===3&&n>4)?`<div class="album-more">+${n-4}</div>`:''}</div>`).join('');content=`<div class="album album-${Math.min(n,4)}">${cells}</div>${mediaNote}`;}
+  else if(m.type==='image'&&m.images){const imgs=Array.isArray(m.images)?m.images:Object.values(m.images||{});const n=imgs.length;const cols=n===1?1:n===2?2:n===4?2:3;const cells=imgs.map(src=>`<div class="album-cell" onclick="openLightbox(${jsArg(src)},'이미지')"><img src="${esc(src)}" loading="lazy"></div>`).join('');content=`<div class="album" style="grid-template-columns:repeat(${cols},1fr)">${cells}</div>${mediaNote}`;}
   else if(m.type==='image'){const src=esc(m.data||m.url||''),fn=m.fileName||'이미지';content=`<div class="img-bub" onclick="openLightbox(${jsArg(m.data||m.url||'')},${jsArg(fn)})"><img src="${src}" alt="이미지" loading="lazy" class="loading" onload="this.classList.remove('loading')"><div class="img-cap">🖼️ ${esc(fn)} <a href="${src}" download="${escAttr(fn||'image')}" onclick="event.stopPropagation()">다운로드</a></div>${mediaNote}</div>`;}
   else if(m.type==='document'){const src=esc(m.data||m.url||''),icons={pdf:'📄',doc:'📝',docx:'📝',ppt:'📊',pptx:'📊',xls:'📗',xlsx:'📗',zip:'🗜️',hwp:'📄',txt:'📃'};const ext=(m.fileName||'').split('.').pop().toLowerCase();content=`<div class="file-card"><div class="file-card-body"><div class="file-icon">${icons[ext]||'📎'}</div><div class="file-info"><div class="file-name">${esc(m.fileName||'파일')}</div><div class="file-size">${esc(m.fileSize||'')}</div></div><a class="file-dl" href="${src}" download="${escAttr(m.fileName||'file')}">받기</a></div>${mediaNote}</div>`;}
   else if(m.type==='video'){const src=esc(m.data||m.url||'');content=`<div class="file-card"><video controls src="${src}" style="max-height:200px;width:100%;"></video><div class="file-card-body"><div class="file-icon">🎥</div><div class="file-info"><div class="file-name">${esc(m.fileName||'영상')}</div><div class="file-size">${esc(m.fileSize||'')}</div></div><a class="file-dl" href="${src}" download="${escAttr(m.fileName||'video.mp4')}" onclick="event.stopPropagation()">받기</a></div>${mediaNote}</div>`;}
