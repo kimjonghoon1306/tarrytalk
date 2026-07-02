@@ -130,6 +130,12 @@
         }
       }
     },
+    "scheduledMessages": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
     "notices": {
       ".read": "auth != null",
       ".write": "auth != null && (root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')"

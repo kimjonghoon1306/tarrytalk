@@ -840,6 +840,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
       <div class="tb2" onclick="toggleLink()"><span class="tb-ic">🔗</span><span class="tb-lb">링크</span></div>
       <div class="tb2" onclick="openSchedule()"><span class="tb-ic">📅</span><span class="tb-lb">일정</span></div>
       <div class="tb2" onclick="openPoll()"><span class="tb-ic">📊</span><span class="tb-lb">투표</span></div>
+      <div class="tb2" onclick="openScheduledSend()"><span class="tb-ic">⏰</span><span class="tb-lb">예약</span></div>
       <div class="tb2" onclick="openInvite()"><span class="tb-ic">👋</span><span class="tb-lb">초대</span></div>
     </div>
     <input type="file" id="pick-img" accept="image/*" multiple style="display:none" onchange="onFileSelected(event,'image')">
@@ -1048,6 +1049,21 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
   </div>
 </div>
 
+<!-- 예약 전송 모달 -->
+<div class="overlay" id="sched-overlay" onclick="if(event.target.id==='sched-overlay')closeScheduledSend()">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-drag"></div>
+    <div class="modal-head"><div class="modal-title">⏰ 예약 전송</div><div class="modal-x" onclick="closeScheduledSend()">✕</div></div>
+    <div style="padding:14px 18px 6px;">
+      <label class="sch-label">보낼 메시지</label><textarea class="sch-inp" id="sched-text" rows="2" style="resize:none;" placeholder="예약해서 보낼 내용..."></textarea>
+      <label class="sch-label">보낼 시각</label><input class="sch-inp" id="sched-when" type="datetime-local">
+      <div style="font-size:11.5px;color:var(--text3);margin-top:8px;line-height:1.5;">💡 예약은 <b>앱이 켜져 있을 때</b> 자동 전송돼요. 시간이 됐을 때 앱이 꺼져 있으면, 다음에 앱을 열 때 보내집니다.</div>
+      <div id="sched-list" style="margin-top:12px;"></div>
+    </div>
+    <div style="padding:6px 18px 18px;"><button onclick="saveScheduledMsg()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--green),var(--green2));border:none;border-radius:13px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px var(--glow);">⏰ 예약하기</button></div>
+  </div>
+</div>
+
 <!-- 초대 모달 -->
 <div class="overlay" id="inv-overlay" onclick="if(event.target.id==='inv-overlay')closeInvite()">
   <div class="invite-modal">
@@ -1133,6 +1149,7 @@ onAuthStateChanged(auth,async user=>{
     initUI();
     initPushNotifications().catch(()=>{});
     syncNotifySound(user.uid);
+    startScheduledWatcher();
     handleInviteRef().catch(()=>{});
   }else if(isGuest){updateAppBadge(0);initUI();}else{
     // iOS PWA 등은 백그라운드 복귀 시 auth 복원 중 잠깐 user=null을 내보낸다.
@@ -3165,6 +3182,75 @@ window.votePoll=async function(msgId,optIdx){
     else{await set(ref(db,base),{[optIdx]:true});}
   }
 };
+/* ── 예약 전송 (앱 실행 중 자동 발송) ── */
+function toLocalDatetime(d){const p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;}
+window.openScheduledSend=function(){
+  if(!curRoom||!sess){showToast('채팅방을 먼저 선택하세요','warn');return;}
+  if(curRoom==='onbot'||curRoom==='announce'){showToast('여기서는 예약할 수 없어요','warn');return;}
+  if(isSecretWatch(currentRoom())){showToast('시크릿 관전 중에는 예약할 수 없습니다','warn');return;}
+  const inp=document.getElementById('m-inp');
+  document.getElementById('sched-text').value=(inp&&inp.value.trim())||'';
+  const d=new Date(Date.now()+10*60000);d.setSeconds(0,0);
+  document.getElementById('sched-when').value=toLocalDatetime(d);
+  renderScheduledList();
+  document.getElementById('sched-overlay').classList.add('show');
+};
+window.closeScheduledSend=()=>document.getElementById('sched-overlay').classList.remove('show');
+window.saveScheduledMsg=async function(){
+  if(!curRoom||!sess)return;
+  const text=document.getElementById('sched-text').value.trim();
+  const when=document.getElementById('sched-when').value;
+  if(!text){showToast('메시지를 입력하세요','warn');return;}
+  if(!when){showToast('보낼 시각을 선택하세요','warn');return;}
+  const sendAt=new Date(when).getTime();
+  if(isNaN(sendAt)||sendAt<Date.now()+30000){showToast('지금보다 30초 이후 시각으로 정해주세요','warn');return;}
+  try{
+    await set(push(ref(db,`scheduledMessages/${sess.uid}`)),{roomId:curRoom,text,sendAt,createdAt:Date.now()});
+    const inp=document.getElementById('m-inp');if(inp){inp.value='';autoResize(inp);}
+    document.getElementById('sched-text').value='';
+    renderScheduledList();
+    showToast(`⏰ ${new Date(sendAt).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}에 보낼게요`,'ok');
+  }catch(e){showToast('예약 실패','warn');}
+};
+window.cancelScheduled=async function(id){
+  if(!sess)return;
+  try{await remove(ref(db,`scheduledMessages/${sess.uid}/${id}`));renderScheduledList();showToast('예약을 취소했어요','info');}catch(e){}
+};
+async function renderScheduledList(){
+  const box=document.getElementById('sched-list');if(!box||!sess)return;
+  const snap=await get(ref(db,`scheduledMessages/${sess.uid}`));
+  const all=Object.entries(snap.val()||{}).filter(([id,s])=>s&&s.roomId===curRoom).sort((a,b)=>a[1].sendAt-b[1].sendAt);
+  if(!all.length){box.innerHTML='';return;}
+  box.innerHTML='<div style="font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">예약된 메시지</div>'+all.map(([id,s])=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface);border-radius:10px;margin-bottom:6px;"><div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:700;color:var(--green);">⏰ ${new Date(s.sendAt).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div><div style="font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(s.text)}</div></div><button onclick="cancelScheduled('${id}')" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px 9px;font-size:11px;color:var(--text2);cursor:pointer;flex-shrink:0;">취소</button></div>`).join('');
+}
+let _schedTimer=null,_schedRunning=false;
+async function runScheduled(){
+  if(_schedRunning||!sess||isGuest)return;
+  _schedRunning=true;
+  try{
+    const snap=await get(ref(db,`scheduledMessages/${sess.uid}`));
+    const all=snap.val()||{};const now=Date.now();
+    for(const [id,s] of Object.entries(all)){
+      if(!s||!s.sendAt||s.sendAt>now)continue;
+      try{
+        const room=(window._rooms||[]).find(r=>r.id===s.roomId);
+        if(!room||!room.members||!room.members[sess.uid]){await remove(ref(db,`scheduledMessages/${sess.uid}/${id}`));continue;}
+        await set(push(ref(db,`messages/${s.roomId}`)),{uid:sess.uid,displayName:sess.name,text:s.text,type:'text',at:Date.now()});
+        await update(ref(db),{[`rooms/${s.roomId}/lastMsg`]:s.text.length>30?s.text.slice(0,30)+'…':s.text,[`rooms/${s.roomId}/lastAt`]:Date.now()});
+        notifyRoomMembers(room,s.text.length>40?s.text.slice(0,40)+'…':s.text);
+        await remove(ref(db,`scheduledMessages/${sess.uid}/${id}`));
+        if(s.roomId===curRoom)scrollToBottom();
+      }catch(e){}
+    }
+  }catch(e){}
+  _schedRunning=false;
+}
+function startScheduledWatcher(){
+  if(_schedTimer)clearInterval(_schedTimer);
+  if(!sess||isGuest)return;
+  runScheduled();
+  _schedTimer=setInterval(runScheduled,30000);
+}
 /* ── 음성 메시지 (MediaRecorder) ── */
 let _mediaRec=null,_voiceChunks=[],_voiceStream=null,_voiceTimer=null,_voiceStart=0,_voiceMime='';
 function cleanupVoice(){clearInterval(_voiceTimer);_voiceTimer=null;if(_voiceStream){_voiceStream.getTracks().forEach(t=>t.stop());_voiceStream=null;}const b=document.getElementById('voice-bar');if(b)b.classList.remove('show');}
