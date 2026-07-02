@@ -22,6 +22,10 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage(async payload => {
   const d = (payload && payload.data) || {};
+  // 지연 도착(오래된) 알림 차단: 기기가 오래 오프라인이었다 켜지면 FCM이 큐에 쌓아둔 옛 푸시를
+  // 몰아 배달한다 → "안 보낸 메시지가 몇 시간 뒤 뜨는" 유령 알림. 발신 후 5분 넘으면 표시하지 않는다.
+  const sentAt = parseInt(d.sentAt || '0', 10);
+  if (sentAt && Date.now() - sentAt > 300000) return Promise.resolve();
   const title = d.title || '온메신저';
   // 앱(창)이 살아 있으면(PC 최소화 등) 클라이언트에 알림음 재생을 요청한다 → 창을 내려도 톡톡이 울림.
   // (모바일은 백그라운드에서 JS가 멈추므로 이 신호 대신 아래 시스템 알림 소리가 울린다.)

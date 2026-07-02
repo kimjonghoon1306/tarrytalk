@@ -121,11 +121,14 @@ module.exports = async (req, res) => {
     const roomTag = roomIdFromUrl(url) || 'tarrytalk';
     const safeTitle = String(title || '온메신저').slice(0, 80);
     const safeBody = String(body || '새 알림이 있습니다').slice(0, 180);
+    const sentAt = String(Date.now()); // 수신 측이 지연 도착(오래된) 알림을 걸러내는 기준
 
     for (const batch of chunk(tokens, MAX_TOKENS)) {
       // data-only 메시지: notification 페이로드를 보내지 않아 FCM 자동표시를 끈다.
       // 알림 표시는 firebase-messaging-sw.js의 onBackgroundMessage가 직접 showNotification으로 1회만 한다.
       // → 아이콘/배지(상태바 흰네모 문제)를 우리가 완전히 제어하고, 자동표시가 없으므로 중복도 발생하지 않는다.
+      // TTL 1시간(3600s): 수신 기기가 오래 오프라인이면 FCM이 큐에 쌓아뒀다 나중에 배달 → 유령 알림.
+      //                   1시간 넘게 배달 못하면 폐기하도록 제한한다.
       const result = await admin.messaging().sendEachForMulticast({
         tokens: batch,
         data: {
@@ -134,8 +137,10 @@ module.exports = async (req, res) => {
           url: link,
           icon,
           badge,
+          sentAt,
           tag: `${roomTag}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
         },
+        webpush: { headers: { TTL: '3600', Urgency: 'high' } },
         // webpush.fcmOptions.link 제거: data-only인데 link가 있으면 FCM이 알림을 추가 생성할 수 있음.
         // 클릭 시 이동은 SW의 notificationclick이 data.url로 처리한다.
       });
