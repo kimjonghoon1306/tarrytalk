@@ -442,6 +442,24 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .theme-sw:active .theme-prev{transform:scale(.94);}
 .theme-sw.on .theme-prev{border-color:var(--green);box-shadow:0 4px 14px var(--glow);}
 .theme-nm{font-size:10px;color:var(--text2);margin-top:4px;font-weight:700;}
+/* 배경 테마가 켜진 방: 어떤 배경색에도 말풍선·카드가 잘 보이게 대비 강화 */
+#messages.themed-bg .mg:not(.out) .bubble,
+#messages.themed-bg .poll-card,
+#messages.themed-bg .voice-msg,
+#messages.themed-bg .file-card,
+#messages.themed-bg .schedule-card,
+#messages.themed-bg .img-bub .img-cap{
+  background:#ffffff!important;border:1px solid rgba(0,0,0,.14)!important;box-shadow:0 3px 14px rgba(0,0,0,.16)!important;
+}
+#messages.themed-bg .mg:not(.out) .bubble{color:#18181b!important;}
+#messages.themed-bg .poll-q,#messages.themed-bg .poll-opt-txt,#messages.themed-bg .sch-title,#messages.themed-bg .file-name{color:#18181b!important;}
+#messages.themed-bg .poll-opt{background:#f4f4f7!important;border-color:rgba(0,0,0,.1)!important;}
+#messages.themed-bg .poll-opt-cnt,#messages.themed-bg .poll-foot,#messages.themed-bg .vm-dur,#messages.themed-bg .file-size{color:#555!important;}
+/* 발신자 이름·시간: 배경 위 직접 놓이므로 흰 반투명 chip으로 감싸 어떤 배경에도 읽히게 */
+#messages.themed-bg .mg-sender{color:#18181b!important;background:rgba(255,255,255,.82);padding:1px 8px;border-radius:8px;display:inline-block;}
+#messages.themed-bg .mg-meta{color:#18181b!important;}
+#messages.themed-bg .mg-meta span{background:rgba(255,255,255,.82);padding:1px 6px;border-radius:7px;}
+#messages.themed-bg .sys-msg,#messages.themed-bg .date-sep span{background:rgba(0,0,0,.42)!important;color:#fff!important;border-radius:11px;padding:4px 12px;backdrop-filter:blur(4px);}
 /* 메시지 번역 박스 */
 .tr-box{margin-top:5px;padding:8px 11px;background:var(--surface);border:1px dashed var(--border2);border-radius:11px;font-size:13px;line-height:1.45;color:var(--text);max-width:100%;word-break:break-word;animation:menuPop .16s ease both;}
 .tr-lbl{font-size:10px;font-weight:800;color:var(--green);margin-bottom:3px;letter-spacing:.3px;}
@@ -3066,6 +3084,8 @@ function applyRoomTheme(roomId){
   const id=(roomId&&localStorage.getItem('tt_roomtheme_'+roomId))||'';
   const t=CHAT_THEMES.find(x=>x.id===id)||CHAT_THEMES[0];
   el.style.background=t.bg||'';
+  // 배경 테마가 켜지면 말풍선·카드가 어떤 배경색에도 잘 보이도록 대비를 강화한다.
+  el.classList.toggle('themed-bg',!!t.bg);
 }
 window.setRoomTheme=function(id){
   if(!curRoom)return;
