@@ -2969,8 +2969,16 @@ window.saveAllImages=async function(){
   if(!_lbImgs.length)return;
   const blobs=(await Promise.all(_lbImgs.map(u=>urlToBlob(u).catch(()=>null)))).filter(Boolean);
   if(!blobs.length){showToast('사진을 불러오지 못했어요','warn');return;}
-  // ── 위치 지정 저장(안드로이드 크롬·PC): 사진을 ZIP 하나로 묶어 파일 관리자에서 위치 지정 → 저장 ──
-  // (안드로이드는 폴더 개별저장 showDirectoryPicker가 InvalidStateError로 막혀서, 단일저장이 되는 방식(showSaveFilePicker)+파일 하나로)
+  const files=blobs.map((b,i)=>new File([b],fileNameWithExt('',b,i+1),{type:b.type||'image/jpeg'}));
+  // ── 모바일(안드로이드·iOS): 공유 시트로 갤러리에 여러 장 저장(압축 없음) ──
+  // navigator.canShare가 보수적으로 막는 경우가 있어 직접 share를 시도한다(실제로는 갤러리 저장됨).
+  if(isAndroidDev()||isIOSDev()){
+    if(navigator.share){
+      try{await navigator.share({files});return;}
+      catch(e){if(e&&e.name==='AbortError')return;}
+    }
+  }
+  // ── PC: 사진을 ZIP 하나로 묶어 위치 지정 저장 ──
   if(window.showSaveFilePicker){
     try{
       showToast('📦 사진을 묶는 중...','info');
@@ -2979,14 +2987,7 @@ window.saveAllImages=async function(){
       const zipBlob=await zip.generateAsync({type:'blob'});
       const h=await window.showSaveFilePicker({suggestedName:'온메신저사진_'+Date.now()+'.zip',types:[{description:'ZIP 압축',accept:{'application/zip':['.zip']}}]});
       const w=await h.createWritable();await w.write(zipBlob);await w.close();
-      showToast('✅ 저장했어요 · 압축을 풀면 사진 '+blobs.length+'장','ok');return;
-    }catch(e){if(e&&e.name==='AbortError')return;}
-  }
-  // ── iOS 등: 공유 시트로 여러 장 저장 ──
-  if(navigator.canShare&&navigator.share){
-    try{
-      const files=blobs.map((b,i)=>new File([b],fileNameWithExt('',b,i+1),{type:b.type||'image/jpeg'}));
-      if(navigator.canShare({files})){await navigator.share({files});return;}
+      showToast('✅ 저장했어요','ok');return;
     }catch(e){if(e&&e.name==='AbortError')return;}
   }
   // 폴백: 순차 다운로드
