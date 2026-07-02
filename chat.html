@@ -1652,7 +1652,8 @@ function getDmPeer(room){
 }
 function roomTitle(room){
   if(!room)return'';
-  if(room.type!=='dm')return room.name||'채팅방';
+  // 단톡방: 이름을 설정했으면 그 이름, 없으면 방장 이름으로 표시(그래야 검색도 방장 이름으로 됨)
+  if(room.type!=='dm')return room.name||allUsers[room.createdBy]?.displayName||'채팅방';
   const peer=getDmPeer(room);
   if(peer?.profile?.displayName)return peer.profile.displayName;
   return '1대1 채팅';
