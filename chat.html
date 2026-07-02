@@ -238,6 +238,22 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .album-cell img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .2s;}
 .album-cell:active img{transform:scale(.96);}
 .album-more{position:absolute;inset:0;background:rgba(0,0,0,.5);color:#fff;font-size:23px;font-weight:800;display:flex;align-items:center;justify-content:center;letter-spacing:.5px;}
+/* 투표/설문 카드 */
+.poll-card{background:var(--in-bubble);border:1px solid var(--border);border-radius:16px;padding:13px 14px;min-width:230px;max-width:300px;}
+.mg.out .poll-card{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.2);}
+.poll-q{font-size:14px;font-weight:800;margin-bottom:11px;line-height:1.35;color:var(--text);}
+.mg.out .poll-q{color:#fff;}
+.poll-opt{position:relative;overflow:hidden;border:1px solid var(--border2);border-radius:11px;margin-bottom:7px;cursor:pointer;background:var(--surface);transition:transform .12s,border-color .15s;}
+.poll-opt:active{transform:scale(.98);}
+.poll-opt.picked{border-color:var(--green);}
+.poll-bar{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,rgba(124,58,237,.22),rgba(168,85,247,.16));transition:width .5s cubic-bezier(.22,1,.3,1);}
+.poll-opt.picked .poll-bar{background:linear-gradient(90deg,rgba(124,58,237,.4),rgba(168,85,247,.28));}
+.poll-opt-in{position:relative;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;font-size:13px;}
+.poll-opt-txt{font-weight:700;color:var(--text);}
+.poll-opt-cnt{font-size:11px;font-weight:800;color:var(--text2);flex-shrink:0;}
+.poll-foot{font-size:11px;color:var(--text3);margin-top:4px;font-weight:700;}
+.mg.out .poll-opt-txt,.mg.out .poll-opt-cnt,.mg.out .poll-foot{color:rgba(255,255,255,.92);}
+.mg.out .poll-opt{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.18);}
 @keyframes msgPop{0%{opacity:0;transform:translateY(16px) scale(.7)}45%{opacity:1;transform:translateY(-4px) scale(1.05)}70%{transform:translateY(0) scale(.98)}100%{transform:translateY(0) scale(1)}}
 @keyframes bubbleSquish{0%{transform:scale(.82)}45%{transform:scale(1.06)}70%{transform:scale(.98)}100%{transform:scale(1)}}
 /* 캐릭터 스티커 — 말풍선 없이 크게 */
@@ -787,6 +803,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
       <div class="tb2" onclick="pickFile()"><span class="tb-ic">📎</span><span class="tb-lb">파일</span></div>
       <div class="tb2" onclick="toggleLink()"><span class="tb-ic">🔗</span><span class="tb-lb">링크</span></div>
       <div class="tb2" onclick="openSchedule()"><span class="tb-ic">📅</span><span class="tb-lb">일정</span></div>
+      <div class="tb2" onclick="openPoll()"><span class="tb-ic">📊</span><span class="tb-lb">투표</span></div>
       <div class="tb2" onclick="openInvite()"><span class="tb-ic">👋</span><span class="tb-lb">초대</span></div>
     </div>
     <input type="file" id="pick-img" accept="image/*" multiple style="display:none" onchange="onFileSelected(event,'image')">
@@ -964,6 +981,22 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
       <label class="sch-label">메모 (선택)</label><input class="sch-inp" id="sch-memo" placeholder="추가 메모...">
     </div>
     <div style="padding:6px 18px 18px;"><button onclick="sendSchedule()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--green),var(--green2));border:none;border-radius:13px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px var(--glow);">📅 일정 공유하기</button></div>
+  </div>
+</div>
+
+<!-- 투표 만들기 모달 -->
+<div class="overlay" id="poll-overlay" onclick="if(event.target.id==='poll-overlay')closePoll()">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-drag"></div>
+    <div class="modal-head"><div class="modal-title">📊 투표 만들기</div><div class="modal-x" onclick="closePoll()">✕</div></div>
+    <div style="padding:14px 18px 6px;">
+      <label class="sch-label">질문</label><input class="sch-inp" id="poll-q" placeholder="예) 이번 모임 언제가 좋아요?" maxlength="120">
+      <label class="sch-label">선택지</label>
+      <div id="poll-opts"></div>
+      <button id="poll-add-opt" onclick="addPollOption()" style="margin-top:4px;padding:9px 12px;width:100%;background:var(--surface);border:1px dashed var(--border2);border-radius:11px;color:var(--text2);font-size:13px;font-weight:700;cursor:pointer;">＋ 선택지 추가</button>
+      <label style="display:flex;align-items:center;gap:8px;margin-top:14px;font-size:13px;color:var(--text2);cursor:pointer;user-select:none;"><input type="checkbox" id="poll-multi" style="width:17px;height:17px;accent-color:var(--green);"> 복수 선택 허용</label>
+    </div>
+    <div style="padding:6px 18px 18px;"><button onclick="sendPoll()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--green),var(--green2));border:none;border-radius:13px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px var(--glow);">📊 투표 시작하기</button></div>
   </div>
 </div>
 
@@ -2048,6 +2081,14 @@ function buildMsg(m,prev,isNew){
   else if(m.type==='document'){const src=esc(m.data||m.url||''),icons={pdf:'📄',doc:'📝',docx:'📝',ppt:'📊',pptx:'📊',xls:'📗',xlsx:'📗',zip:'🗜️',hwp:'📄',txt:'📃'};const ext=(m.fileName||'').split('.').pop().toLowerCase();content=`<div class="file-card"><div class="file-card-body"><div class="file-icon">${icons[ext]||'📎'}</div><div class="file-info"><div class="file-name">${esc(m.fileName||'파일')}</div><div class="file-size">${esc(m.fileSize||'')}</div></div><a class="file-dl" href="${src}" download="${escAttr(m.fileName||'file')}">받기</a></div>${mediaNote}</div>`;}
   else if(m.type==='video'){const src=esc(m.data||m.url||'');content=`<div class="file-card"><video controls src="${src}" style="max-height:200px;width:100%;"></video><div class="file-card-body"><div class="file-icon">🎥</div><div class="file-info"><div class="file-name">${esc(m.fileName||'영상')}</div><div class="file-size">${esc(m.fileSize||'')}</div></div><a class="file-dl" href="${src}" download="${escAttr(m.fileName||'video.mp4')}" onclick="event.stopPropagation()">받기</a></div>${mediaNote}</div>`;}
   else if(m.type==='schedule'){const ds=new Date(m.scheduleDate).toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});content=`<div class="schedule-card" onclick="openScheduleView('${m.id}')" style="cursor:pointer;"><div class="sch-head"><div class="sch-date">📅 ${ds}${m.scheduleTime?' · '+m.scheduleTime:''}</div><div class="sch-title">${esc(m.scheduleTitle)}</div></div><div class="sch-body">${m.schedulePlace?`<div class="sch-row"><span>📍</span><span>${esc(m.schedulePlace)}</span></div>`:''}${m.scheduleMemo?`<div class="sch-row"><span>📝</span><span>${esc(m.scheduleMemo)}</span></div>`:''}<div class="sch-more">탭하여 크게 보기 →</div></div></div>`;}
+  else if(m.type==='poll'){
+    const opts=Array.isArray(m.pollOpts)?m.pollOpts:Object.values(m.pollOpts||{});
+    const votes=m.pollVotes||{};const counts=opts.map(()=>0);const voterSet=new Set();
+    Object.entries(votes).forEach(([uid,sel])=>{const s=(sel&&typeof sel==='object')?sel:{};let any=false;Object.keys(s).forEach(k=>{const idx=+k;if(s[k]&&idx>=0&&idx<counts.length){counts[idx]++;any=true;}});if(any)voterSet.add(uid);});
+    const total=voterSet.size;const mySel=(sess&&votes[sess.uid])||{};
+    const rows=opts.map((opt,i)=>{const c=counts[i];const pct=total?Math.round(c/total*100):0;const picked=!!mySel[i];return `<div class="poll-opt${picked?' picked':''}" onclick="votePoll('${m.id}',${i})"><div class="poll-bar" style="width:${pct}%"></div><div class="poll-opt-in"><span class="poll-opt-txt">${picked?'✅ ':''}${esc(opt)}</span><span class="poll-opt-cnt">${c}표·${pct}%</span></div></div>`;}).join('');
+    content=`<div class="poll-card"><div class="poll-q">📊 ${esc(m.pollQ||'투표')}</div>${rows}<div class="poll-foot">${total}명 참여${m.pollMulti?' · 복수 선택 가능':''}</div></div>`;
+  }
   else{const txt=linkify(esc(m.text)).replace(/\n/g,'<br>');const firstUrl=extractFirstUrl(m.text||'');content=`<div class="bubble">${txt}</div>${firstUrl?`<div class="link-preview" data-url="${esc(firstUrl)}"></div>`:''}`;}
   const reactions=m.reactions?Object.entries(m.reactions).reduce((acc,[rawEmoji,users])=>{let emoji=rawEmoji;try{emoji=decodeURIComponent(rawEmoji);}catch(_){}const uids=Object.keys(users||{});if(uids.length)acc.push({emoji,count:uids.length,mine:sess&&uids.includes(sess.uid)});return acc;},[]):[];
   const reactionsHtml=reactions.length?`<div class="reactions">${reactions.map(r=>`<div class="reaction${r.mine?' mine':''}" onclick="toggleReaction('${m.id}','${r.emoji}')"><span>${r.emoji}</span><span class="cnt">${r.count}</span></div>`).join('')}</div>`:'';
@@ -2085,6 +2126,7 @@ function msgSummary(m){
   if(m.type==='video')return '영상';
   if(m.type==='document')return m.fileName||'파일';
   if(m.type==='schedule')return `일정: ${m.scheduleTitle||'일정'}`;
+  if(m.type==='poll')return `투표: ${m.pollQ||'투표'}`;
   return '메시지';
 }
 function menuCapabilities(m){
@@ -2936,6 +2978,51 @@ window.sendSchedule=async function(){
   notifyRoomMembers(currentRoom(),`일정을 공유했어요: ${title.length>28?title.slice(0,28)+'…':title}`);
   closeSchedule();
   showToast('📅 일정이 공유됐습니다','ok');
+};
+/* ── 투표/설문 ── */
+function pollOptRow(val){return `<div class="poll-opt-row" style="display:flex;gap:6px;margin-bottom:6px;align-items:center;"><input class="sch-inp" style="margin:0;flex:1;" maxlength="60" placeholder="선택지 입력" value="${escAttr(val||'')}"><button onclick="this.closest('.poll-opt-row').remove()" style="width:32px;height:38px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text3);cursor:pointer;font-size:15px;">✕</button></div>`;}
+window.openPoll=function(){
+  if(!curRoom||!sess){showToast('채팅방을 먼저 선택하세요','warn');return;}
+  if(curRoom==='onbot'||curRoom==='announce'){showToast('여기서는 투표를 만들 수 없어요','warn');return;}
+  document.getElementById('poll-q').value='';
+  document.getElementById('poll-multi').checked=false;
+  document.getElementById('poll-opts').innerHTML=pollOptRow('')+pollOptRow('');
+  document.getElementById('poll-overlay').classList.add('show');
+};
+window.closePoll=()=>document.getElementById('poll-overlay').classList.remove('show');
+window.addPollOption=function(){
+  const box=document.getElementById('poll-opts');
+  if(box.querySelectorAll('.poll-opt-row').length>=8){showToast('선택지는 최대 8개까지예요','info');return;}
+  box.insertAdjacentHTML('beforeend',pollOptRow(''));
+};
+window.sendPoll=async function(){
+  if(!curRoom||!sess)return;
+  if(isSecretWatch(currentRoom())){showToast('시크릿 관전 중에는 투표를 보낼 수 없습니다','warn');return;}
+  if(blockIfMuted()||blockIfRoomSuspended())return;
+  const q=document.getElementById('poll-q').value.trim();
+  if(!q){showToast('질문을 입력하세요','warn');return;}
+  const opts=[...document.querySelectorAll('#poll-opts .poll-opt-row input')].map(i=>i.value.trim()).filter(Boolean);
+  if(opts.length<2){showToast('선택지를 2개 이상 입력하세요','warn');return;}
+  const multi=document.getElementById('poll-multi').checked;
+  await set(push(ref(db,`messages/${curRoom}`)),{uid:sess.uid,displayName:sess.name,type:'poll',pollQ:q,pollOpts:opts,pollMulti:multi,at:Date.now()});
+  await update(ref(db),{[`rooms/${curRoom}/lastMsg`]:'📊 '+q,[`rooms/${curRoom}/lastAt`]:Date.now()});
+  notifyRoomMembers(currentRoom(),`투표를 시작했어요: ${q.length>26?q.slice(0,26)+'…':q}`);
+  closePoll();scrollToBottom();
+  showToast('📊 투표를 시작했어요','ok');
+};
+window.votePoll=async function(msgId,optIdx){
+  if(!curRoom||!sess||isGuest)return;
+  if(isSecretWatch(currentRoom())){showToast('시크릿 관전 중에는 투표할 수 없습니다','warn');return;}
+  const m=msgById(msgId);if(!m||m.type!=='poll')return;
+  const base=`messages/${curRoom}/${msgId}/pollVotes/${sess.uid}`;
+  const mine=m.pollVotes&&m.pollVotes[sess.uid]||{};
+  const already=!!mine[optIdx];
+  if(m.pollMulti){
+    already?await remove(ref(db,`${base}/${optIdx}`)):await set(ref(db,`${base}/${optIdx}`),true);
+  }else{
+    if(already){await remove(ref(db,base));}
+    else{await set(ref(db,base),{[optIdx]:true});}
+  }
 };
 let invLink='';
 window.openInvite=function(){invLink=location.origin+'/'+(sess?'?ref='+sess.uid:'');document.getElementById('inv-link-txt').textContent=invLink;document.getElementById('inv-overlay').classList.add('show');};

@@ -76,7 +76,7 @@
             ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 5000)"
           },
           "type": {
-            ".validate": "newData.isString() && newData.val().matches(/^(text|image|video|document|schedule|system|sticker)$/)"
+            ".validate": "newData.isString() && newData.val().matches(/^(text|image|video|document|schedule|system|sticker|poll)$/)"
           },
           "at": {
             ".validate": "newData.isNumber()"

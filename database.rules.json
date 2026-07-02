@@ -88,7 +88,7 @@
             ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 5000)"
           },
           "type": {
-            ".validate": "newData.isString() && newData.val().matches(/^(text|image|video|document|schedule|system|sticker)$/)"
+            ".validate": "newData.isString() && newData.val().matches(/^(text|image|video|document|schedule|system|sticker|poll)$/)"
           },
           "at": {
             ".validate": "newData.isNumber()"
@@ -111,6 +111,11 @@
             "$uid": {
               ".write": "auth != null && auth.uid === $uid && root.child('rooms').child($roomId).child('members').child(auth.uid).exists()",
               ".validate": "newData.val() === 'yes' || newData.val() === 'no' || !newData.exists()"
+            }
+          },
+          "pollVotes": {
+            "$uid": {
+              ".write": "auth != null && auth.uid === $uid && root.child('rooms').child($roomId).child('members').child(auth.uid).exists()"
             }
           }
         }
