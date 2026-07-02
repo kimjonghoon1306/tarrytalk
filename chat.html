@@ -1935,18 +1935,20 @@ function renderInfoTab(){
 }
 function renderRooms(filter=''){
   const list=document.getElementById('room-list');
-  let rooms=(window._rooms||[]).filter(r=>r.type===curTab);
-  if(filter){
-    const q=filter.toLowerCase();
-    rooms=rooms.filter(r=>{
+  const q=(filter||'').toLowerCase().trim();
+  let rooms;
+  if(q){
+    // 검색 중이면 단톡·1:1 전체에서 방 제목 + 참여 멤버(상대방) 이름으로 찾는다
+    rooms=(window._rooms||[]).filter(r=>{
       if(roomTitle(r).toLowerCase().includes(q))return true;
-      // 방 제목이 '1대1 채팅' 등으로 나올 때도 찾도록, 참여 멤버(상대방) 이름으로도 검색
       return Object.keys(r.members||{}).some(uid=>uid!==sess?.uid&&(allUsers[uid]?.displayName||'').toLowerCase().includes(q));
     });
+  }else{
+    rooms=(window._rooms||[]).filter(r=>r.type===curTab);
   }
   rooms.sort((a,b)=>(b.lastAt||0)-(a.lastAt||0));
   renderInfoTab();
-  if(!rooms.length){list.innerHTML=`<div class="empty-rooms"><div class="ei">${curTab==='group'?'👥':'💬'}</div><p>${curTab==='group'?'단체채팅방이 없어요\n새 채팅을 만들어보세요':'1대1 채팅이 없어요\n대화를 시작해보세요'}</p></div>`;return;}
+  if(!rooms.length){list.innerHTML=q?`<div class="empty-rooms"><div class="ei">🔍</div><p>'${esc(filter)}' 검색 결과가 없어요</p></div>`:`<div class="empty-rooms"><div class="ei">${curTab==='group'?'👥':'💬'}</div><p>${curTab==='group'?'단체채팅방이 없어요\n새 채팅을 만들어보세요':'1대1 채팅이 없어요\n대화를 시작해보세요'}</p></div>`;return;}
   list.innerHTML=rooms.map(r=>{
     const unread=r.unread?.[sess?.uid]||0;
     const title=roomTitle(r);
