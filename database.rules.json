@@ -88,7 +88,7 @@
             ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 5000)"
           },
           "type": {
-            ".validate": "newData.isString() && newData.val().matches(/^(text|image|video|document|schedule|system)$/)"
+            ".validate": "newData.isString() && newData.val().matches(/^(text|image|video|document|schedule|system|sticker)$/)"
           },
           "at": {
             ".validate": "newData.isNumber()"
