@@ -82,6 +82,13 @@ body::after{content:'';position:fixed;width:500px;height:500px;
 .msg.on{opacity:1;max-height:60px;}
 .msg.err{background:var(--rbg);border:1px solid var(--rbr);color:var(--red);}
 .msg.ok2{background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.3);color:var(--accent);}
+.pw-guide{margin:7px 0 9px;padding:10px 13px;border-radius:11px;font-size:13px;font-weight:800;line-height:1.55;background:linear-gradient(135deg,#fff3cd,#ffe38a);color:#7a4a00;border:1.5px solid #ffca3a;box-shadow:0 3px 10px rgba(255,180,0,.22);}
+.pw-guide b{color:#c2410c;}
+.pw-guide u{text-underline-offset:2px;}
+.pw-guide .pw-ex{display:inline-block;margin-top:3px;font-size:11.5px;font-weight:700;color:#92600a;opacity:.9;}
+[data-theme="dark"] .pw-guide{background:linear-gradient(135deg,#4a3800,#5c4600);color:#ffe08a;border-color:#a07c00;box-shadow:0 3px 12px rgba(0,0,0,.35);}
+[data-theme="dark"] .pw-guide b{color:#ffcc4d;}
+[data-theme="dark"] .pw-guide .pw-ex{color:#f0c869;}
 .pw-bar{height:5px;border-radius:50px;background:var(--border);overflow:hidden;margin-top:6px;}
 .pw-fill{height:100%;border-radius:50px;width:0%;transition:width .4s,background .4s;}
 .pw-lbl{font-size:11px;font-weight:600;margin-top:3px;min-height:15px;color:var(--text2);}
@@ -209,8 +216,9 @@ body::after{content:'';position:fixed;width:500px;height:500px;
     </div>
     <div class="field">
       <label>비밀번호</label>
+      <div class="pw-guide">🔒 <b>대문자</b> · <b>소문자</b> · <b>숫자</b>를 <u>모두 포함</u>해서 <b>6자 이상</b>으로 만들어 주세요<br><span class="pw-ex">예) Onji2026 · Talk123a</span></div>
       <div class="iw">
-        <input type="password" id="su-pw" placeholder="대·소문자·숫자 포함 6자 이상" oninput="vlPw()" autocomplete="new-password">
+        <input type="password" id="su-pw" placeholder="예: Onji2026 (대·소문자·숫자 포함 6자 이상)" oninput="vlPw()" autocomplete="new-password">
         <button class="pw-eye" onclick="togglePw('su-pw',this)">👁️</button>
       </div>
       <div class="pw-bar"><div class="pw-fill" id="pw-fill"></div></div>
