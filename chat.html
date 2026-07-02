@@ -973,7 +973,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 </div>
 
 <!-- 라이트박스 -->
-<div class="lightbox" id="lightbox" onclick="closeLightbox()"><div class="lb-close" onclick="closeLightbox()">✕</div><div class="lb-count" id="lb-count"></div><button class="lb-nav lb-prev" id="lb-prev" onclick="lbPrev(event)" aria-label="이전">‹</button><img id="lb-img" src="" alt="" onclick="event.stopPropagation()"><button class="lb-nav lb-next" id="lb-next" onclick="lbNext(event)" aria-label="다음">›</button><div class="lb-name" id="lb-name"></div><div class="lb-actions"><a id="lb-save" class="lb-save" download onclick="event.stopPropagation()">💾 이미지 저장</a><button id="lb-save-all" class="lb-save lb-save-all" onclick="event.stopPropagation();saveAllImages()" style="display:none;">📁 전체 저장</button></div></div>
+<div class="lightbox" id="lightbox" onclick="closeLightbox()"><div class="lb-close" onclick="closeLightbox()">✕</div><div class="lb-count" id="lb-count"></div><button class="lb-nav lb-prev" id="lb-prev" onclick="lbPrev(event)" aria-label="이전">‹</button><img id="lb-img" src="" alt="" onclick="event.stopPropagation()"><button class="lb-nav lb-next" id="lb-next" onclick="lbNext(event)" aria-label="다음">›</button><div class="lb-name" id="lb-name"></div><div class="lb-actions"><button id="lb-save" class="lb-save" onclick="event.stopPropagation();saveCurrentImage()">💾 이미지 저장</button><button id="lb-save-all" class="lb-save lb-save-all" onclick="event.stopPropagation();saveAllImages()" style="display:none;">📁 전체 저장</button></div></div>
 <div class="lightbox" id="vlightbox" onclick="if(event.target.id==='vlightbox')closeStoreVideo()"><div class="lb-close" onclick="closeStoreVideo()">✕</div><video id="vlb-video" controls playsinline style="max-width:92vw;max-height:82vh;border-radius:12px;background:#000;"></video></div>
 <div class="popup-overlay" id="schedule-view-overlay" onclick="if(event.target.id==='schedule-view-overlay')closeScheduleView()">
   <div class="popup-card" style="max-width:400px;">
@@ -2925,12 +2925,52 @@ function showLightboxAt(i){
   const all=document.getElementById('lb-save-all');if(all)all.style.display=multi?'inline-flex':'none';
   const sv=document.getElementById('lb-save');if(sv)sv.textContent=multi?'💾 이 사진 저장':'💾 이미지 저장';
 }
-function downloadDataUrl(url,name){const a=document.createElement('a');a.href=url;a.download=name||('image_'+Date.now()+'.jpg');document.body.appendChild(a);a.click();a.remove();}
+function downloadDataUrl(url,name){const a=document.createElement('a');a.href=url;a.download=name||('photo_'+Date.now()+'.jpg');document.body.appendChild(a);a.click();a.remove();}
+async function urlToBlob(url){return await(await fetch(url)).blob();}
+function extOf(blob){return (blob&&blob.type==='image/png')?'.png':'.jpg';}
+async function saveImage(url,name){
+  let blob=null;try{blob=await urlToBlob(url);}catch(e){}
+  // 1) PC(크롬·엣지): 저장 위치를 직접 고르는 다이얼로그
+  if(blob&&window.showSaveFilePicker){
+    try{
+      const handle=await window.showSaveFilePicker({suggestedName:name,types:[{description:'이미지',accept:{[blob.type||'image/jpeg']:[extOf(blob)]}}]});
+      const w=await handle.createWritable();await w.write(blob);await w.close();
+      showToast('✅ 저장했어요','ok');return;
+    }catch(e){if(e&&e.name==='AbortError')return;}
+  }
+  // 2) 모바일: 네이티브 공유 시트(사진 앨범/파일 위치 선택)
+  if(blob&&navigator.canShare){
+    try{
+      const file=new File([blob],name,{type:blob.type||'image/jpeg'});
+      if(navigator.canShare({files:[file]})){await navigator.share({files:[file]});return;}
+    }catch(e){if(e&&e.name==='AbortError')return;}
+  }
+  // 3) 폴백: 다운로드 폴더
+  downloadDataUrl(url,name);showToast('📥 다운로드 폴더에 저장했어요','ok');
+}
+window.saveCurrentImage=function(){const i=_lbIdx;saveImage(_lbImgs[i],'photo_'+(i+1)+'.jpg');};
 window.saveAllImages=async function(){
   if(!_lbImgs.length)return;
-  showToast(`📁 전체 ${_lbImgs.length}장 저장 중...`,'info');
-  for(let i=0;i<_lbImgs.length;i++){downloadDataUrl(_lbImgs[i],'image_'+(i+1)+'.jpg');await new Promise(r=>setTimeout(r,400));}
-  showToast(`${_lbImgs.length}장 저장을 시작했어요 · 기기 다운로드 폴더를 확인하세요`,'ok');
+  // 1) PC: 저장할 폴더를 직접 선택 → 전체 저장
+  if(window.showDirectoryPicker){
+    try{
+      const dir=await window.showDirectoryPicker();
+      showToast(`📁 ${_lbImgs.length}장 저장 중...`,'info');
+      for(let i=0;i<_lbImgs.length;i++){const blob=await urlToBlob(_lbImgs[i]);const fh=await dir.getFileHandle('photo_'+(i+1)+extOf(blob),{create:true});const w=await fh.createWritable();await w.write(blob);await w.close();}
+      showToast(`✅ ${_lbImgs.length}장 저장 완료`,'ok');return;
+    }catch(e){if(e&&e.name==='AbortError')return;}
+  }
+  // 2) 모바일: 공유 시트로 여러 장 저장
+  if(navigator.canShare){
+    try{
+      const files=await Promise.all(_lbImgs.map(async(u,i)=>{const b=await urlToBlob(u);return new File([b],'photo_'+(i+1)+extOf(b),{type:b.type||'image/jpeg'});}));
+      if(navigator.canShare({files})){await navigator.share({files});return;}
+    }catch(e){if(e&&e.name==='AbortError')return;}
+  }
+  // 3) 폴백: 순차 다운로드
+  showToast(`📁 ${_lbImgs.length}장 저장 중...`,'info');
+  for(let i=0;i<_lbImgs.length;i++){downloadDataUrl(_lbImgs[i],'photo_'+(i+1)+'.jpg');await new Promise(r=>setTimeout(r,400));}
+  showToast('📥 다운로드 폴더에 저장했어요','ok');
 };
 window.openLightbox=function(src,name){
   _lbImgs=collectRoomImages();
