@@ -409,7 +409,18 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .gw-login{width:100%;padding:13px;background:linear-gradient(135deg,var(--green),var(--green2));border:none;border-radius:13px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
 
 /* INPUT */
-.input-wrap{border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0;}
+.input-wrap{border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0;position:relative;}
+/* @멘션 자동완성 팝업 */
+.mention-pop{position:absolute;left:10px;right:10px;bottom:100%;margin-bottom:6px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;box-shadow:0 -6px 24px rgba(0,0,0,.18);max-height:210px;overflow-y:auto;display:none;z-index:40;padding:5px;}
+.mention-pop.show{display:block;animation:menuPop .16s ease both;}
+.mention-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:10px;cursor:pointer;}
+.mention-item:hover,.mention-item.on{background:var(--surface);}
+.mention-av{width:28px;height:28px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#fff;}
+.mention-nm{font-size:13px;font-weight:700;color:var(--text);}
+/* 말풍선 멘션 하이라이트 + 내가 멘션됨 강조 */
+.bubble .mention{color:var(--green);font-weight:800;background:rgba(124,58,237,.1);padding:0 3px;border-radius:4px;}
+.mg.out .bubble .mention{color:#fff;background:rgba(255,255,255,.22);}
+.mg.mentioned .bubble{box-shadow:0 0 0 2px var(--green),0 2px 10px var(--glow);}
 .mute-notice{display:none;margin:8px 12px 0;padding:9px 12px;border-radius:12px;border:1px solid rgba(255,79,106,.22);background:var(--red-bg);color:var(--red);font-size:12px;font-weight:800;line-height:1.5;}
 .mute-notice.show{display:block;}
 .reply-bar{display:none;align-items:center;gap:8px;padding:7px 14px;background:var(--surface);border-bottom:1px solid var(--border);}
@@ -809,6 +820,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
     <input type="file" id="pick-img" accept="image/*" multiple style="display:none" onchange="onFileSelected(event,'image')">
     <input type="file" id="pick-file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.zip,.hwp" style="display:none" onchange="onFileSelected(event,'document')">
     <input type="file" id="pick-video" accept="video/*" style="display:none" onchange="onFileSelected(event,'video')">
+    <div class="mention-pop" id="mention-pop"></div>
     <div class="inp-row">
       <textarea class="m-inp" id="m-inp" placeholder="메시지를 입력하세요..." rows="1" onkeydown="handleKey(event)" oninput="handleInput(this)"></textarea>
       <button class="send-btn" id="send-btn" onclick="sendMsg()">➤</button>
@@ -2067,7 +2079,8 @@ function buildMsg(m,prev,isNew){
   const isBot=m.uid==='onbot';
   const color=allUsers[m.uid]?.avatarColor||avatarColor(name);
   const sameUser=prev&&prev.uid===m.uid&&prev.type!=='system';
-  const el=document.createElement('div');el.className='mg'+(mine?' out':'')+(isNew?' pop-in':'');el.dataset.msgId=m.id;
+  const iMentioned=sess&&m.uid!==sess.uid&&((Array.isArray(m.mentions)&&m.mentions.includes(sess.uid))||m.mentionAll===true);
+  const el=document.createElement('div');el.className='mg'+(mine?' out':'')+(isNew?' pop-in':'')+(iMentioned?' mentioned':'');el.dataset.msgId=m.id;
   let content='';
   const mediaNote=m.keep===true?'<div class="media-keep-note">📌 영구 보관 자료</div>':`<div class="media-ttl-note">📅 미디어는 2주 후 자동 삭제돼요${sess?.isAdmin?' · 보관하려면 📌':''}</div>`;
   if(m.expired&&MEDIA_TYPES.has(m.mediaKind||m.type)){
@@ -2089,7 +2102,7 @@ function buildMsg(m,prev,isNew){
     const rows=opts.map((opt,i)=>{const c=counts[i];const pct=total?Math.round(c/total*100):0;const picked=!!mySel[i];return `<div class="poll-opt${picked?' picked':''}" onclick="votePoll('${m.id}',${i})"><div class="poll-bar" style="width:${pct}%"></div><div class="poll-opt-in"><span class="poll-opt-txt">${picked?'✅ ':''}${esc(opt)}</span><span class="poll-opt-cnt">${c}표·${pct}%</span></div></div>`;}).join('');
     content=`<div class="poll-card"><div class="poll-q">📊 ${esc(m.pollQ||'투표')}</div>${rows}<div class="poll-foot">${total}명 참여${m.pollMulti?' · 복수 선택 가능':''}</div></div>`;
   }
-  else{const txt=linkify(esc(m.text)).replace(/\n/g,'<br>');const firstUrl=extractFirstUrl(m.text||'');content=`<div class="bubble">${txt}</div>${firstUrl?`<div class="link-preview" data-url="${esc(firstUrl)}"></div>`:''}`;}
+  else{let txt=linkify(esc(m.text)).replace(/\n/g,'<br>');txt=txt.replace(/@(전체|[^\s<@]{1,20})/g,'<span class="mention">@$1</span>');const firstUrl=extractFirstUrl(m.text||'');content=`<div class="bubble">${txt}</div>${firstUrl?`<div class="link-preview" data-url="${esc(firstUrl)}"></div>`:''}`;}
   const reactions=m.reactions?Object.entries(m.reactions).reduce((acc,[rawEmoji,users])=>{let emoji=rawEmoji;try{emoji=decodeURIComponent(rawEmoji);}catch(_){}const uids=Object.keys(users||{});if(uids.length)acc.push({emoji,count:uids.length,mine:sess&&uids.includes(sess.uid)});return acc;},[]):[];
   const reactionsHtml=reactions.length?`<div class="reactions">${reactions.map(r=>`<div class="reaction${r.mine?' mine':''}" onclick="toggleReaction('${m.id}','${r.emoji}')"><span>${r.emoji}</span><span class="cnt">${r.count}</span></div>`).join('')}</div>`:'';
   const replyHtml=m.replyTo?`<div class="reply-preview"><strong>${esc(m.replyTo.name)}</strong>${esc((m.replyTo.text||'미디어').substring(0,40))}</div>`:'';
@@ -2442,18 +2455,59 @@ function listenTyping(roomId){
 }
 function currentRoom(){return(window._rooms||[]).find(r=>r.id===curRoom);}
 function sendTypingSignal(active){if(!curRoom||!sess||isSecretWatch(currentRoom()))return;set(ref(db,`typing/${curRoom}/${sess.uid}`),active?{active:true,at:Date.now()}:null);}
-window.handleInput=function(el){autoResize(el);if(curRoom==='onbot'||curRoom==='announce'||!curRoom||!sess||isSecretWatch(currentRoom()))return;clearTimeout(typingTimer);sendTypingSignal(true);typingTimer=setTimeout(()=>sendTypingSignal(false),3000);};
+window.handleInput=function(el){autoResize(el);checkMention(el);if(curRoom==='onbot'||curRoom==='announce'||!curRoom||!sess||isSecretWatch(currentRoom()))return;clearTimeout(typingTimer);sendTypingSignal(true);typingTimer=setTimeout(()=>sendTypingSignal(false),3000);};
+/* ── @멘션 (단톡) ── */
+let _mentionRange=null;
+window.checkMention=function(el){
+  const room=currentRoom();
+  if(!room||room.type!=='group'||!sess){hideMentionPop();return;}
+  const pos=el.selectionStart||el.value.length;
+  const mt=el.value.slice(0,pos).match(/@([^\s@]*)$/);
+  if(!mt){hideMentionPop();return;}
+  const q=mt[1].toLowerCase();
+  _mentionRange={start:pos-mt[0].length,end:pos};
+  const members=Object.keys(room.members||{}).filter(uid=>uid!==sess.uid);
+  const list=members.map(uid=>({uid,name:allUsers[uid]?.displayName||'',color:allUsers[uid]?.avatarColor||avatarColor(allUsers[uid]?.displayName||'?')})).filter(u=>u.name&&u.name.toLowerCase().includes(q));
+  const items=[];
+  if(q===''||'전체'.includes(q)||'all'.startsWith(q))items.push({uid:'__all__',name:'전체',color:'#7c3aed'});
+  list.slice(0,20).forEach(u=>items.push(u));
+  if(!items.length){hideMentionPop();return;}
+  const pop=document.getElementById('mention-pop');
+  pop.innerHTML=items.map(u=>`<div class="mention-item" onclick="insertMention(${jsArg(u.name)})"><div class="mention-av" style="background:${u.uid==='__all__'?'#7c3aed':esc(u.color)}">${u.uid==='__all__'?'📢':esc((u.name[0]||'?').toUpperCase())}</div><div class="mention-nm">${u.uid==='__all__'?'전체 (모두에게)':esc(u.name)}</div></div>`).join('');
+  pop.classList.add('show');
+};
+window.hideMentionPop=function(){const p=document.getElementById('mention-pop');if(p)p.classList.remove('show');_mentionRange=null;};
+window.insertMention=function(name){
+  const el=document.getElementById('m-inp');
+  if(!_mentionRange){hideMentionPop();return;}
+  const v=el.value,insert='@'+name+' ';
+  el.value=v.slice(0,_mentionRange.start)+insert+v.slice(_mentionRange.end);
+  const np=_mentionRange.start+insert.length;
+  el.focus();try{el.setSelectionRange(np,np);}catch(e){}
+  hideMentionPop();autoResize(el);
+};
+// 멘션 감지: 텍스트에서 @이름/@전체 → 대상 uid 배열
+function extractMentions(text,room){
+  if(!room||room.type!=='group')return{mentions:[],all:false};
+  const all=/@(전체|all)\b/i.test(text)||/@전체/.test(text);
+  const mem=Object.keys(room.members||{}).filter(u=>u!==sess.uid);
+  const mentions=mem.filter(uid=>{const nm=allUsers[uid]?.displayName;return nm&&text.includes('@'+nm);});
+  return{mentions,all};
+}
 window.sendMsg=async function(){
   if(curRoom==='onbot'){sendOnbotMessage();return;}
   if(curRoom==='announce'){await sendAnnouncement();return;}
   if(isSecretWatch(currentRoom())){showToast('시크릿 관전 중에는 메시지를 보낼 수 없습니다','warn');return;}
   if(blockIfMuted()||blockIfRoomSuspended())return;
   if(!curRoom||!sess||isGuest)return;const inp=document.getElementById('m-inp');const text=inp.value.trim();if(!text)return;
-  inp.value='';inp.style.height='auto';sendTypingSignal(false);clearTimeout(typingTimer);
+  inp.value='';inp.style.height='auto';sendTypingSignal(false);clearTimeout(typingTimer);hideMentionPop();
   const btn=document.getElementById('send-btn');btn.disabled=true;
   try{
     const msgData={uid:sess.uid,displayName:sess.name,text,type:'text',at:Date.now()};
     if(replyTo)msgData.replyTo=replyTo;
+    const _mn=extractMentions(text,currentRoom());
+    if(_mn.mentions.length)msgData.mentions=_mn.mentions;
+    if(_mn.all)msgData.mentionAll=true;
     const msgRef=push(ref(db,`messages/${curRoom}`));
     await set(msgRef,msgData);
     const room=(window._rooms||[]).find(r=>r.id===curRoom);
