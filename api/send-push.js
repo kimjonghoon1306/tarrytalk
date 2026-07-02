@@ -84,7 +84,14 @@ module.exports = async (req, res) => {
     const tokenOwners = new Map();
     const staleTokensBySentToken = new Map();
 
+    const pushRoomId = roomIdFromUrl(url);
+
     await Promise.all(uniqueTargetUids.map(async uid => {
+      // 이 사용자가 해당 방 알림을 껐으면(음소거) 푸시를 아예 보내지 않는다.
+      if (pushRoomId) {
+        const muteSnap = await db.ref(`users/${uid}/mutedRooms/${pushRoomId}`).get();
+        if (muteSnap.val() === true) return;
+      }
       const snap = await db.ref(`users/${uid}/fcmTokens`).get();
       const storedTokens = snap.val() || {};
       const selectedByDevice = new Map();

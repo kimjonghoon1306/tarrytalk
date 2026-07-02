@@ -934,6 +934,10 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
           <button onclick="renameRoom()" style="padding:0 16px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap;">수정</button>
         </div>
       </div>
+      <div class="rs-sec">
+        <div class="rs-sec-title">알림</div>
+        <button class="del-room-btn" id="rs-mute-btn" onclick="toggleRoomMute()" style="background:var(--surface);color:var(--text);border-color:var(--border2);"></button>
+      </div>
       <div class="rs-sec"><div class="rs-sec-title">멤버 관리</div><div id="rs-members"></div></div>
       <div class="rs-sec" id="rs-invite-sec" style="display:none;">
         <button class="create-btn" type="button" onclick="toggleInviteMembers()" style="margin-bottom:10px;">＋ 멤버 초대</button>
@@ -1040,7 +1044,7 @@ onAuthStateChanged(auth,async user=>{
     const snap=await get(ref(db,`users/${user.uid}`));let profile=snap.val()||{};
     if(profile.disabled){await signOut(auth);location.href='index.html';return;}
     profile=await ensureUserProfile(user,profile);
-    sess={uid:user.uid,name:profile.displayName||user.displayName||'사용자',email:user.email,isAdmin:user.email===ADMIN_EMAIL||profile.isAdmin===true,color:profile.avatarColor||avatarColor(profile.displayName||user.displayName||'?'),warnings:profile.warnings||0,mutedUntil:profile.mutedUntil||0,invitedBy:profile.invitedBy||''};
+    sess={uid:user.uid,name:profile.displayName||user.displayName||'사용자',email:user.email,isAdmin:user.email===ADMIN_EMAIL||profile.isAdmin===true,color:profile.avatarColor||avatarColor(profile.displayName||user.displayName||'?'),warnings:profile.warnings||0,mutedUntil:profile.mutedUntil||0,invitedBy:profile.invitedBy||'',mutedRooms:profile.mutedRooms||{}};
     await set(ref(db,`users/${user.uid}/online`),true);
     onDisconnect(ref(db,`users/${user.uid}/online`)).set(false);
     onDisconnect(ref(db,`users/${user.uid}/lastSeen`)).set(serverTimestamp());
@@ -1081,7 +1085,7 @@ function initUI(){
     document.getElementById('uc-name').textContent=sess.name;
     document.getElementById('uc-role').innerHTML=sess.isAdmin?'<span class="live-dot"></span>관리자 ⚙️':'<span class="live-dot"></span>온라인';
     if(sess.isAdmin)document.getElementById('admin-link').style.display='flex';
-    onValue(ref(db,'users'),snap=>{allUsers=snap.val()||{};const me=allUsers[sess.uid]||{};sess.warnings=me.warnings||0;sess.mutedUntil=me.mutedUntil||0;sess.friends=me.friends||{};updateMuteNotice();renderRooms(document.getElementById('search-inp')?.value||'');refreshRoomHeader();if(document.getElementById('spt-friends')?.classList.contains('on'))renderFriends(document.getElementById('friend-search')?.value||'');});
+    onValue(ref(db,'users'),snap=>{allUsers=snap.val()||{};const me=allUsers[sess.uid]||{};sess.warnings=me.warnings||0;sess.mutedUntil=me.mutedUntil||0;sess.friends=me.friends||{};sess.mutedRooms=me.mutedRooms||{};updateMuteNotice();renderRooms(document.getElementById('search-inp')?.value||'');refreshRoomHeader();if(document.getElementById('spt-friends')?.classList.contains('on'))renderFriends(document.getElementById('friend-search')?.value||'');});
     listenAnnouncements();
     listenAds();
     listenPopupNotice();
@@ -1611,6 +1615,8 @@ async function initPushNotifications(){
       // 발신 후 3분 넘은 알림은 "유령 알림"이므로 소리/토스트 모두 무시한다.
       const sentAt=parseInt(d.sentAt||'0',10);
       if(sentAt&&Date.now()-sentAt>180000)return;
+      // 음소거한 방의 알림은 소리·토스트 모두 무시(카톡 방별 알림끄기)
+      try{const rid=new URL(d.url||'/','https://x').searchParams.get('room')||'';if(rid&&isRoomMuted(rid))return;}catch(e){}
       // 앱(탭)이 살아 있으면 onMessage가 호출된다. 탭을 직접 보고 있지 않아도(다른 탭/최소화)
       // 설정한 알림음은 울려야 하므로 visibilityState와 무관하게 재생한다. 토스트는 보고 있을 때만.
       playNotifySound();
@@ -1773,12 +1779,13 @@ function renderRooms(filter=''){
   list.innerHTML=rooms.map(r=>{
     const unread=r.unread?.[sess?.uid]||0;
     const title=roomTitle(r);
+    const muted=isRoomMuted(r.id);
     return`<div class="r-item${curRoom===r.id?' on':''}" onclick="openRoom('${r.id}')">
       <div class="r-av">${roomEmoji(r)}</div>
-      <div style="flex:1;min-width:0;"><div class="r-name">${esc(title)}</div><div class="r-prev">${esc((r.lastMsg||'대화를 시작하세요').substring(0,28))}</div></div>
+      <div style="flex:1;min-width:0;"><div class="r-name">${esc(title)}${muted?' <span title="알림 꺼짐" style="font-size:11px;opacity:.6;">🔕</span>':''}</div><div class="r-prev">${esc((r.lastMsg||'대화를 시작하세요').substring(0,28))}</div></div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
         ${r.lastAt?`<div class="r-time">${fmtTime(r.lastAt)}</div>`:''}
-        ${unread>0&&curRoom!==r.id?`<div class="r-badge">${unread>99?'99+':unread}</div>`:''}
+        ${unread>0&&curRoom!==r.id?`<div class="r-badge"${muted?' style="background:var(--text3);box-shadow:none;"':''}>${unread>99?'99+':unread}</div>`:''}
       </div>
     </div>`;
   }).join('');
@@ -2856,7 +2863,22 @@ window.openRoomSettings=function(){
   const canRename=canManage&&room.type==='group';
   document.getElementById('rs-rename-sec').style.display=canRename?'':'none';
   if(canRename)document.getElementById('rs-name-inp').value=room.name||'';
+  // 알림(음소거) 토글 버튼 상태
+  const muted=isRoomMuted(curRoom);
+  const mb=document.getElementById('rs-mute-btn');
+  if(mb){mb.textContent=muted?'🔔 알림 켜기 (지금 꺼져 있어요)':'🔕 이 방 알림 끄기';mb.style.color=muted?'var(--green)':'var(--text)';}
   document.getElementById('rs-overlay').classList.add('show');
+};
+function isRoomMuted(id){return !!(sess&&sess.mutedRooms&&sess.mutedRooms[id]);}
+window.toggleRoomMute=async function(){
+  if(!curRoom||!sess)return;
+  const muted=isRoomMuted(curRoom);
+  try{
+    if(muted){await remove(ref(db,`users/${sess.uid}/mutedRooms/${curRoom}`));if(sess.mutedRooms)delete sess.mutedRooms[curRoom];showToast('🔔 이 방 알림을 켰어요','ok');}
+    else{await set(ref(db,`users/${sess.uid}/mutedRooms/${curRoom}`),true);sess.mutedRooms=sess.mutedRooms||{};sess.mutedRooms[curRoom]=true;showToast('🔕 이 방 알림을 껐어요','ok');}
+    openRoomSettings();
+    renderRooms(document.getElementById('search-inp')?.value||'');
+  }catch(e){showToast('변경 실패','warn');}
 };
 window.renameRoom=async function(){
   if(!curRoom||!sess)return;
