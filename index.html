@@ -320,7 +320,9 @@ const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getDatabase(app);
 // 로그인 상태를 기기에 영구 유지(카톡처럼). 앱을 껐다 켜도 자동 로그인.
-setPersistence(auth, indexedDBLocalPersistence).catch(() => setPersistence(auth, browserLocalPersistence)).catch(() => {});
+const authPersistenceReady = setPersistence(auth, indexedDBLocalPersistence)
+  .catch(() => setPersistence(auth, browserLocalPersistence))
+  .catch(() => {});
 const ADMIN_EMAIL = 'tarry9653@daum.net';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 let adminLoginInProgress = false;
@@ -338,7 +340,7 @@ function inviteChatUrl() {
 }
 
 /* 이미 로그인 시 바로 이동 */
-onAuthStateChanged(auth, user => {
+authPersistenceReady.finally(() => onAuthStateChanged(auth, user => {
   if (user) {
     localStorage.setItem('tt_had_session', '1');
     sessionStorage.removeItem('tt_guest');
@@ -347,14 +349,14 @@ onAuthStateChanged(auth, user => {
       location.replace(inviteChatUrl());
     }
   }
-});
+}));
 /* 로그인 이력이 있으면(=자동 로그인 대상) 앱 재실행 시 auth 복원을 기다리는 로딩 게이트를 띄운다.
    iOS PWA가 복원 중 잠깐 비로그인 상태가 돼 로그인 폼이 깜빡이며 뜨는 것을 막는다(카톡처럼). */
 if (localStorage.getItem('tt_had_session') && !new URLSearchParams(location.search).get('guest')) {
   const g = document.getElementById('boot-gate');
   if (g) g.classList.add('show');
-  // 4.5초 안에 복원 안 되면(정말 로그아웃 상태) 게이트를 내리고 로그인 폼을 보여준다.
-  setTimeout(() => { if (!auth.currentUser) { const g2 = document.getElementById('boot-gate'); if (g2) g2.classList.remove('show'); } }, 4500);
+  // 모바일 PWA는 저장된 로그인 복원이 느릴 수 있다. 충분히 기다린 뒤 정말 로그아웃 상태일 때만 로그인 폼을 보여준다.
+  setTimeout(() => { if (!auth.currentUser) { const g2 = document.getElementById('boot-gate'); if (g2) g2.classList.remove('show'); } }, 12000);
 }
 
 /* ── 테마 ── */
@@ -450,6 +452,7 @@ window.togglePw = function(id, btn) {
 
 /* ── 로그인 ── */
 window.doLogin = async function() {
+  await authPersistenceReady;
   const em = document.getElementById('li-em').value.trim();
   const pw = document.getElementById('li-pw').value;
   if (!em || !EMAIL_RE.test(em)) { showMsg('li-em-msg','err','❌','올바른 이메일 주소를 입력해주세요'); setState('li-em','ng'); return; }
@@ -488,6 +491,7 @@ window.doLogin = async function() {
 
 /* ── 회원가입 ── */
 window.doSignup = async function() {
+  await authPersistenceReady;
   const nm = document.getElementById('su-nm').value.trim();
   const em = document.getElementById('su-em').value.trim();
   const pw = document.getElementById('su-pw').value;
@@ -524,6 +528,7 @@ window.doSignup = async function() {
 
 /* ── 관리자 ── */
 window.doAdmin = async function() {
+  await authPersistenceReady;
   const em = document.getElementById('adm-em').value.trim();
   const pw = document.getElementById('adm-pw').value;
   if (!em || !EMAIL_RE.test(em)) { showMsg('adm-em-msg','err','❌','올바른 이메일 주소를 입력해주세요'); setState('adm-em','ng'); return; }

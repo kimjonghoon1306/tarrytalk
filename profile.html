@@ -279,7 +279,8 @@ button:active,.section:active,.info-row:active{transform:scale(.98);}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut, updateProfile,
-         updatePassword as fbUpdatePassword, EmailAuthProvider, reauthenticateWithCredential }
+         updatePassword as fbUpdatePassword, EmailAuthProvider, reauthenticateWithCredential,
+         setPersistence, indexedDBLocalPersistence, browserLocalPersistence }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getDatabase, ref, get, set, update, onValue }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -289,6 +290,7 @@ const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
 const db=getDatabase(app);
 const ADMIN_EMAIL='tarry9653@daum.net';
+const authPersistenceReady=setPersistence(auth,indexedDBLocalPersistence).catch(()=>setPersistence(auth,browserLocalPersistence)).catch(()=>{});
 
 const COLORS=['#00a84a','#0087d4','#a855f7','#e85d04','#d62828','#2ec4b6','#f59e0b','#ec4899'];
 let currentUser=null, selectedColor=null, userProfile=null;
@@ -296,6 +298,7 @@ let currentUser=null, selectedColor=null, userProfile=null;
 {sessionStorage.removeItem('tt_theme');document.documentElement.dataset.theme='light';const b=document.getElementById('theme-btn');if(b)b.textContent='🌙';}
 window.toggleTheme=function(){const d=document.documentElement.dataset.theme==='dark',n=d?'light':'dark';document.documentElement.dataset.theme=n;const b=document.getElementById('theme-btn');if(b)b.textContent=n==='dark'?'☀️':'🌙';sessionStorage.setItem('tt_theme',n);};
 
+await authPersistenceReady;
 onAuthStateChanged(auth, async user=>{
   if(!user){location.href='index.html';return;}
   currentUser=user;
