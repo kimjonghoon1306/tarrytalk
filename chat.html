@@ -1979,7 +1979,7 @@ function renderRooms(filter=''){
       return Object.keys(r.members||{}).some(uid=>uid!==sess?.uid&&(allUsers[uid]?.displayName||'').toLowerCase().includes(q));
     });
   }else{
-    rooms=(window._rooms||[]).filter(r=>curTab==='dm'?(r.type==='dm'||r.selfRoom===true):(r.type===curTab&&r.selfRoom!==true));
+    rooms=(window._rooms||[]).filter(r=>r.type===curTab);
   }
   rooms.sort((a,b)=>(Number(isRoomPinned(b.id))-Number(isRoomPinned(a.id)))||((b.lastAt||0)-(a.lastAt||0)));
   renderInfoTab();
@@ -2028,12 +2028,12 @@ window.startChatWithFriend=async function(uid,name){
 window.openSelfRoom=async function(){
   if(!sess||isGuest){showToast('로그인 후 이용할 수 있어요','info');return;}
   let room=(window._rooms||[]).find(r=>r.selfRoom===true&&r.createdBy===sess.uid&&r.members?.[sess.uid]);
-  if(room){setSpaceTab('chat');setTab('dm');openRoom(room.id);return;}
+  if(room){setSpaceTab('chat');setTab('group');openRoom(room.id);return;}
   const rRef=push(ref(db,'rooms'));
   const now=Date.now();
-  await set(rRef,{name:'내게 보내기',type:'dm',emoji:'📝',selfRoom:true,members:{[sess.uid]:true},createdBy:sess.uid,createdAt:now,lastAt:now,lastMsg:'메모, 링크, 사진을 나에게 저장해보세요'});
+  await set(rRef,{name:'내게 보내기',type:'group',emoji:'📝',selfRoom:true,members:{[sess.uid]:true},createdBy:sess.uid,createdAt:now,lastAt:now,lastMsg:'메모, 링크, 사진을 나에게 저장해보세요'});
   await set(push(ref(db,`messages/${rRef.key}`)),{uid:'system',displayName:'system',text:'내게 보내기 방이 만들어졌습니다',type:'system',at:now});
-  setSpaceTab('chat');setTab('dm');setTimeout(()=>openRoom(rRef.key),300);
+  setSpaceTab('chat');setTab('group');setTimeout(()=>openRoom(rRef.key),300);
 };
 function listenAnnouncements(){
   if(!sess)return;
