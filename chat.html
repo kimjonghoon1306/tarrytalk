@@ -18,7 +18,7 @@ html,body{overflow-x:hidden;max-width:100%;}
 body{font-family:'Noto Sans KR',sans-serif;color:var(--text);}
 ::-webkit-scrollbar{width:3px;height:3px;}::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px;}
 button{font-family:inherit;cursor:pointer;border:none;outline:none;}input,textarea{font-family:inherit;outline:none;}a{color:inherit;}
-button,.ib,.fb,.sp-tab,.new-btn,.help-pill,.sbt,.r-item,.ad-cta,.empty-ad-cta,.ad-close,.send-btn,.tb2,.bot-chip,.file-dl,.guide-card,.announce-card,.reaction,.inv-btn,.create-btn,.small-btn,.popup-close{transition:transform .18s cubic-bezier(.16,1,.3,1),box-shadow .18s,border-color .18s,background .18s,color .18s;will-change:transform;}
+button,.ib,.fb,.sp-tab,.new-btn,.help-pill,.sbt,.r-item,.ad-cta,.empty-ad-cta,.ad-close,.send-btn,.tb2,.bot-chip,.file-dl,.guide-card,.announce-card,.reaction,.inv-btn,.create-btn,.small-btn,.popup-close{transition:transform .08s cubic-bezier(.16,1,.3,1),box-shadow .1s,border-color .1s,background .1s,color .1s;will-change:transform;}
 button{position:relative;overflow:hidden;}
 button::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at var(--rx,50%) var(--ry,50%),rgba(255,255,255,.34),transparent 34%);opacity:0;transform:scale(.7);transition:opacity .35s,transform .35s;pointer-events:none;}
 button:active::after{opacity:.55;transform:scale(1.7);transition:0s;}
@@ -60,14 +60,14 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .sb-search:focus-within input{box-shadow:0 8px 20px var(--glow);}
 .sb-search::before{content:'🔍';position:absolute;left:22px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none;}
 .sb-tabs{display:flex;gap:7px;padding:0 10px 8px;}
-.sbt{flex:1;padding:10px 4px;text-align:center;font-size:13px;font-weight:900;cursor:pointer;color:var(--text3);border:1px solid var(--border);background:var(--surface);border-radius:13px;transition:all .2s;}
+.sbt{flex:1;padding:10px 4px;text-align:center;font-size:13px;font-weight:900;cursor:pointer;color:var(--text3);border:1px solid var(--border);background:var(--surface);border-radius:13px;transition:all .08s;}
 .sbt.on{color:#fff;border-color:transparent;background:linear-gradient(135deg,var(--green),var(--green2));box-shadow:0 8px 20px var(--glow);}
 .chat-help-row{display:flex;gap:7px;padding:0 10px 9px;}
 .help-pill{flex:1;padding:9px 7px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;}
 .help-pill:hover{border-color:var(--green);color:var(--green);box-shadow:0 8px 18px var(--glow);}
 .help-pill.notify-ok{color:var(--green);background:rgba(124,58,237,.08);border-color:var(--border2);}
 .room-list{flex:1;overflow-y:auto;padding:4px 0;}
-.r-item{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;transition:background .15s;position:relative;animation:itemIn .28s ease both;}
+.r-item{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;transition:background .08s,box-shadow .08s,transform .08s;position:relative;}
 .r-item:hover,.r-item.on{background:var(--surface);transform:translateY(-1px);box-shadow:0 8px 24px rgba(124,58,237,.1);}
 .r-item.on::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:3px;background:var(--green);border-radius:0 3px 3px 0;}
 .r-av{width:44px;height:44px;border-radius:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;background:var(--surface2);}
@@ -262,8 +262,8 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 .sys-msg{align-self:center;background:var(--surface);border-radius:50px;padding:4px 13px;font-size:11px;color:var(--text3);margin:3px 0;}
 .mg{display:flex;gap:7px;align-items:flex-end;margin:1px 0;position:relative;}
 /* 새로 도착한 메시지만 통통 튀어오르는 등장 반응 (기존 메시지는 재렌더돼도 조용히) */
-.mg.pop-in{animation:msgPop .5s cubic-bezier(.22,1.4,.5,1) both;}
-.mg.pop-in .bubble,.mg.pop-in .img-bub,.mg.pop-in .file-card,.mg.pop-in .schedule-card,.mg.pop-in .sticker-bub,.mg.pop-in .album{animation:bubbleSquish .5s cubic-bezier(.22,1.4,.5,1) both;}
+.mg.pop-in{animation:msgPop .16s cubic-bezier(.22,1,.36,1) both;}
+.mg.pop-in .bubble,.mg.pop-in .img-bub,.mg.pop-in .file-card,.mg.pop-in .schedule-card,.mg.pop-in .sticker-bub,.mg.pop-in .album{animation:bubbleSquish .16s cubic-bezier(.22,1,.36,1) both;}
 /* 사진 앨범(여러 장 모아보기) — 카톡식 그리드 */
 .album{display:grid;gap:3px;border-radius:14px;overflow:hidden;max-width:282px;width:100%;}
 .album-2{grid-template-columns:1fr 1fr;}
@@ -2202,7 +2202,7 @@ function loadMessages(roomId){
     markMessagesRead(roomId,msgs);
     renderMessages(msgs);
   };
-  const schedule=()=>{clearTimeout(_rerenderTimer);_rerenderTimer=setTimeout(rerender,40);};
+  const schedule=()=>{clearTimeout(_rerenderTimer);_rerenderTimer=setTimeout(rerender,0);};
   const offAdd=onChildAdded(q,s=>{msgMap[s.key]={id:s.key,...s.val()};schedule();});
   const offChg=onChildChanged(q,s=>{msgMap[s.key]={id:s.key,...s.val()};schedule();});
   const offRem=onChildRemoved(q,s=>{delete msgMap[s.key];schedule();});
