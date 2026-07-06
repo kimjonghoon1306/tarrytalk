@@ -1080,7 +1080,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
           <div class="m-list" id="rs-invite-list" style="max-height:240px;margin-top:8px;border:1px solid var(--border);border-radius:13px;"></div>
         </div>
       </div>
-      <div class="rs-sec"><div class="rs-sec-title" style="color:var(--red)">위험 구역</div><button class="del-room-btn" id="rs-leave-btn" onclick="leaveRoom()" style="background:rgba(124,58,237,.1);color:var(--green);border-color:var(--border2);margin-bottom:8px;">🚪 채팅방 나가기</button><button class="del-room-btn" id="rs-suspend-btn" onclick="suspendRoom()" style="background:rgba(245,158,11,.12);color:#d97706;border-color:rgba(245,158,11,.3);margin-bottom:8px;display:none;">⏸ 채팅방 정지 (기간 설정)</button><button class="del-room-btn" id="rs-unsuspend-btn" onclick="unsuspendRoom()" style="background:rgba(124,58,237,.1);color:var(--green);border-color:var(--border2);margin-bottom:8px;display:none;">▶️ 채팅방 정지 해제</button><button class="del-room-btn" id="rs-delete-btn" onclick="doDeleteRoom()">🗑️ 채팅방 삭제</button></div>
+      <div class="rs-sec" id="rs-danger-sec"><div class="rs-sec-title" style="color:var(--red)">위험 구역</div><button class="del-room-btn" id="rs-leave-btn" onclick="leaveRoom()" style="background:rgba(124,58,237,.1);color:var(--green);border-color:var(--border2);margin-bottom:8px;">🚪 채팅방 나가기</button><button class="del-room-btn" id="rs-suspend-btn" onclick="suspendRoom()" style="background:rgba(245,158,11,.12);color:#d97706;border-color:rgba(245,158,11,.3);margin-bottom:8px;display:none;">⏸ 채팅방 정지 (기간 설정)</button><button class="del-room-btn" id="rs-unsuspend-btn" onclick="unsuspendRoom()" style="background:rgba(124,58,237,.1);color:var(--green);border-color:var(--border2);margin-bottom:8px;display:none;">▶️ 채팅방 정지 해제</button><button class="del-room-btn" id="rs-delete-btn" onclick="doDeleteRoom()">🗑️ 채팅방 삭제</button></div>
     </div>
   </div>
 </div>
@@ -1444,7 +1444,7 @@ async function loadStorageMedia(){
   for(const room of rooms){
     try{
       const snap=await get(query(ref(db,`messages/${room.id}`),orderByKey(),limitToLast(500)));
-      const data=snap.val()||{};const roomName=roomTitle(room);
+      const data=snap.val()||{};const roomName=roomTitle(room),selfRoom=isSelfRoom(room);
       Object.entries(data).forEach(([id,m])=>{
         if(!m||m.deleted||m.type==='deleted')return;
         if(MEDIA_TYPES.has(m.type)){
@@ -1452,14 +1452,14 @@ async function loadStorageMedia(){
           if(m.type==='image'&&m.images){
             // 앨범(여러 장 묶음)은 각 이미지를 개별로 보관함에 넣는다
             const list=Array.isArray(m.images)?m.images:Object.values(m.images||{});
-            if(aliveBase)list.forEach((s,idx)=>{if(s)items.push({kind:'image',id:id+'_'+idx,roomId:room.id,roomName,src:s,name:m.fileName||'',at:m.at||0});});
+            if(aliveBase)list.forEach((s,idx)=>{if(s)items.push({kind:'image',id:id+'_'+idx,roomId:room.id,roomName,selfRoom,src:s,name:m.fileName||'',at:m.at||0});});
           }else{
             const src=m.data||m.url||'';
-            if(src&&aliveBase)items.push({kind:m.type,id,roomId:room.id,roomName,src,name:m.fileName||'',at:m.at||0});
+            if(src&&aliveBase)items.push({kind:m.type,id,roomId:room.id,roomName,selfRoom,src,name:m.fileName||'',at:m.at||0});
           }
         }else if(m.type==='text'&&m.text){
           const url=extractFirstUrl(m.text);
-          if(url)items.push({kind:'link',id,roomId:room.id,roomName,url,name:(m.text||'').slice(0,80),at:m.at||0});
+          if(url)items.push({kind:'link',id,roomId:room.id,roomName,selfRoom,url,name:(m.text||'').slice(0,80),at:m.at||0});
         }
       });
     }catch(e){}
@@ -1467,6 +1467,9 @@ async function loadStorageMedia(){
   items.sort((a,b)=>b.at-a.at);storeMedia=items;renderStoreGrid();
 }
 function storeDateLabel(at){const d=new Date(at);return `${d.getMonth()+1}/${d.getDate()}`;}
+function storeRoomLabel(item){
+  return item.selfRoom?'📝 내게 보내기':item.roomName;
+}
 function renderStoreGrid(){
   const grid=document.getElementById('store-grid');
   let list=storeMedia;if(storeFilter!=='all')list=storeMedia.filter(i=>i.kind===storeFilter);
@@ -1477,15 +1480,15 @@ function renderStoreGrid(){
   let html='';
   if(media.length){
     html+='<div class="store-mediagrid">'+media.map(i=>i.kind==='image'
-      ?`<div class="store-thumb" title="${escAttr(i.roomName)}" onclick="openLightbox(${jsArg(i.src)},${jsArg(i.name||'이미지')})"><img src="${esc(i.src)}" loading="lazy" alt=""></div>`
-      :`<div class="store-thumb" title="${escAttr(i.roomName)}" onclick="openStoreVideo(${jsArg(i.src)})"><video src="${esc(i.src)}#t=0.1" muted preload="metadata"></video><div class="st-vid">▶</div></div>`
+      ?`<div class="store-thumb" title="${escAttr(storeRoomLabel(i))}" onclick="openLightbox(${jsArg(i.src)},${jsArg(i.name||'이미지')})"><img src="${esc(i.src)}" loading="lazy" alt=""></div>`
+      :`<div class="store-thumb" title="${escAttr(storeRoomLabel(i))}" onclick="openStoreVideo(${jsArg(i.src)})"><video src="${esc(i.src)}#t=0.1" muted preload="metadata"></video><div class="st-vid">▶</div></div>`
     ).join('')+'</div>';
   }
   if(files.length){
-    html+='<div style="margin-top:8px">'+files.map(i=>`<a class="store-row" href="${esc(i.src)}" download="${escAttr(i.name||'file')}"><div class="sr-ico">📎</div><div class="sr-body"><div class="sr-title">${esc(i.name||'파일')}</div><div class="sr-sub">${esc(i.roomName)} · ${storeDateLabel(i.at)}</div></div><span style="font-size:11px;color:var(--green);font-weight:800">받기</span></a>`).join('')+'</div>';
+    html+='<div style="margin-top:8px">'+files.map(i=>`<a class="store-row" href="${esc(i.src)}" download="${escAttr(i.name||'file')}"><div class="sr-ico">📎</div><div class="sr-body"><div class="sr-title">${esc(i.name||'파일')}</div><div class="sr-sub">${esc(storeRoomLabel(i))} · ${storeDateLabel(i.at)}</div></div><span style="font-size:11px;color:var(--green);font-weight:800">받기</span></a>`).join('')+'</div>';
   }
   if(links.length){
-    html+='<div style="margin-top:8px">'+links.map(i=>`<a class="store-row" href="${esc(i.url||'#')}" target="_blank" rel="noopener"><div class="sr-ico">🔗</div><div class="sr-body"><div class="sr-title">${esc(i.name)}</div><div class="sr-sub">${esc(i.roomName)} · ${storeDateLabel(i.at)}</div></div></a>`).join('')+'</div>';
+    html+='<div style="margin-top:8px">'+links.map(i=>`<a class="store-row" href="${esc(i.url||'#')}" target="_blank" rel="noopener"><div class="sr-ico">🔗</div><div class="sr-body"><div class="sr-title">${esc(i.name)}</div><div class="sr-sub">${esc(storeRoomLabel(i))} · ${storeDateLabel(i.at)}</div></div></a>`).join('')+'</div>';
   }
   grid.innerHTML=html;
 }
@@ -1968,6 +1971,9 @@ function renderInfoTab(){
 function getSelfRoom(){
   return (window._rooms||[]).find(r=>r.selfRoom===true&&r.createdBy===sess?.uid&&r.members?.[sess.uid])||null;
 }
+function isSelfRoom(room){
+  return !!(room&&room.selfRoom===true&&room.createdBy===sess?.uid&&room.members?.[sess?.uid]);
+}
 function shouldShowSelfRoomShortcut(q){
   if(!sess||isGuest)return false;
   if(!q)return curTab==='dm';
@@ -2114,10 +2120,11 @@ window.openRoom=async function(id){
   curRoom=id;const room=(window._rooms||[]).find(r=>r.id===id);if(!room)return;
   if(_msgUnsub)_msgUnsub();if(_typingUnsub)_typingUnsub();
   const secret=isSecretWatch(room);
+  const selfRoom=isSelfRoom(room);
   if(sess&&!secret)await set(ref(db,`rooms/${id}/unread/${sess.uid}`),0);
   document.getElementById('tb-av').style.display='flex';document.getElementById('tb-av').textContent=roomEmoji(room);
   document.getElementById('tb-info').style.display='block';document.getElementById('tb-name').textContent=roomTitle(room);
-  document.getElementById('tb-sub').textContent=room.type==='group'?`● 멤버 ${Object.keys(room.members||{}).length}명`:'● 1대1 채팅';
+  document.getElementById('tb-sub').textContent=selfRoom?'● 나만 보는 메모 공간':(room.type==='group'?`● 멤버 ${Object.keys(room.members||{}).length}명`:'● 1대1 채팅');
   document.getElementById('secret-badge').classList.toggle('show',secret);
   document.getElementById('tb-logo').style.display='none';
   const isCreator=sess&&(room.createdBy===sess.uid||sess.isAdmin);
@@ -2131,7 +2138,7 @@ window.openRoom=async function(id){
   renderHeroAd();renderAdBanner();
   document.getElementById('tool-row').style.display='flex';closeToolSheet();{const _tt=document.getElementById('tool-toggle');if(_tt)_tt.style.display='';}
   closeEmoji();
-  document.getElementById('m-inp').placeholder='메시지를 입력하세요...';
+  document.getElementById('m-inp').placeholder=selfRoom?'나에게 메모를 남겨보세요...':'메시지를 입력하세요...';
   clearReply();
   if(isGuest){document.getElementById('messages').style.filter='blur(7px)';document.getElementById('guest-wall').style.display='flex';document.getElementById('input-wrap').style.display='none';}
   else{document.getElementById('messages').style.filter='';document.getElementById('guest-wall').style.display='none';document.getElementById('input-wrap').style.display=secret?'none':'block';loadMessages(id);if(!secret)listenTyping(id);else document.getElementById('typing-bar').classList.remove('show');updateMuteNotice();}
@@ -3301,6 +3308,7 @@ async function handleInviteRef(){
 window.openRoomSettings=function(){
   if(!curRoom)return;
   const room=(window._rooms||[]).find(r=>r.id===curRoom);if(!room)return;
+  const selfRoom=isSelfRoom(room);
   document.getElementById('rs-title').textContent=roomTitle(room)+' 설정';
   const members=Object.keys(room.members||{});
   document.getElementById('rs-members').innerHTML=members.map((uid,i)=>{
@@ -3310,23 +3318,24 @@ window.openRoomSettings=function(){
     const canSanction=sess?.isAdmin&&!isMe;
     return`<div class="rs-member"><div class="rs-m-av" style="background:${u?.avatarColor||COLORS[i%COLORS.length]}">${esc(name[0]||'?').toUpperCase()}</div><div style="flex:1;min-width:0;"><div class="rs-m-name">${esc(name)}${isOwner?'<span style="font-size:10px;background:rgba(124,58,237,.12);color:var(--green);padding:2px 7px;border-radius:50px;margin-left:6px;font-weight:800;">방장</span>':''}</div><div class="rs-m-role">${u?.mutedUntil&&u.mutedUntil>Date.now()?'🔇 정지중':u?.online?'● 온라인':'○ 오프라인'}</div></div>${canSanction?`<button class="kick-btn" onclick="openSanction('${uid}',${jsArg(name)})">제재</button>`:''}${canKick?`<button class="kick-btn" onclick="kickMember('${uid}',${jsArg(name)})">내보내기</button>`:''}</div>`;
   }).join('');
-  const canInvite=sess&&(sess.isAdmin||room.createdBy===sess.uid||room.members?.[sess.uid]);
+  const canInvite=!selfRoom&&sess&&(sess.isAdmin||room.createdBy===sess.uid||room.members?.[sess.uid]);
   document.getElementById('rs-invite-sec').style.display=canInvite?'block':'none';
   document.getElementById('rs-invite-box').style.display='none';
   document.getElementById('rs-invite-search').value='';
   document.getElementById('rs-invite-list').innerHTML='';
   // 삭제는 방장·관리자만, 나가기는 멤버 모두. 1:1방은 나가기 숨김(삭제로)
-  const canManage=sess&&(sess.isAdmin||room.createdBy===sess.uid);
+  const canManage=!selfRoom&&sess&&(sess.isAdmin||room.createdBy===sess.uid);
   const isMember=sess&&room.members?.[sess.uid];
+  document.getElementById('rs-danger-sec').style.display=selfRoom?'none':'';
   document.getElementById('rs-delete-btn').style.display=canManage?'':'none';
-  document.getElementById('rs-leave-btn').style.display=isMember?'':'none';
+  document.getElementById('rs-leave-btn').style.display=(!selfRoom&&isMember)?'':'none';
   const suspended=isRoomSuspended(room);
   // 방 정지는 단톡방에서만(1대1 개인 대화엔 의미 없음). 방장·관리자만.
   const canSuspend=canManage&&room.type==='group';
   document.getElementById('rs-suspend-btn').style.display=(canSuspend&&!suspended)?'':'none';
   document.getElementById('rs-unsuspend-btn').style.display=(canSuspend&&suspended)?'':'none';
   // 단톡방 이름 수정(방장·관리자만, 단톡방만)
-  const canRename=canManage&&room.type==='group';
+  const canRename=!selfRoom&&canManage&&room.type==='group';
   document.getElementById('rs-rename-sec').style.display=canRename?'':'none';
   if(canRename)document.getElementById('rs-name-inp').value=room.name||'';
   // 알림(음소거) 토글 버튼 상태
