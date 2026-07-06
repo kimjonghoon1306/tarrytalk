@@ -18,7 +18,7 @@ html,body{overflow-x:hidden;max-width:100%;}
 body{font-family:'Noto Sans KR',sans-serif;color:var(--text);}
 ::-webkit-scrollbar{width:3px;height:3px;}::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px;}
 button{font-family:inherit;cursor:pointer;border:none;outline:none;}input,textarea{font-family:inherit;outline:none;}a{color:inherit;}
-button,.ib,.fb,.sp-tab,.new-btn,.how-to-banner,.sbt,.r-item,.ad-cta,.empty-ad-cta,.ad-close,.send-btn,.tb2,.bot-chip,.file-dl,.guide-card,.announce-card,.reaction,.inv-btn,.create-btn,.small-btn,.popup-close{transition:transform .18s cubic-bezier(.16,1,.3,1),box-shadow .18s,border-color .18s,background .18s,color .18s;will-change:transform;}
+button,.ib,.fb,.sp-tab,.new-btn,.help-pill,.sbt,.r-item,.ad-cta,.empty-ad-cta,.ad-close,.send-btn,.tb2,.bot-chip,.file-dl,.guide-card,.announce-card,.reaction,.inv-btn,.create-btn,.small-btn,.popup-close{transition:transform .18s cubic-bezier(.16,1,.3,1),box-shadow .18s,border-color .18s,background .18s,color .18s;will-change:transform;}
 button{position:relative;overflow:hidden;}
 button::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at var(--rx,50%) var(--ry,50%),rgba(255,255,255,.34),transparent 34%);opacity:0;transform:scale(.7);transition:opacity .35s,transform .35s;pointer-events:none;}
 button:active::after{opacity:.55;transform:scale(1.7);transition:0s;}
@@ -43,25 +43,29 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
 @keyframes dotPulse{0%,100%{opacity:1;box-shadow:0 0 0 0 var(--glow2)}50%{opacity:.55;box-shadow:0 0 0 5px transparent}}
 @keyframes liveBlink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.2;transform:scale(.6)}}
 .live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);margin-right:5px;vertical-align:middle;animation:liveBlink 1.1s ease-in-out infinite;}
-.space-tabs{display:flex;gap:3px;padding:6px 10px 4px;}
+.space-tabs{display:flex;gap:3px;padding:6px 10px 8px;}
 .sp-tab{flex:1;padding:8px 4px;border-radius:var(--r);background:none;border:1px solid transparent;font-size:11px;font-weight:700;color:var(--text3);transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:2px;}
 .sp-tab .sp-ico{font-size:15px;}
 .sp-tab{position:relative;}
 .sp-tab .sp-dot{position:absolute;top:4px;right:calc(50% - 16px);width:7px;height:7px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 2px var(--bg2);}
 .sp-tab.on{background:var(--surface);border-color:var(--border);color:var(--green);}
 .sp-tab:hover:not(.on){color:var(--text2);}
-.new-btn{margin:4px 10px 6px;padding:11px;border-radius:var(--R);background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 16px var(--glow);transition:all .2s;}
+.chat-start{padding:3px 10px 8px;}
+.new-btn{width:100%;margin:0;padding:13px 14px;border-radius:15px;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;font-size:14px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 8px 22px var(--glow2);transition:all .2s;}
 .new-btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px var(--glow2);}
-.how-to-banner{margin:0 10px 6px;padding:8px 14px;border-radius:var(--r);background:var(--surface);border:1px solid var(--border);font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;text-align:center;transition:all .2s;}
-.how-to-banner:hover{border-color:var(--green);color:var(--green);}
-.sb-search{padding:0 10px 6px;position:relative;}
-.sb-search input{width:100%;padding:9px 12px 9px 32px;background:var(--surface);border:1px solid var(--border);border-radius:50px;color:var(--text);font-size:13px;transition:border-color .2s;}
+.sb-search{padding:0 10px 8px;position:relative;}
+.sb-search input{width:100%;padding:11px 13px 11px 35px;background:var(--surface);border:1px solid var(--border);border-radius:14px;color:var(--text);font-size:13.5px;font-weight:700;transition:border-color .2s,box-shadow .2s;}
 .sb-search input:focus{border-color:var(--green);}
 .sb-search input::placeholder{color:var(--text3);}
-.sb-search::before{content:'🔍';position:absolute;left:20px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;}
-.sb-tabs{display:flex;border-bottom:1px solid var(--border);}
-.sbt{flex:1;padding:10px 0;text-align:center;font-size:12px;font-weight:700;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;}
-.sbt.on{color:var(--green);border-bottom-color:var(--green);}
+.sb-search:focus-within input{box-shadow:0 8px 20px var(--glow);}
+.sb-search::before{content:'🔍';position:absolute;left:22px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none;}
+.sb-tabs{display:flex;gap:7px;padding:0 10px 8px;}
+.sbt{flex:1;padding:10px 4px;text-align:center;font-size:13px;font-weight:900;cursor:pointer;color:var(--text3);border:1px solid var(--border);background:var(--surface);border-radius:13px;transition:all .2s;}
+.sbt.on{color:#fff;border-color:transparent;background:linear-gradient(135deg,var(--green),var(--green2));box-shadow:0 8px 20px var(--glow);}
+.chat-help-row{display:flex;gap:7px;padding:0 10px 9px;}
+.help-pill{flex:1;padding:9px 7px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;}
+.help-pill:hover{border-color:var(--green);color:var(--green);box-shadow:0 8px 18px var(--glow);}
+.help-pill.notify-ok{color:var(--green);background:rgba(124,58,237,.08);border-color:var(--border2);}
 .room-list{flex:1;overflow-y:auto;padding:4px 0;}
 .r-item{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;transition:background .15s;position:relative;animation:itemIn .28s ease both;}
 .r-item:hover,.r-item.on{background:var(--surface);transform:translateY(-1px);box-shadow:0 8px 24px rgba(124,58,237,.1);}
@@ -736,18 +740,20 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
     <button class="sp-tab" id="spt-schedule" onclick="setSpaceTab('schedule')"><span class="sp-ico">📅</span>일정</button>
   </div>
   <div id="sp-chat" style="display:flex;flex-direction:column;flex:1;min-height:0;">
-    <button class="new-btn" id="new-btn" onclick="openModal()">✏️ 새로운 채팅 시작</button>
-    <div class="how-to-banner" onclick="openGuide()">❓ 채팅 사용방법 안내</div>
-    <div class="how-to-banner" id="notify-banner" onclick="openNotifyGuide()" style="background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;border:none;">🔔 <span id="notify-banner-txt">알림 켜기</span></div>
-    <div class="sb-search"><input type="text" placeholder="채팅방명 / 상대 이름으로 검색..." oninput="filterRooms(this.value)" id="search-inp"></div>
-    <div class="sb-tabs"><div class="sbt on" id="tab-g" onclick="setTab('group')">단체채팅</div><div class="sbt" id="tab-d" onclick="setTab('dm')">1대1 채팅</div></div>
+    <div class="chat-start"><button class="new-btn" id="new-btn" onclick="openModal()">✏️ 채팅 만들기</button></div>
+    <div class="sb-search"><input type="text" placeholder="이름이나 채팅방 찾기" oninput="filterRooms(this.value)" id="search-inp"></div>
+    <div class="sb-tabs"><div class="sbt on" id="tab-g" onclick="setTab('group')">단체 채팅</div><div class="sbt" id="tab-d" onclick="setTab('dm')">개인 채팅</div></div>
+    <div class="chat-help-row">
+      <button class="help-pill" onclick="openGuide()">❓ 사용방법</button>
+      <button class="help-pill" id="notify-banner" onclick="openNotifyGuide()">🔔 <span id="notify-banner-txt">알림 켜기</span></button>
+    </div>
     <div class="room-list" id="room-list"></div>
   </div>
   <div id="sp-info" style="display:none;flex-direction:column;flex:1;min-height:0;">
     <div class="room-list" id="info-list"></div>
   </div>
   <div id="sp-friends" style="display:none;flex-direction:column;flex:1;min-height:0;">
-    <div class="how-to-banner" onclick="openInvite()" style="background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;border:none;">👋 친구 초대하기</div>
+    <div class="chat-start"><button class="new-btn" onclick="openInvite()">👋 친구 초대하기</button></div>
     <div class="sb-search"><input type="text" placeholder="친구 검색 (이름·이메일)" oninput="renderFriends(this.value)" id="friend-search"></div>
     <div class="room-list" id="friend-list"></div>
   </div>
@@ -1774,8 +1780,8 @@ function updateNotifyBanner(){
   const b=document.getElementById('notify-banner'),t=document.getElementById('notify-banner-txt');
   if(!b||!t)return;
   const perm=('Notification'in window)?Notification.permission:'unsupported';
-  if(perm==='granted'){t.textContent='알림 켜짐 ✓';b.style.opacity='.75';}
-  else{t.textContent='알림 켜기';b.style.opacity='1';}
+  if(perm==='granted'){t.textContent='알림 켜짐';b.classList.add('notify-ok');}
+  else{t.textContent='알림 켜기';b.classList.remove('notify-ok');}
 }
 async function initPushNotifications(){
   if(pushReady||!sess||isGuest)return;
