@@ -24,7 +24,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script>
 /* 저장된 앱 테마색을 로그인 화면에도 적용 (index는 --accent 변수 구조) */
-(function(){try{var raw=localStorage.getItem('tt_theme_color');if(!raw)return;var t=JSON.parse(raw);var dark=document.documentElement.getAttribute('data-theme')==='dark';var c=dark?t.dark:t.light;if(!c)return;var s=document.documentElement.style;s.setProperty('--accent',c.g);s.setProperty('--accent2',c.g2);s.setProperty('--green',c.g);s.setProperty('--green-rgb',c.rgb);s.setProperty('--green2',c.g2);}catch(e){}})();
+(function(){function okHex(v){return typeof v==='string'&&/^#[0-9a-fA-F]{6}$/.test(v);}function okRgb(v){if(typeof v!=='string'||!/^([0-9]{1,3},){2}[0-9]{1,3}$/.test(v))return false;return v.split(',').every(function(n){n=Number(n);return n>=0&&n<=255;});}try{var raw=localStorage.getItem('tt_theme_color');if(!raw)return;var t=JSON.parse(raw);var dark=document.documentElement.getAttribute('data-theme')==='dark';var c=dark?t.dark:t.light;if(!c||!okHex(c.g)||!okRgb(c.rgb)||!okHex(c.g2))return;var s=document.documentElement.style;s.setProperty('--accent',c.g);s.setProperty('--accent2',c.g2);s.setProperty('--green',c.g);s.setProperty('--green-rgb',c.rgb);s.setProperty('--green2',c.g2);}catch(e){}})();
 </script>
 <style>
 :root[data-theme="light"]{

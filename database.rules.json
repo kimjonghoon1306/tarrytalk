@@ -224,8 +224,60 @@
       ".write": "auth != null && (root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')"
     },
     "settings": {
-      ".read": "auth != null",
-      ".write": "auth != null && (root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')"
+      "themeColor": {
+        ".read": "auth != null",
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('isAdmin').val() === true || auth.token.email === 'tarry9653@daum.net')",
+        ".validate": "newData.exists() && newData.hasChildren(['key','light','dark','updatedAt'])",
+        "key": {
+          ".validate": "newData.isString() && newData.val().matches(/^(violet|blue|teal|rose|orange|indigo)$/)"
+        },
+        "light": {
+          ".validate": "newData.hasChildren(['g','rgb','g2'])",
+          "g": {
+            ".validate": "newData.isString() && newData.val().matches(/^#[0-9a-fA-F]{6}$/)"
+          },
+          "rgb": {
+            ".validate": "newData.isString() && newData.val().matches(/^[0-9]{1,3},[0-9]{1,3},[0-9]{1,3}$/)"
+          },
+          "g2": {
+            ".validate": "newData.isString() && newData.val().matches(/^#[0-9a-fA-F]{6}$/)"
+          },
+          "g3": {
+            ".validate": "!newData.exists() || (newData.isString() && newData.val().matches(/^#[0-9a-fA-F]{6}$/))"
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "dark": {
+          ".validate": "newData.hasChildren(['g','rgb','g2'])",
+          "g": {
+            ".validate": "newData.isString() && newData.val().matches(/^#[0-9a-fA-F]{6}$/)"
+          },
+          "rgb": {
+            ".validate": "newData.isString() && newData.val().matches(/^[0-9]{1,3},[0-9]{1,3},[0-9]{1,3}$/)"
+          },
+          "g2": {
+            ".validate": "newData.isString() && newData.val().matches(/^#[0-9a-fA-F]{6}$/)"
+          },
+          "g3": {
+            ".validate": "!newData.exists() || (newData.isString() && newData.val().matches(/^#[0-9a-fA-F]{6}$/))"
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "updatedAt": {
+          ".validate": "newData.isNumber()"
+        },
+        "$other": {
+          ".validate": false
+        }
+      },
+      "$other": {
+        ".read": false,
+        ".write": false
+      }
     }
   }
 }
