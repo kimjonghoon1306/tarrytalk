@@ -22,6 +22,10 @@
 <meta name="twitter:title" content="온메신저 — 우리들의 모임, 하나로 연결">
 <meta name="twitter:image" content="https://talk.xn--zk5biyyw.com/og.png">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script>
+/* 저장된 앱 테마색을 로그인 화면에도 적용 (index는 --accent 변수 구조) */
+(function(){try{var raw=localStorage.getItem('tt_theme_color');if(!raw)return;var t=JSON.parse(raw);var dark=document.documentElement.getAttribute('data-theme')==='dark';var c=dark?t.dark:t.light;if(!c)return;var s=document.documentElement.style;s.setProperty('--accent',c.g);s.setProperty('--accent2',c.g2);s.setProperty('--green',c.g);s.setProperty('--green-rgb',c.rgb);s.setProperty('--green2',c.g2);}catch(e){}})();
+</script>
 <style>
 :root[data-theme="light"]{
   --bg:#f5f3ff;--bg2:#fff;--surface:#faf8ff;--border:rgba(124,58,237,.12);

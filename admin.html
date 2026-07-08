@@ -329,6 +329,7 @@ tr:hover td{background:rgba(var(--green-rgb),.04);}
   <div class="nav-item" onclick="switchSection('ads')"><span class="ni">🏷️</span>광고 관리</div>
   <div class="nav-item" onclick="switchSection('library')"><span class="ni">📌</span>자료실</div>
   <div class="nav-item" onclick="switchSection('popup')"><span class="ni">🪧</span>공지 팝업</div>
+  <div class="nav-item" onclick="switchSection('theme')"><span class="ni">🎨</span>앱 색상</div>
   <div class="adm-sb-foot">
     <div class="nav-item" onclick="location.href='chat.html'"><span class="ni">💬</span>채팅으로</div>
     <button class="theme-btn" onclick="toggleTheme()"><span class="ni" id="ti">🌙</span><span id="tl">밤 모드</span></button>
@@ -624,6 +625,16 @@ tr:hover td{background:rgba(var(--green-rgb),.04);}
     <div class="modal-foot">
       <button class="m-cancel" onclick="closeCreateGroup()">취소</button>
       <button class="m-submit" id="group-create-btn" onclick="doCreateGroup()" disabled>만들기</button>
+    </div>
+  </div>
+
+  <!-- 앱 색상 섹션 -->
+  <div id="sec-theme" style="display:none;">
+    <div class="card">
+      <div class="card-head"><div class="card-title">🎨 앱 메인 색상</div></div>
+      <p style="font-size:13px;color:var(--text3);margin-bottom:14px;line-height:1.7;">앱 전체의 기본 강조색을 정해요. 색을 직접 고르지 않은 회원 <b>모두</b>에게 이 색이 적용됩니다. (회원이 프로필에서 개인 색을 고르면 그 색이 우선돼요.)</p>
+      <div id="admin-theme-picker" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;"></div>
+      <button class="notice-send-btn" onclick="saveAdminTheme()" style="width:auto;padding:12px 22px;">이 색으로 전체 적용</button>
     </div>
   </div>
 </div>
@@ -932,15 +943,36 @@ function renderLog() {
 
 /* ── 섹션 전환 ── */
 window.switchSection = function(sec) {
-  ['dashboard','users','rooms','notice','ads','library','popup'].forEach(s=>{
+  ['dashboard','users','rooms','notice','ads','library','popup','theme'].forEach(s=>{
     document.getElementById('sec-'+s).style.display = s===sec?'':'none';
   });
   document.querySelectorAll('.nav-item').forEach((el,i)=>{
-    const secs=['dashboard','users','rooms','notice','ads','library','popup'];
+    const secs=['dashboard','users','rooms','notice','ads','library','popup','theme'];
     el.classList.toggle('on', secs[i]===sec);
   });
   closeAdmSb();
 };
+
+/* ── 앱 테마색 (관리자 전체 기본색) ── */
+const THEME_PRESETS=[
+  {key:'violet',name:'바이올렛',sw:'#7c3aed',light:{g:'#7c3aed',rgb:'124,58,237',g2:'#6d28d9'},dark:{g:'#a855f7',rgb:'168,85,247',g2:'#7c3aed'}},
+  {key:'blue',name:'블루',sw:'#2563eb',light:{g:'#2563eb',rgb:'37,99,235',g2:'#1d4ed8'},dark:{g:'#60a5fa',rgb:'96,165,250',g2:'#3b82f6'}},
+  {key:'teal',name:'민트',sw:'#0d9488',light:{g:'#0d9488',rgb:'13,148,136',g2:'#0f766e'},dark:{g:'#2dd4bf',rgb:'45,212,191',g2:'#14b8a6'}},
+  {key:'rose',name:'로즈',sw:'#e11d63',light:{g:'#e11d63',rgb:'225,29,99',g2:'#be185d'},dark:{g:'#f472b6',rgb:'244,114,182',g2:'#ec4899'}},
+  {key:'orange',name:'오렌지',sw:'#ea580c',light:{g:'#ea580c',rgb:'234,88,12',g2:'#c2410c'},dark:{g:'#fb923c',rgb:'251,146,60',g2:'#f97316'}},
+  {key:'indigo',name:'인디고',sw:'#4f46e5',light:{g:'#4f46e5',rgb:'79,70,229',g2:'#4338ca'},dark:{g:'#818cf8',rgb:'129,140,248',g2:'#6366f1'}},
+];
+function _applyThemeObj(t){if(!t)return;var dark=document.documentElement.getAttribute('data-theme')==='dark';var c=dark?t.dark:t.light;if(!c)return;var s=document.documentElement.style;s.setProperty('--green',c.g);s.setProperty('--green-rgb',c.rgb);s.setProperty('--green2',c.g2);s.setProperty('--out-bubble',c.g);if(c.g3)s.setProperty('--green3',c.g3);}
+window.__adminTheme=null;
+window.reapplyThemeColor=function(){try{var raw=localStorage.getItem('tt_theme_color');if(raw){_applyThemeObj(JSON.parse(raw));return;}}catch(e){}if(window.__adminTheme)_applyThemeObj(window.__adminTheme);};
+let _adminThemeKey='violet';
+function renderAdminThemePicker(){var box=document.getElementById('admin-theme-picker');if(!box)return;box.innerHTML=THEME_PRESETS.map(function(p){return '<div onclick="pickAdminTheme(\''+p.key+'\')" title="'+p.name+'" style="width:46px;height:46px;border-radius:13px;background:'+p.sw+';cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;font-weight:900;border:2.5px solid '+(p.key===_adminThemeKey?'#fff':'transparent')+';box-shadow:'+(p.key===_adminThemeKey?'0 0 0 3px rgba(0,0,0,.22)':'0 2px 8px rgba(0,0,0,.14)')+';transition:all .2s;">'+(p.key===_adminThemeKey?'✓':'')+'</div>';}).join('');}
+window.pickAdminTheme=function(key){_adminThemeKey=key;renderAdminThemePicker();};
+window.saveAdminTheme=async function(){var p=THEME_PRESETS.find(function(x){return x.key===_adminThemeKey;});if(!p)return;try{await set(ref(db,'settings/themeColor'),{key:p.key,light:p.light,dark:p.dark,updatedAt:Date.now()});window.__adminTheme={light:p.light,dark:p.dark};if(!localStorage.getItem('tt_theme_color'))reapplyThemeColor();showToast('🎨 전체 기본 색이 저장됐어요','ok');}catch(e){showToast('저장 실패: '+(e.message||e),'err');}};
+get(ref(db,'settings/themeColor')).then(function(snap){var v=snap.val();if(v&&v.light){window.__adminTheme={light:v.light,dark:v.dark};_adminThemeKey=v.key||'violet';if(!localStorage.getItem('tt_theme_color'))reapplyThemeColor();}renderAdminThemePicker();}).catch(function(){renderAdminThemePicker();});
+window.addEventListener('storage',function(e){if(!e.key||e.key.indexOf('tt_theme')===0)reapplyThemeColor();});
+window.addEventListener('pageshow',function(){reapplyThemeColor();});
+
 window.toggleAdmSb=function(){document.getElementById('adm-sb').classList.toggle('open');document.getElementById('adm-drawer-bg').classList.toggle('show');};
 /* ── 이모지 피커 (공지/팝업 입력) ── */
 const ADM_EMOJI_CATS=[

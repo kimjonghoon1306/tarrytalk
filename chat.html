@@ -1192,7 +1192,7 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
     <img id="popup-img" class="popup-img" alt="" style="display:none">
     <div class="popup-body" id="popup-body"></div>
     <div class="popup-foot">
-      <label class="popup-check"><input type="checkbox" id="popup-today"> 오늘 하루 보지 않기</label>
+      <span class="popup-check" style="opacity:.72;">확인을 누르면 이 공지는 다시 뜨지 않아요</span>
       <button class="popup-close" onclick="closePopupNotice()">확인</button>
     </div>
   </div>
@@ -1205,6 +1205,9 @@ import{getDatabase,ref,onValue,onChildAdded,onChildChanged,onChildRemoved,push,s
 import{getMessaging,getToken,onMessage,isSupported}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
 const FC={apiKey:"AIzaSyDC9qSmH-1z778oiI7QbDY_JrKis95z_C4",authDomain:"tarrytalk.firebaseapp.com",databaseURL:"https://tarrytalk-default-rtdb.firebaseio.com",projectId:"tarrytalk",storageBucket:"tarrytalk.firebasestorage.app",messagingSenderId:"322779846377",appId:"1:322779846377:web:12253ee2f2330dd1a04278"};
 const app=initializeApp(FC),auth=getAuth(app),db=getDatabase(app),ADMIN_EMAIL='tarry9653@daum.net';
+// 관리자가 정한 전체 기본색 로드 (개인 색을 안 고른 경우에만 적용)
+window.__adminTheme=null;
+(function(){function ap(t){if(!t)return;var dark=document.documentElement.getAttribute('data-theme')==='dark';var c=dark?t.dark:t.light;if(!c)return;var s=document.documentElement.style;s.setProperty('--green',c.g);s.setProperty('--green-rgb',c.rgb);s.setProperty('--green2',c.g2);s.setProperty('--out-bubble',c.g);if(c.g3)s.setProperty('--green3',c.g3);}window.reapplyThemeColor=function(){try{var raw=localStorage.getItem('tt_theme_color');if(raw){ap(JSON.parse(raw));return;}}catch(e){}if(window.__adminTheme)ap(window.__adminTheme);};get(ref(db,'settings/themeColor')).then(function(snap){var v=snap.val();if(v&&v.light){window.__adminTheme={light:v.light,dark:v.dark};if(!localStorage.getItem('tt_theme_color'))reapplyThemeColor();}}).catch(function(){});window.addEventListener('storage',function(e){if(!e.key||e.key.indexOf('tt_theme')===0)reapplyThemeColor();});window.addEventListener('pageshow',function(){reapplyThemeColor();});})();
 // 로그인 상태를 기기에 영구 유지(카톡처럼). iOS PWA는 IndexedDB, 실패 시 localStorage로 폴백.
 const authPersistenceReady=setPersistence(auth,indexedDBLocalPersistence).catch(()=>setPersistence(auth,browserLocalPersistence)).catch(()=>{});
 const VAPID_KEY='BOaSeflyJoz-KNivb_EIPIfFuVwQe52LGW4DCb2hmc5SyTNNaod97MPodilohfzNsJba_yQatZLCpOVxJB8Q98A';
@@ -1682,12 +1685,12 @@ function maybeShowPopupNotice(){
   const pImg=document.getElementById('popup-img');
   const popupImgSrc=safeImageSrc(popupNotice.imageData);
   if(popupImgSrc){pImg.src=popupImgSrc;pImg.style.display='block';}else{pImg.removeAttribute('src');pImg.style.display='none';}
-  document.getElementById('popup-today').checked=false;
   document.getElementById('popup-overlay').classList.add('show');
 }
 window.closePopupNotice=function(){
-  if(popupNotice?.updatedAt&&document.getElementById('popup-today').checked){
-    localStorage.setItem('popup_hidden_'+popupNotice.updatedAt,String(Date.now()+24*60*60*1000));
+  // 확인을 누르면 이 공지(updatedAt 기준)는 다시 표시하지 않는다. 관리자가 새 공지를 올리면 새 updatedAt이라 1회 다시 뜬다.
+  if(popupNotice?.updatedAt){
+    localStorage.setItem('popup_hidden_'+popupNotice.updatedAt,'9999999999999');
   }
   document.getElementById('popup-overlay').classList.remove('show');
 };
@@ -2708,7 +2711,8 @@ function onbotAnswer(q){
     ? '관리자 패널에서는 회원 관리, 비활성화, 방 관리, 통계 확인, 전체 공지 발송, 회원에게 1:1 채팅 걸기, 광고 배너 등록, 접속 공지 팝업 저장을 할 수 있어요. 관리자 계정으로 실제 Firebase 로그인해야 접근됩니다.'
     : '관리자 전용 기능이에요. 일반 회원은 채팅·초대·단톡·일정·파일 전송 등을 이용할 수 있어요.';
   if(has('비번','비밀번호','프로필','이름','색상','아바타'))return '프로필 화면에서 이름, 아바타 색상, 비밀번호를 바꿀 수 있어요. 비밀번호는 대·소문자와 숫자를 포함한 안전한 형태로 변경하는 것을 권장합니다.';
-  if(has('테마','다크','라이트','밤','낮'))return '상단이나 사이드바의 테마 버튼으로 다크/라이트 모드를 전환할 수 있어요. 현재 바이올렛 색상 체계에 맞춰 두 모드 모두 가독성을 맞춰두었습니다.';
+  if(has('색상','색깔','색 바꾸','색깔 바꾸','앱 색','메인색','메인 색','테마색','테마 색','색 변경'))return '🎨 앱 색상을 내 취향대로 바꿀 수 있어요! <b>내 프로필</b>로 들어가 아래 <b>“앱 메인 색상”</b>에서 바이올렛·블루·민트·로즈·오렌지·인디고 중 하나를 누르면 앱 전체 색이 바로 바뀌고 이 기기에 저장돼요. 원래대로 하려면 “기본 색으로 되돌리기”를 누르면 됩니다. (관리자는 관리자 화면 → “앱 색상”에서 회원 전체의 기본 색을 정할 수 있어요.)';
+  if(has('테마','다크','라이트','밤','낮'))return '상단이나 사이드바의 테마 버튼으로 다크/라이트 모드를 전환할 수 있어요. 색상은 내 프로필의 “앱 메인 색상”에서 바꿀 수 있어요(바이올렛·블루·민트·로즈·오렌지·인디고).';
   if(has('안녕','hi','hello'))return admin?'안녕하세요! 저는 온봇이에요. 초대, 단톡방, 일정, 파일 전송, 관리자 기능처럼 궁금한 말을 입력하거나 아래 버튼에서 골라보세요.':'안녕하세요! 저는 온봇이에요. 초대, 단톡방, 일정, 파일 전송처럼 궁금한 말을 입력하거나 아래 버튼에서 골라보세요.';
   return admin?'제가 바로 알아듣지 못했어요. 아래 버튼에서 가까운 항목을 골라보세요. 예: 회원 초대, 단톡방 만들기, 일정 공유, 사진·파일 보내기, 관리자 기능.':'제가 바로 알아듣지 못했어요. 아래 버튼에서 가까운 항목을 골라보세요. 예: 회원 초대, 단톡방 만들기, 일정 공유, 사진·파일 보내기.';
 }

@@ -46,8 +46,8 @@ button:active,.section:active,.info-row:active{transform:scale(.98);}
 
 /* ── 레이아웃 ── */
 .page{max-width:980px;margin:0 auto;padding:20px 20px 60px;}
-.prof-grid{display:grid;grid-template-columns:1fr;gap:14px;}
-@media(min-width:780px){.prof-grid{grid-template-columns:1fr 1fr;align-items:start;}.profile-hero{grid-column:1/-1;}}
+.prof-grid>*{margin-bottom:14px;}
+@media(min-width:780px){.prof-grid{column-count:2;column-gap:14px;}.profile-hero{column-span:all;}.prof-grid>*{break-inside:avoid;}}
 .theme-btn{width:38px;height:38px;border-radius:11px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:var(--text2);transition:all .2s;margin-left:auto;}
 .theme-btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px var(--glow);}
 
@@ -301,6 +301,10 @@ const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
 const db=getDatabase(app);
 const ADMIN_EMAIL='tarry9653@daum.net';
+// 관리자가 정한 전체 기본색 로드 (개인 색을 안 고른 경우에만 적용)
+get(ref(db,'settings/themeColor')).then(function(snap){var v=snap.val();if(v&&v.light){window.__adminTheme={light:v.light,dark:v.dark};if(!localStorage.getItem('tt_theme_color'))reapplyThemeColor();}}).catch(function(){});
+window.addEventListener('storage',function(e){if(!e.key||e.key.indexOf('tt_theme')===0){reapplyThemeColor();if(typeof renderThemePicker==='function')renderThemePicker();}});
+window.addEventListener('pageshow',function(){reapplyThemeColor();});
 const authPersistenceReady=setPersistence(auth,indexedDBLocalPersistence).catch(()=>setPersistence(auth,browserLocalPersistence)).catch(()=>{});
 
 const COLORS=['#00a84a','#0087d4','#a855f7','#e85d04','#d62828','#2ec4b6','#f59e0b','#ec4899'];
@@ -316,7 +320,8 @@ const THEME_PRESETS=[
 ];
 function _applyThemeObj(t){if(!t)return;var dark=document.documentElement.getAttribute('data-theme')==='dark';var c=dark?t.dark:t.light;if(!c)return;var s=document.documentElement.style;s.setProperty('--green',c.g);s.setProperty('--green-rgb',c.rgb);s.setProperty('--green2',c.g2);s.setProperty('--out-bubble',c.g);if(c.g3)s.setProperty('--green3',c.g3);}
 function _curThemeKey(){try{return localStorage.getItem('tt_theme_key')||'violet';}catch(e){return 'violet';}}
-window.reapplyThemeColor=function(){try{var raw=localStorage.getItem('tt_theme_color');if(raw)_applyThemeObj(JSON.parse(raw));}catch(e){}};
+window.__adminTheme=null;
+window.reapplyThemeColor=function(){try{var raw=localStorage.getItem('tt_theme_color');if(raw){_applyThemeObj(JSON.parse(raw));return;}}catch(e){}if(window.__adminTheme)_applyThemeObj(window.__adminTheme);};
 function renderThemePicker(){var cur=_curThemeKey();var box=document.getElementById('theme-picker');if(!box)return;box.innerHTML=THEME_PRESETS.map(function(p){return '<div onclick="selectTheme(\''+p.key+'\')" title="'+p.name+'" style="width:44px;height:44px;border-radius:13px;background:'+p.sw+';cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;font-weight:900;border:2.5px solid '+(p.key===cur?'#fff':'transparent')+';box-shadow:'+(p.key===cur?'0 0 0 3px rgba(0,0,0,.2)':'0 2px 8px rgba(0,0,0,.12)')+';transition:all .2s;">'+(p.key===cur?'✓':'')+'</div>';}).join('');}
 window.selectTheme=function(key){var p=THEME_PRESETS.find(function(x){return x.key===key;});if(!p)return;var t={light:p.light,dark:p.dark};try{localStorage.setItem('tt_theme_color',JSON.stringify(t));localStorage.setItem('tt_theme_key',key);}catch(e){}_applyThemeObj(t);renderThemePicker();showToast('🎨 앱 색상이 바뀌었어요','ok');};
 window.resetThemeColor=function(){try{localStorage.removeItem('tt_theme_color');localStorage.removeItem('tt_theme_key');}catch(e){}var s=document.documentElement.style;['--green','--green-rgb','--green2','--out-bubble','--green3'].forEach(function(k){s.removeProperty(k);});renderThemePicker();showToast('기본 색으로 되돌렸어요','ok');};
