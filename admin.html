@@ -300,6 +300,9 @@ tr:hover td{background:rgba(var(--green-rgb),.04);}
 .gm-email{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
 .group-count{font-size:12px;font-weight:800;color:var(--green);margin-top:8px;}
 .m-submit:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;}
+.update-banner{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:3000;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;padding:11px 16px 11px 20px;border-radius:50px;box-shadow:0 10px 30px rgba(var(--green-rgb),.45);display:flex;align-items:center;gap:12px;font-weight:800;font-size:14px;white-space:nowrap;max-width:calc(100vw - 24px);}
+.update-btn{background:#fff;color:var(--green);border:none;border-radius:50px;padding:7px 15px;font-weight:800;cursor:pointer;font-size:13px;white-space:nowrap;flex-shrink:0;}
+@media(max-width:420px){.update-banner{bottom:14px;padding:9px 10px 9px 12px;gap:7px;font-size:12px;}.update-btn{padding:6px 9px;font-size:12px;}}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.001ms!important;}
   button,.nav-item,.card,.stat-card,.room-card,.ad-row,.ann-row,.group-member{transform:none!important;}
@@ -322,14 +325,14 @@ tr:hover td{background:rgba(var(--green-rgb),.04);}
     <div class="adm-role-badge" id="admin-role-badge">권한 확인 중</div>
   </div>
   <div class="nav-sec">메인</div>
-  <div class="nav-item on" onclick="switchSection('dashboard')"><span class="ni">📊</span>대시보드</div>
-  <div class="nav-item" onclick="switchSection('users')"><span class="ni">👥</span>회원 관리</div>
-  <div class="nav-item" onclick="switchSection('rooms')"><span class="ni">💬</span>채팅방 관리</div>
-  <div class="nav-item" onclick="switchSection('notice')"><span class="ni">📢</span>공지 발송</div>
-  <div class="nav-item" onclick="switchSection('ads')"><span class="ni">🏷️</span>광고 관리</div>
-  <div class="nav-item" onclick="switchSection('library')"><span class="ni">📌</span>자료실</div>
-  <div class="nav-item" onclick="switchSection('popup')"><span class="ni">🪧</span>공지 팝업</div>
-  <div class="nav-item" onclick="switchSection('theme')"><span class="ni">🎨</span>앱 색상</div>
+  <div class="nav-item on" data-section="dashboard" onclick="switchSection('dashboard')"><span class="ni">📊</span>대시보드</div>
+  <div class="nav-item" data-section="users" onclick="switchSection('users')"><span class="ni">👥</span>회원 관리</div>
+  <div class="nav-item" data-section="rooms" onclick="switchSection('rooms')"><span class="ni">💬</span>채팅방 관리</div>
+  <div class="nav-item" data-section="notice" onclick="switchSection('notice')"><span class="ni">📢</span>공지 발송</div>
+  <div class="nav-item" data-section="ads" onclick="switchSection('ads')"><span class="ni">🏷️</span>광고 관리</div>
+  <div class="nav-item" data-section="library" onclick="switchSection('library')"><span class="ni">📌</span>자료실</div>
+  <div class="nav-item" data-section="popup" onclick="switchSection('popup')"><span class="ni">🪧</span>공지 팝업</div>
+  <div class="nav-item" data-section="theme" onclick="switchSection('theme')"><span class="ni">🎨</span>앱 색상</div>
   <div class="adm-sb-foot">
     <div class="nav-item" onclick="location.href='chat.html'"><span class="ni">💬</span>채팅으로</div>
     <button class="theme-btn" onclick="toggleTheme()"><span class="ni" id="ti">🌙</span><span id="tl">밤 모드</span></button>
@@ -600,6 +603,16 @@ tr:hover td{background:rgba(var(--green-rgb),.04);}
       </div>
     </div>
   </div>
+
+  <!-- 앱 색상 섹션 -->
+  <div id="sec-theme" style="display:none;">
+    <div class="card">
+      <div class="card-head"><div class="card-title">🎨 앱 메인 색상</div></div>
+      <p style="font-size:13px;color:var(--text3);margin-bottom:14px;line-height:1.7;">앱 전체의 기본 강조색을 정해요. 색을 직접 고르지 않은 회원 <b>모두</b>에게 이 색이 적용됩니다. (회원이 프로필에서 개인 색을 고르면 그 색이 우선돼요.)</p>
+      <div id="admin-theme-picker" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;"></div>
+      <button class="notice-send-btn" onclick="saveAdminTheme()" style="width:auto;padding:12px 22px;">이 색으로 전체 적용</button>
+    </div>
+  </div>
 </div>
 </div>
 
@@ -625,16 +638,6 @@ tr:hover td{background:rgba(var(--green-rgb),.04);}
     <div class="modal-foot">
       <button class="m-cancel" onclick="closeCreateGroup()">취소</button>
       <button class="m-submit" id="group-create-btn" onclick="doCreateGroup()" disabled>만들기</button>
-    </div>
-  </div>
-
-  <!-- 앱 색상 섹션 -->
-  <div id="sec-theme" style="display:none;">
-    <div class="card">
-      <div class="card-head"><div class="card-title">🎨 앱 메인 색상</div></div>
-      <p style="font-size:13px;color:var(--text3);margin-bottom:14px;line-height:1.7;">앱 전체의 기본 강조색을 정해요. 색을 직접 고르지 않은 회원 <b>모두</b>에게 이 색이 적용됩니다. (회원이 프로필에서 개인 색을 고르면 그 색이 우선돼요.)</p>
-      <div id="admin-theme-picker" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;"></div>
-      <button class="notice-send-btn" onclick="saveAdminTheme()" style="width:auto;padding:12px 22px;">이 색으로 전체 적용</button>
     </div>
   </div>
 </div>
@@ -943,12 +946,14 @@ function renderLog() {
 
 /* ── 섹션 전환 ── */
 window.switchSection = function(sec) {
-  ['dashboard','users','rooms','notice','ads','library','popup','theme'].forEach(s=>{
-    document.getElementById('sec-'+s).style.display = s===sec?'':'none';
+  const secs=['dashboard','users','rooms','notice','ads','library','popup','theme'];
+  if(!secs.includes(sec)) sec='dashboard';
+  secs.forEach(s=>{
+    const el=document.getElementById('sec-'+s);
+    if(el) el.style.display = s===sec?'':'none';
   });
-  document.querySelectorAll('.nav-item').forEach((el,i)=>{
-    const secs=['dashboard','users','rooms','notice','ads','library','popup','theme'];
-    el.classList.toggle('on', secs[i]===sec);
+  document.querySelectorAll('.nav-item[data-section]').forEach(el=>{
+    el.classList.toggle('on', el.dataset.section===sec);
   });
   if(sec==='theme'&&typeof renderAdminThemePicker==='function')renderAdminThemePicker();
   closeAdmSb();
@@ -1645,6 +1650,49 @@ function safeImageSrc(src){
 }
 let _t;
 window.showToast = function(msg,type='ok'){const el=document.getElementById('toast-el');el.textContent=msg;el.className=`toast show t-${type}`;clearTimeout(_t);_t=setTimeout(()=>el.className='toast',2800);};
+</script>
+
+<script>
+// Service Worker 등록 (PWA) + 자동 업데이트
+if ('serviceWorker' in navigator) {
+  let _swReg = null;
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', {updateViaCache:'none'}).then(reg => {
+      _swReg = reg;
+      reg.update();
+      if (reg.waiting && navigator.serviceWorker.controller) showUpdateBanner();
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        if (!nw) return;
+        nw.addEventListener('statechange', () => {
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) showUpdateBanner();
+        });
+      });
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update(); });
+    }).catch(err => console.log('SW registration failed:', err));
+    let _reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (_reloaded) return;
+      _reloaded = true;
+      location.reload();
+    });
+  });
+  function showUpdateBanner(){
+    if (document.getElementById('update-banner')) return;
+    const el = document.createElement('div');
+    el.id = 'update-banner';
+    el.className = 'update-banner';
+    el.innerHTML = '🆕 새로운 업데이트가 있습니다 <button id="update-btn" class="update-btn">지금 적용하기</button>';
+    document.body.appendChild(el);
+    document.getElementById('update-btn').onclick = doUpdate;
+  }
+  function doUpdate(){
+    const btn = document.getElementById('update-btn');
+    if (btn){ btn.textContent = '업데이트 중...'; btn.disabled = true; }
+    if (_swReg && _swReg.waiting) _swReg.waiting.postMessage({type:'SKIP_WAITING'});
+    else location.reload();
+  }
+}
 </script>
 </body>
 </html>
