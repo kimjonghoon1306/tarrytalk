@@ -2312,6 +2312,9 @@ async function loadLinkPreviews(){
 }
 function buildMsg(m,prev,isNew){
   const mine=sess&&m.uid===sess.uid;
+  // '내게 보내기'(나 혼자 쓰는 방)에서는 읽음/안읽음 표시가 의미 없으므로 숨긴다.
+  const _room=(window._rooms||[]).find(r=>r.id===curRoom);
+  const isSelfRoom=!!(_room&&_room.members&&Object.keys(_room.members).length<=1);
   if(m.type==='system'){const d=document.createElement('div');d.className='sys-msg';d.textContent=m.text;return d;}
   if(m.deleted||m.type==='deleted'){const d=document.createElement('div');d.className='mg'+(mine?' out':'');d.innerHTML=`<div class="mg-av" style="background:var(--surface2);visibility:hidden">?</div><div class="mg-body"><div class="bubble" style="opacity:.45;font-style:italic;font-size:13px;">🗑 삭제된 메시지입니다</div></div>`;return d;}
   const name=m.displayName||'알 수 없음';
@@ -2348,7 +2351,7 @@ function buildMsg(m,prev,isNew){
   const replyHtml=m.replyTo?`<div class="reply-preview"><strong>${esc(m.replyTo.name)}</strong>${esc((m.replyTo.text||'미디어').substring(0,40))}</div>`:'';
   const avClick=(!isBot&&!mine&&m.uid&&m.uid!=='system')?` onclick="openUserCard('${m.uid}')" style="background:${color};${sameUser?'visibility:hidden':''};cursor:pointer;"`:` style="background:${color};${sameUser?'visibility:hidden':''}"`;
   const avatar=isBot?`<div class="mg-av onbot" style="${sameUser?'visibility:hidden':''}">${ONBOT_SVG}</div>`:`<div class="mg-av"${avClick}>${name[0].toUpperCase()}</div>`;
-  el.innerHTML=`${avatar}<div class="mg-body">${!mine&&!sameUser?`<div class="mg-sender">${esc(name)}</div>`:''}${replyHtml}${content}${reactionsHtml}<div class="mg-meta"><span>${fmtTime(m.at)}</span>${m.editedAt?`<span style="opacity:.5;font-style:italic;font-size:10px;">(수정됨)</span>`:''} ${mine&&m.type!=='system'?(m.readBy&&Object.keys(m.readBy).length>1?`<span class="chk chk-read">✓✓ 읽음</span>`:`<span class="chk">✓ 안읽음</span>`):''}</div></div>`;
+  el.innerHTML=`${avatar}<div class="mg-body">${!mine&&!sameUser?`<div class="mg-sender">${esc(name)}</div>`:''}${replyHtml}${content}${reactionsHtml}<div class="mg-meta"><span>${fmtTime(m.at)}</span>${m.editedAt?`<span style="opacity:.5;font-style:italic;font-size:10px;">(수정됨)</span>`:''} ${mine&&m.type!=='system'&&!isSelfRoom?(m.readBy&&Object.keys(m.readBy).length>1?`<span class="chk chk-read">✓✓ 읽음</span>`:`<span class="chk">✓ 안읽음</span>`):''}</div></div>`;
   bindMessageContext(el,m);
   return el;
 }
