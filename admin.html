@@ -950,6 +950,7 @@ window.switchSection = function(sec) {
     const secs=['dashboard','users','rooms','notice','ads','library','popup','theme'];
     el.classList.toggle('on', secs[i]===sec);
   });
+  if(sec==='theme'&&typeof renderAdminThemePicker==='function')renderAdminThemePicker();
   closeAdmSb();
 };
 
