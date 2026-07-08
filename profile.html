@@ -11,21 +11,25 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
 <title>온메신저 — 프로필</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script>
+/* 저장된 앱 테마색 즉시 적용 (FOUC 방지) — 회원 개인 색은 이 기기(localStorage)에 저장 */
+(function(){try{var raw=localStorage.getItem('tt_theme_color');if(!raw)return;var t=JSON.parse(raw);var dark=document.documentElement.getAttribute('data-theme')==='dark';var c=dark?t.dark:t.light;if(!c)return;var s=document.documentElement.style;s.setProperty('--green',c.g);s.setProperty('--green-rgb',c.rgb);s.setProperty('--green2',c.g2);s.setProperty('--out-bubble',c.g);if(c.g3)s.setProperty('--green3',c.g3);}catch(e){}})();
+</script>
 <style>
 :root[data-theme="light"]{
   --bg:#f5f3ff;--bg2:#ffffff;--bg3:#faf8ff;
   --surface:#ffffff;--surface2:#f3eefc;
-  --border:rgba(124,58,237,.14);--border2:rgba(124,58,237,.26);
+  --border:rgba(var(--green-rgb),.14);--border2:rgba(var(--green-rgb),.26);
   --text:#21172f;--text2:#5b4b7a;--text3:#8b7aa8;
-  --green:#7c3aed;--green2:#6d28d9;--glow:rgba(124,58,237,.14);--glow2:rgba(124,58,237,.25);
+  --green:#7c3aed;--green-rgb:124,58,237;--green2:#6d28d9;--glow:rgba(var(--green-rgb),.14);--glow2:rgba(var(--green-rgb),.25);
   --red:#e0223a;--red-bg:rgba(224,34,58,.08);
 }
 :root[data-theme="dark"]{
   --bg:#1a1622;--bg2:#221c2e;--bg3:#2a2238;
   --surface:#271f35;--surface2:#322847;
-  --border:rgba(168,85,247,.14);--border2:rgba(168,85,247,.26);
+  --border:rgba(var(--green-rgb),.14);--border2:rgba(var(--green-rgb),.26);
   --text:#f4efff;--text2:#d8c4ff;--text3:#a99ac4;
-  --green:#a855f7;--green2:#7c3aed;--glow:rgba(168,85,247,.22);--glow2:rgba(168,85,247,.38);
+  --green:#a855f7;--green-rgb:168,85,247;--green2:#7c3aed;--glow:rgba(var(--green-rgb),.22);--glow2:rgba(var(--green-rgb),.38);
   --red:#ff4f6a;--red-bg:rgba(255,79,106,.08);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -55,18 +59,18 @@ button:active,.section:active,.info-row:active{transform:scale(.98);}
 
 /* ── 프로필 히어로 ── */
 .profile-hero{
-  background:linear-gradient(135deg,#a855f7,#7c3aed 60%,#6d28d9);border:none;border-radius:24px;
+  background:linear-gradient(135deg,var(--green),var(--green2));border:none;border-radius:24px;
   padding:38px 24px;text-align:center;margin-bottom:0;color:#fff;
   position:relative;overflow:hidden;animation:itemIn .32s ease both;
-  box-shadow:0 18px 44px rgba(124,58,237,.32);
+  box-shadow:0 18px 44px rgba(var(--green-rgb),.32);
 }
 .profile-hero .profile-name{color:#fff;}
 .profile-hero .profile-email{color:rgba(255,255,255,.85);}
 .profile-hero::after{content:'';position:absolute;bottom:-60px;left:-40px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.12),transparent 70%);pointer-events:none;}
-.profile-hero:hover,.section:hover{border-color:var(--border2);box-shadow:0 12px 32px rgba(168,85,247,.12);transform:translateY(-2px);}
+.profile-hero:hover,.section:hover{border-color:var(--border2);box-shadow:0 12px 32px rgba(var(--green-rgb),.12);transform:translateY(-2px);}
 .profile-hero::before{
   content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;
-  border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,.14),transparent 70%);
+  border-radius:50%;background:radial-gradient(circle,rgba(var(--green-rgb),.14),transparent 70%);
   pointer-events:none;
 }
 .av-wrap{position:relative;display:inline-block;margin-bottom:16px;}
@@ -83,7 +87,7 @@ button:active,.section:active,.info-row:active{transform:scale(.98);}
 }
 .profile-name{font-size:22px;font-weight:900;margin-bottom:4px;}
 .profile-email{font-size:13px;color:var(--text3);margin-bottom:12px;}
-.profile-badge{display:inline-block;padding:4px 14px;border-radius:50px;font-size:11px;font-weight:800;background:rgba(168,85,247,.14);border:1px solid var(--border2);color:var(--green);}
+.profile-badge{display:inline-block;padding:4px 14px;border-radius:50px;font-size:11px;font-weight:800;background:rgba(var(--green-rgb),.14);border:1px solid var(--border2);color:var(--green);}
 
 /* ── 섹션 ── */
 .section{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:20px;margin-bottom:14px;animation:itemIn .3s ease both;}
@@ -132,7 +136,7 @@ button:active,.section:active,.info-row:active{transform:scale(.98);}
 
 /* ── 정보 행 ── */
 .info-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);animation:itemIn .26s ease both;}
-.info-row:hover{background:rgba(168,85,247,.06);border-radius:12px;padding-left:8px;padding-right:8px;}
+.info-row:hover{background:rgba(var(--green-rgb),.06);border-radius:12px;padding-left:8px;padding-right:8px;}
 .info-row:last-child{border-bottom:none;}
 .info-icon{font-size:18px;width:28px;text-align:center;flex-shrink:0;}
 .info-label{font-size:11px;color:var(--text3);font-weight:600;}
@@ -148,7 +152,7 @@ button:active,.section:active,.info-row:active{transform:scale(.98);}
 /* ── 로딩 ── */
 .loading-overlay{position:fixed;inset:0;background:rgba(26,22,34,.95);z-index:9999;display:flex;align-items:center;justify-content:center;}
 .loading-overlay.hide{display:none;}
-.spinner{width:32px;height:32px;border:3px solid rgba(168,85,247,.15);border-top-color:var(--green);border-right-color:var(--green2);border-radius:50%;animation:spin .7s linear infinite,pulseRing 1.8s ease-in-out infinite;box-shadow:0 0 22px var(--glow);}
+.spinner{width:32px;height:32px;border:3px solid rgba(var(--green-rgb),.15);border-top-color:var(--green);border-right-color:var(--green2);border-radius:50%;animation:spin .7s linear infinite,pulseRing 1.8s ease-in-out infinite;box-shadow:0 0 22px var(--glow);}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes pulseRing{50%{box-shadow:0 0 34px var(--glow2)}}
 @keyframes ctaShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
@@ -256,6 +260,13 @@ button:active,.section:active,.info-row:active{transform:scale(.98);}
     <div class="sec-title">아바타 색상</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;" id="color-picker"></div>
     <button class="secondary-btn" onclick="saveAvatarColor()">색상 저장</button>
+
+    <div style="height:1px;background:var(--border);margin:22px 0;"></div>
+
+    <div class="sec-title">앱 메인 색상 (테마)</div>
+    <p style="font-size:12.5px;color:var(--text3);margin:-8px 0 14px;line-height:1.65;">앱 전체 강조색을 내 취향대로 바꿔요. 누르면 바로 적용되고 이 기기에 저장돼요.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;" id="theme-picker"></div>
+    <button class="secondary-btn" onclick="resetThemeColor()">기본 색으로 되돌리기</button>
   </div>
 
   <!-- 알림음 -->
@@ -293,10 +304,27 @@ const ADMIN_EMAIL='tarry9653@daum.net';
 const authPersistenceReady=setPersistence(auth,indexedDBLocalPersistence).catch(()=>setPersistence(auth,browserLocalPersistence)).catch(()=>{});
 
 const COLORS=['#00a84a','#0087d4','#a855f7','#e85d04','#d62828','#2ec4b6','#f59e0b','#ec4899'];
+
+// ── 앱 테마(메인색) 프리셋 ── 라이트/다크 각각 메인색(g)·rgb·보조색(g2)
+const THEME_PRESETS=[
+  {key:'violet',name:'바이올렛',sw:'#7c3aed',light:{g:'#7c3aed',rgb:'124,58,237',g2:'#6d28d9'},dark:{g:'#a855f7',rgb:'168,85,247',g2:'#7c3aed'}},
+  {key:'blue',name:'블루',sw:'#2563eb',light:{g:'#2563eb',rgb:'37,99,235',g2:'#1d4ed8'},dark:{g:'#60a5fa',rgb:'96,165,250',g2:'#3b82f6'}},
+  {key:'teal',name:'민트',sw:'#0d9488',light:{g:'#0d9488',rgb:'13,148,136',g2:'#0f766e'},dark:{g:'#2dd4bf',rgb:'45,212,191',g2:'#14b8a6'}},
+  {key:'rose',name:'로즈',sw:'#e11d63',light:{g:'#e11d63',rgb:'225,29,99',g2:'#be185d'},dark:{g:'#f472b6',rgb:'244,114,182',g2:'#ec4899'}},
+  {key:'orange',name:'오렌지',sw:'#ea580c',light:{g:'#ea580c',rgb:'234,88,12',g2:'#c2410c'},dark:{g:'#fb923c',rgb:'251,146,60',g2:'#f97316'}},
+  {key:'indigo',name:'인디고',sw:'#4f46e5',light:{g:'#4f46e5',rgb:'79,70,229',g2:'#4338ca'},dark:{g:'#818cf8',rgb:'129,140,248',g2:'#6366f1'}},
+];
+function _applyThemeObj(t){if(!t)return;var dark=document.documentElement.getAttribute('data-theme')==='dark';var c=dark?t.dark:t.light;if(!c)return;var s=document.documentElement.style;s.setProperty('--green',c.g);s.setProperty('--green-rgb',c.rgb);s.setProperty('--green2',c.g2);s.setProperty('--out-bubble',c.g);if(c.g3)s.setProperty('--green3',c.g3);}
+function _curThemeKey(){try{return localStorage.getItem('tt_theme_key')||'violet';}catch(e){return 'violet';}}
+window.reapplyThemeColor=function(){try{var raw=localStorage.getItem('tt_theme_color');if(raw)_applyThemeObj(JSON.parse(raw));}catch(e){}};
+function renderThemePicker(){var cur=_curThemeKey();var box=document.getElementById('theme-picker');if(!box)return;box.innerHTML=THEME_PRESETS.map(function(p){return '<div onclick="selectTheme(\''+p.key+'\')" title="'+p.name+'" style="width:44px;height:44px;border-radius:13px;background:'+p.sw+';cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;font-weight:900;border:2.5px solid '+(p.key===cur?'#fff':'transparent')+';box-shadow:'+(p.key===cur?'0 0 0 3px rgba(0,0,0,.2)':'0 2px 8px rgba(0,0,0,.12)')+';transition:all .2s;">'+(p.key===cur?'✓':'')+'</div>';}).join('');}
+window.selectTheme=function(key){var p=THEME_PRESETS.find(function(x){return x.key===key;});if(!p)return;var t={light:p.light,dark:p.dark};try{localStorage.setItem('tt_theme_color',JSON.stringify(t));localStorage.setItem('tt_theme_key',key);}catch(e){}_applyThemeObj(t);renderThemePicker();showToast('🎨 앱 색상이 바뀌었어요','ok');};
+window.resetThemeColor=function(){try{localStorage.removeItem('tt_theme_color');localStorage.removeItem('tt_theme_key');}catch(e){}var s=document.documentElement.style;['--green','--green-rgb','--green2','--out-bubble','--green3'].forEach(function(k){s.removeProperty(k);});renderThemePicker();showToast('기본 색으로 되돌렸어요','ok');};
+renderThemePicker();
 let currentUser=null, selectedColor=null, userProfile=null;
 // 테마
 {sessionStorage.removeItem('tt_theme');document.documentElement.dataset.theme='light';const b=document.getElementById('theme-btn');if(b)b.textContent='🌙';}
-window.toggleTheme=function(){const d=document.documentElement.dataset.theme==='dark',n=d?'light':'dark';document.documentElement.dataset.theme=n;const b=document.getElementById('theme-btn');if(b)b.textContent=n==='dark'?'☀️':'🌙';sessionStorage.setItem('tt_theme',n);};
+window.toggleTheme=function(){const d=document.documentElement.dataset.theme==='dark',n=d?'light':'dark';document.documentElement.dataset.theme=n;const b=document.getElementById('theme-btn');if(b)b.textContent=n==='dark'?'☀️':'🌙';sessionStorage.setItem('tt_theme',n);if(window.reapplyThemeColor)reapplyThemeColor();};
 
 await authPersistenceReady;
 onAuthStateChanged(auth, async user=>{
