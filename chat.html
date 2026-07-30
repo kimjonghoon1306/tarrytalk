@@ -775,9 +775,12 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
     <button class="sp-tab" id="spt-schedule" onclick="setSpaceTab('schedule')"><span class="sp-ico">📅</span>일정</button>
   </div>
   <div id="sp-chat" style="display:flex;flex-direction:column;flex:1;min-height:0;">
-    <div style="position:relative;padding:8px 8px 2px;">
-      <video id="omPromo" src="onmsg-promo.mp4" autoplay muted loop playsinline preload="auto" style="width:100%;max-height:170px;object-fit:cover;border-radius:14px;display:block;box-shadow:0 6px 18px rgba(109,40,217,.25);"></video>
-      <button onclick="var v=document.getElementById('omPromo');v.muted=!v.muted;this.textContent=v.muted?'🔇':'🔊';if(!v.muted){v.play()}" aria-label="소리" style="position:absolute;right:16px;bottom:10px;width:38px;height:38px;border-radius:50%;border:none;background:rgba(0,0,0,.55);color:#fff;font-size:16px;cursor:pointer;-webkit-tap-highlight-color:transparent;">🔇</button>
+    <div style="padding:6px 8px 0;">
+      <button onclick="var w=this.nextElementSibling,v=w.querySelector('video');if(!w.style.display||w.style.display==='none'){w.style.display='block';this.innerHTML='🎬 온메신저 소개 영상 닫기 ▴';v.play()}else{w.style.display='none';v.pause();this.innerHTML='🎬 온메신저 소개 영상 보기 ▾'}" style="width:100%;padding:9px;border:none;border-radius:12px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;font-weight:800;font-size:13px;cursor:pointer;-webkit-tap-highlight-color:transparent;">🎬 온메신저 소개 영상 보기 ▾</button>
+      <div style="display:none;position:relative;margin-top:6px;">
+        <video id="omPromo" src="onmsg-promo.mp4" muted loop playsinline preload="none" style="width:100%;max-height:190px;object-fit:cover;border-radius:14px;display:block;box-shadow:0 6px 18px rgba(109,40,217,.25);"></video>
+        <button onclick="var v=this.previousElementSibling;v.muted=!v.muted;this.textContent=v.muted?'🔇':'🔊';if(!v.muted){v.play()}" aria-label="소리" style="position:absolute;right:14px;bottom:10px;width:38px;height:38px;border-radius:50%;border:none;background:rgba(0,0,0,.55);color:#fff;font-size:16px;cursor:pointer;-webkit-tap-highlight-color:transparent;">🔇</button>
+      </div>
     </div>
     <div class="chat-start"><button class="new-btn" id="new-btn" onclick="openModal()">✏️ 채팅 만들기</button></div>
     <div class="sb-search"><input type="text" placeholder="이름이나 채팅방 찾기" oninput="filterRooms(this.value)" id="search-inp"></div>
@@ -1332,6 +1335,8 @@ function listenAds(){
     const next=Object.entries(data).map(([id,v])=>({id,...v}))
       .filter(ad=>ad.active===true&&(ad.text||ad.imageData)&&(!ad.startAt||now>=ad.startAt)&&(!ad.endAt||now<=ad.endAt))
       .sort(adSortFn);
+    // 온캐치 게임즈 기본 교차광고(핑크) — 항상 슬라이드에 포함
+    next.push({id:'oncatch-xad',active:true,text:'🎮 온캐치 게임즈 · 농산물 미니게임 무료로!',ctaLabel:'게임 하러가기',ctaLink:'https://game.xn--zk5biyyw.com',link:'https://game.xn--zk5biyyw.com',bg:'linear-gradient(135deg,#ec4899,#db2777)',priority:0,createdAt:0});
     const prevKey=activeAds.map(a=>a.id).join('|');
     const nextKey=next.map(a=>a.id).join('|');
     const listChanged=prevKey!==nextKey;
@@ -1402,6 +1407,7 @@ function renderAdBanner(){
   link.removeAttribute('href');
   link.style.pointerEvents=getAdClickUrl(ad,'banner')?'auto':'none';
   if(ad.ctaLabel&&ad.ctaLink){cta.textContent=ad.ctaLabel;cta.classList.add('show');}else{cta.textContent='';cta.classList.remove('show');}
+  banner.style.background=ad.bg||'';
   banner.classList.add('show');
   trackAdView(ad.id);
 }
@@ -1421,6 +1427,7 @@ function renderHeroAd(){
   if(ad.ctaLabel&&ad.ctaLink){cta.textContent=(ad.ctaLabel||'자세히 보기')+' →';cta.classList.add('show');}else if(ad.link){cta.textContent='자세히 보기 →';cta.classList.add('show');}else{cta.textContent='';cta.classList.remove('show');}
   dots.innerHTML=activeAds.length>1?activeAds.map((_,i)=>`<span class="empty-ad-dot${i===heroAdIndex%activeAds.length?' on':''}"></span>`).join(''):'';
   box.dataset.adId=ad.id;
+  box.style.background=ad.bg||'';
   box.classList.add('show');
   empty?.classList.add('has-hero-ad');
   trackAdView(ad.id);
