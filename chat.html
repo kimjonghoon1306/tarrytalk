@@ -775,6 +775,10 @@ button:active,.ib:active,.fb:active,.sp-tab:active,.r-item:active,.reaction:acti
     <button class="sp-tab" id="spt-schedule" onclick="setSpaceTab('schedule')"><span class="sp-ico">📅</span>일정</button>
   </div>
   <div id="sp-chat" style="display:flex;flex-direction:column;flex:1;min-height:0;">
+    <div style="position:relative;padding:8px 8px 2px;">
+      <video id="omPromo" src="onmsg-promo.mp4" autoplay muted loop playsinline preload="auto" style="width:100%;max-height:170px;object-fit:cover;border-radius:14px;display:block;box-shadow:0 6px 18px rgba(109,40,217,.25);"></video>
+      <button onclick="var v=document.getElementById('omPromo');v.muted=!v.muted;this.textContent=v.muted?'🔇':'🔊';if(!v.muted){v.play()}" aria-label="소리" style="position:absolute;right:16px;bottom:10px;width:38px;height:38px;border-radius:50%;border:none;background:rgba(0,0,0,.55);color:#fff;font-size:16px;cursor:pointer;-webkit-tap-highlight-color:transparent;">🔇</button>
+    </div>
     <div class="chat-start"><button class="new-btn" id="new-btn" onclick="openModal()">✏️ 채팅 만들기</button></div>
     <div class="sb-search"><input type="text" placeholder="이름이나 채팅방 찾기" oninput="filterRooms(this.value)" id="search-inp"></div>
     <div class="sb-tabs"><div class="sbt on" id="tab-g" onclick="setTab('group')">단체 채팅</div><div class="sbt" id="tab-d" onclick="setTab('dm')">개인 채팅</div></div>
