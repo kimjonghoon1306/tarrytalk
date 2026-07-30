@@ -1336,7 +1336,7 @@ function listenAds(){
       .filter(ad=>ad.active===true&&(ad.text||ad.imageData)&&(!ad.startAt||now>=ad.startAt)&&(!ad.endAt||now<=ad.endAt))
       .sort(adSortFn);
     // 온캐치 게임즈 기본 교차광고(핑크) — 항상 슬라이드에 포함
-    next.push({id:'oncatch-xad',active:true,text:'🎮 온캐치 게임즈 · 농산물 미니게임 무료로!',ctaLabel:'게임 하러가기',ctaLink:'https://game.xn--zk5biyyw.com',link:'https://game.xn--zk5biyyw.com',bg:'linear-gradient(135deg,#ec4899,#db2777)',priority:0,createdAt:0});
+    next.push({id:'oncatch-xad',active:true,text:'⚔️ 3D 액션RPG · 슈팅 · 미니게임 전부 무료! 지금 바로 플레이',ctaLabel:'무료로 플레이 ▶',ctaLink:'https://game.xn--zk5biyyw.com',link:'https://game.xn--zk5biyyw.com',imageData:'https://game.xn--zk5biyyw.com/heroes/cut/knight_m_v2.png',bg:'linear-gradient(135deg,#ec4899,#db2777)',priority:0,createdAt:0});
     const prevKey=activeAds.map(a=>a.id).join('|');
     const nextKey=next.map(a=>a.id).join('|');
     const listChanged=prevKey!==nextKey;
