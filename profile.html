@@ -278,6 +278,16 @@ button:active,.section:active,.info-row:active{transform:scale(.98);}
     <div class="field-hint" style="margin-top:10px">앱을 켜둔 동안 울리는 새 메시지 알림음이에요. ▶로 미리 듣고 고르면 바로 저장됩니다. (앱이 꺼져 있을 땐 휴대폰 알림 설정의 소리·진동이 울려요)</div>
   </div>
 
+  <!-- 화면 방향 -->
+  <div class="section" id="orientation-section">
+    <div class="sec-title">화면 방향</div>
+    <div id="orientation-options" style="display:flex;gap:10px;">
+      <button class="secondary-btn" id="orientation-portrait" onclick="selectOrientation('portrait')">📱 세로 고정 (기본)</button>
+      <button class="secondary-btn" id="orientation-landscape" onclick="selectOrientation('landscape')">↔️ 가로 사용</button>
+    </div>
+    <div class="field-hint" id="orientation-hint" style="margin-top:10px">휴대폰은 세로가 기본이며, 가로 사용을 직접 선택했을 때만 가로로 바뀌어요.</div>
+  </div>
+
   <!-- 기타 -->
   <div class="section">
     <div class="sec-title">기타</div>
@@ -389,6 +399,30 @@ window.selectSound=function(k){
 };
 window.previewSound=function(k){_playSound(k);};
 renderSounds();
+
+function renderOrientation(){
+  const mode=window.getAppOrientation?window.getAppOrientation():'portrait';
+  const portrait=document.getElementById('orientation-portrait');
+  const landscape=document.getElementById('orientation-landscape');
+  const hint=document.getElementById('orientation-hint');
+  if(mode==='auto'){
+    portrait.disabled=true;landscape.disabled=true;
+    hint.textContent='태블릿은 가로·세로 자유 회전을 사용해요.';
+    return;
+  }
+  portrait.disabled=false;landscape.disabled=false;
+  portrait.style.borderColor=mode==='portrait'?'var(--green)':'';
+  portrait.style.color=mode==='portrait'?'var(--green)':'';
+  landscape.style.borderColor=mode==='landscape'?'var(--green)':'';
+  landscape.style.color=mode==='landscape'?'var(--green)':'';
+}
+window.selectOrientation=async function(mode){
+  if(window.setAppOrientation)await window.setAppOrientation(mode);
+  renderOrientation();
+  showToast(mode==='landscape'?'↔️ 가로 사용으로 설정했어요':'📱 세로 고정으로 설정했어요','ok');
+};
+window.addEventListener('apporientationchange',renderOrientation);
+renderOrientation();
 
 function renderProfile(){
   const name=userProfile.displayName||currentUser.displayName||'사용자';
