@@ -10,7 +10,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="온메신저">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>온메신저</title>
 <meta name="description" content="온메신저 — 우리들의 모임, 하나로 연결. 실시간 채팅·단톡·일정·공지까지 소모임을 한 곳에서.">
 <meta property="og:type" content="website">
@@ -23,6 +23,10 @@
 <meta name="twitter:title" content="온메신저 — 우리들의 모임, 하나로 연결">
 <meta name="twitter:image" content="https://talk.xn--zk5biyyw.com/og.png">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script>
+/* 저장된 앱 테마색을 로그인 화면에도 적용 (index는 --accent 변수 구조) */
+(function(){function okHex(v){return typeof v==='string'&&/^#[0-9a-fA-F]{6}$/.test(v);}function okRgb(v){if(typeof v!=='string'||!/^([0-9]{1,3},){2}[0-9]{1,3}$/.test(v))return false;return v.split(',').every(function(n){n=Number(n);return n>=0&&n<=255;});}try{var raw=localStorage.getItem('tt_theme_color');if(!raw)return;var t=JSON.parse(raw);var dark=document.documentElement.getAttribute('data-theme')==='dark';var c=dark?t.dark:t.light;if(!c||!okHex(c.g)||!okRgb(c.rgb)||!okHex(c.g2))return;var s=document.documentElement.style;s.setProperty('--accent',c.g);s.setProperty('--accent2',c.g2);s.setProperty('--green',c.g);s.setProperty('--green-rgb',c.rgb);s.setProperty('--green2',c.g2);}catch(e){}})();
+</script>
 <style>
 :root[data-theme="light"]{
   --bg:#f5f3ff;--bg2:#fff;--surface:#faf8ff;--border:rgba(124,58,237,.12);
@@ -149,7 +153,21 @@ body::after{content:'';position:fixed;width:500px;height:500px;
 #boot-gate{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#c084fc 0%,#7c3aed 45%,#6d28d9 100%);display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
 [data-theme="dark"] #boot-gate{background:linear-gradient(135deg,#1a1622 0%,#221c2e 50%,#312642 100%);}
 #boot-gate.show{display:flex;}
+/* 폰 가로 회전 방지 (태블릿/PC는 가로 높이 넉넉해 제외) */
+#rotateGuard{display:none;}
+@keyframes rgTilt{0%,100%{transform:rotate(-13deg)}50%{transform:rotate(13deg)}}
+@media (orientation:landscape) and (max-height:500px){
+  #rotateGuard{position:fixed;inset:0;z-index:100000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:24px;color:#fff;background:linear-gradient(150deg,#1a1226,#3a2a5c 55%,#221c2e);}
+  body>*:not(#rotateGuard){display:none!important;}
+}
 </style>
+<div id="rotateGuard">
+  <svg width="70" height="70" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="animation:rgTilt 2.4s ease-in-out infinite;transform-origin:center;">
+    <rect x="7" y="2" width="10" height="20" rx="2.5"/><line x1="11.5" y1="18.5" x2="12.5" y2="18.5"/>
+  </svg>
+  <div style="font-size:20px;font-weight:900;">화면을 세로로 돌려주세요</div>
+  <div style="font-size:13.5px;opacity:.82;line-height:1.65;">온메신저는 세로 화면에 맞춰져 있어요.<br>휴대폰을 세로로 세워 주세요 🙂</div>
+</div>
 <div id="boot-gate"><div class="spinner"></div><div style="color:#fff;font-weight:800;font-size:14px;">온메신저 여는 중…</div></div>
 
 <div class="loading-overlay" id="loading-overlay">
@@ -165,6 +183,13 @@ body::after{content:'';position:fixed;width:500px;height:500px;
     <div class="logo-icon"><svg viewBox="0 0 512 512" width="46" height="46" aria-hidden="true"><path d="M120 168c0-39.8 32.2-72 72-72h128c39.8 0 72 32.2 72 72v96c0 39.8-32.2 72-72 72h-44l-58 64V336h-26c-39.8 0-72-32.2-72-72v-96z" fill="#fff"/><text x="256" y="224" font-family="Arial,sans-serif" font-size="120" font-weight="900" fill="#7c3aed" text-anchor="middle" dominant-baseline="middle" letter-spacing="2">ON</text></svg></div>
     <h1>온메신저</h1>
     <p>친구들과 언제 어디서나 연결되세요</p>
+  </div>
+
+  <div class="promo-video" style="position:relative;margin:0 0 18px;border-radius:16px;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.22);background:#000;line-height:0;">
+    <video id="loginPromo" src="onmsg-promo.mp4" autoplay muted loop playsinline preload="auto" style="display:block;width:100%;height:auto;"></video>
+    <button type="button" id="loginPromoMute" aria-label="소리 켜기"
+      onclick="var v=document.getElementById('loginPromo');v.muted=!v.muted;if(!v.muted){try{v.play()}catch(e){}}this.textContent=v.muted?'🔇':'🔊';this.setAttribute('aria-label',v.muted?'소리 켜기':'소리 끄기');"
+      style="position:absolute;right:9px;bottom:9px;width:38px;height:38px;border-radius:50%;border:none;background:rgba(0,0,0,.55);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);">🔇</button>
   </div>
 
   <div class="tabs">
