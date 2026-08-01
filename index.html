@@ -153,21 +153,7 @@ body::after{content:'';position:fixed;width:500px;height:500px;
 #boot-gate{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#c084fc 0%,#7c3aed 45%,#6d28d9 100%);display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
 [data-theme="dark"] #boot-gate{background:linear-gradient(135deg,#1a1622 0%,#221c2e 50%,#312642 100%);}
 #boot-gate.show{display:flex;}
-/* 폰 가로 회전 방지 (태블릿/PC는 가로 높이 넉넉해 제외) */
-#rotateGuard{display:none;}
-@keyframes rgTilt{0%,100%{transform:rotate(-13deg)}50%{transform:rotate(13deg)}}
-@media (orientation:landscape) and (max-height:500px){
-  #rotateGuard{position:fixed;inset:0;z-index:100000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:24px;color:#fff;background:linear-gradient(150deg,#1a1226,#3a2a5c 55%,#221c2e);}
-  body>*:not(#rotateGuard){display:none!important;}
-}
 </style>
-<div id="rotateGuard">
-  <svg width="70" height="70" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="animation:rgTilt 2.4s ease-in-out infinite;transform-origin:center;">
-    <rect x="7" y="2" width="10" height="20" rx="2.5"/><line x1="11.5" y1="18.5" x2="12.5" y2="18.5"/>
-  </svg>
-  <div style="font-size:20px;font-weight:900;">화면을 세로로 돌려주세요</div>
-  <div style="font-size:13.5px;opacity:.82;line-height:1.65;">온메신저는 세로 화면에 맞춰져 있어요.<br>휴대폰을 세로로 세워 주세요 🙂</div>
-</div>
 <div id="boot-gate"><div class="spinner"></div><div style="color:#fff;font-weight:800;font-size:14px;">온메신저 여는 중…</div></div>
 
 <div class="loading-overlay" id="loading-overlay">
